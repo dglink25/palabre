@@ -12,8 +12,17 @@ function hashToken(token) {
 }
 
 function signAccessToken(user, session) {
+  // `org` = organisation active de l'utilisateur, nécessaire pour le
+  // service de présence et le message router (multi-tenant).
+  // On le résout au moment de la création de session via getMembershipOrgId.
   return jwt.sign(
-    { sub: user.id, sid: session.id, did: session.device_id, twoFa: session.two_factor_passed },
+    {
+      sub:   user.id,
+      sid:   session.id,
+      did:   session.device_id,
+      twoFa: session.two_factor_passed,
+      org:   session.org_id || null,   // ajouté par createSession
+    },
     process.env.JWT_ACCESS_SECRET,
     { expiresIn: ACCESS_TTL }
   );
@@ -39,13 +48,22 @@ async function createSession({ user, deviceId, ip, userAgent, twoFactorPassed })
   const familyId = uuidv4();
   const expiresAt = new Date(Date.now() + REFRESH_TTL_DAYS * 24 * 3600 * 1000);
 
+  // Résoudre l'organisation active de l'utilisateur pour l'inclure dans le JWT
+  const orgResult = await pool.query(
+    `SELECT m.organization_id FROM memberships m
+     WHERE m.user_id = $1 AND m.status = 'active'
+     ORDER BY m.created_at ASC LIMIT 1`,
+    [user.id]
+  );
+  const orgId = orgResult.rows[0]?.organization_id || null;
+
   const { rows } = await pool.query(
     `INSERT INTO sessions
        (user_id, device_id, refresh_token_hash, refresh_family_id, ip_address, user_agent, two_factor_passed, expires_at)
      VALUES ($1,$2,'',$3,$4,$5,$6,$7) RETURNING *`,
     [user.id, deviceId, familyId, ip, userAgent, !!twoFactorPassed, expiresAt]
   );
-  const session = rows[0];
+  const session = { ...rows[0], org_id: orgId };
 
   const refreshToken = signRefreshToken(session);
   await pool.query('UPDATE sessions SET refresh_token_hash = $1 WHERE id = $2', [hashToken(refreshToken), session.id]);
