@@ -161,7 +161,57 @@ services:
       timeout: 5s
       retries: 5
 
+  file-server:
+    build:
+      context: ../services/file-server
+      dockerfile: Dockerfile
+    container_name: palabre-file-server
+    profiles: ["file-server", "realtime", "all"]
+    environment:
+      FILE_SERVER_PORT: "4030"
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change_me_access_secret}
+      FILE_SERVER_PUBLIC_URL: ${FILE_SERVER_PUBLIC_URL:-http://localhost:4030}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-*}
+    ports:
+      - "4030:4030"
+    volumes:
+      - palabre_media_storage:/data/storage
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4030/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  call-signal:
+    build:
+      context: ../services/call-signal
+      dockerfile: Dockerfile
+    container_name: palabre-call-signal
+    profiles: ["call-signal", "realtime", "all"]
+    environment:
+      CALL_SIGNAL_PORT: "4040"
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change_me_access_secret}
+      MEDIASOUP_URL: http://mediasoup:3478
+      MESSAGE_ROUTER_URL: http://message-router:4020
+      INTERNAL_SERVICES_SECRET: ${INTERNAL_SERVICES_SECRET:-dev_internal_secret}
+      PUBLIC_HOST: ${PUBLIC_HOST:-localhost}
+      PHOENIX_SECRET_KEY_BASE: ${PHOENIX_SECRET_KEY_BASE:-palabre_dev_secret_key_base_change_in_prod_must_be_64_chars_minimum_xxxxx}
+      RELEASE_COOKIE: ${ERLANG_COOKIE:-palabre_erlang_cookie}
+    ports:
+      - "4040:4040"
+    depends_on:
+      message-router:
+        condition: service_healthy
+      mediasoup:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4040/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   palabre_postgres_data:
   palabre_uploads:
   palabre_mnesia_data:
+  palabre_media_storage:
