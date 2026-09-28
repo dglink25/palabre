@@ -2,6 +2,8 @@ const express = require('express');
 const rateLimit = require('express-rate-limit');
 const onboardingService = require('./onboarding.service');
 const authService = require('../auth/auth.service');
+const otpService = require('../auth/otp.service');
+const emailService = require('../auth/email.service');
 const { requireAuth, requireTwoFactorIfEnabled } = require('../../middleware/authMiddleware');
 const { requireSuperAdmin } = require('../../middleware/rbac');
 const writeConfirmationService = require('../security/writeConfirmation.service');
@@ -232,12 +234,93 @@ router.patch('/requests/:id/correct', publicLimiter, async (req, res, next) => {
  *       401: { description: Code invalide }
  *       410: { description: Code expiré }
  */
+/**
+ * @openapi
+ * /onboarding/invitations/send-otp:
+ *   post:
+ *     tags: [Onboarding]
+ *     summary: Envoie un OTP pour la liaison du moyen de connexion (téléphone ou email).
+ */
+router.post('/invitations/send-otp', publicLimiter, async (req, res, next) => {
+  try {
+    const { activationToken, method } = req.body;
+    if (!activationToken || !['phone', 'email'].includes(method)) {
+      return res.status(400).json({ error: { code: 'MISSING_FIELDS', message: 'activationToken et method (phone|email) requis.' } });
+    }
+
+    // Décoder le token sans vérifier la signature complète pour obtenir userId
+    const jwt = require('jsonwebtoken');
+    const secret = process.env.SUPER_ADMIN_STEP_SECRET || `${process.env.JWT_ACCESS_SECRET}_activation`;
+    let payload;
+    try { payload = jwt.verify(activationToken, secret); }
+    catch { return res.status(401).json({ error: { code: 'ACTIVATION_TOKEN_INVALID', message: 'Token invalide.' } }); }
+
+    const { pool } = require('../../config/db');
+    const userResult = await pool.query('SELECT phone_e164, email FROM users WHERE id = $1', [payload.userId]);
+    const user = userResult.rows[0];
+    if (!user) return res.status(404).json({ error: { code: 'USER_NOT_FOUND', message: 'Utilisateur introuvable.' } });
+
+    if (method === 'phone') {
+      if (!user.phone_e164) return res.status(400).json({ error: { code: 'NO_PHONE', message: 'Aucun telephone associe a ce compte.' } });
+      await otpService.sendOtp(user.phone_e164, 'login');
+      res.json({ ok: true, hint: `${'*'.repeat(user.phone_e164.length - 2)}${user.phone_e164.slice(-2)}` });
+    } else {
+      if (!user.email) return res.status(400).json({ error: { code: 'NO_EMAIL', message: 'Aucun email associe a ce compte.' } });
+      await emailService.sendVerification(user.email, 'link');
+      const parts = user.email.split('@');
+      const hint = `${'*'.repeat(Math.max(1, parts[0].length - 2))}${parts[0].slice(-2)}@${parts[1]}`;
+      res.json({ ok: true, hint });
+    }
+  } catch (err) { next(err); }
+});
+
 router.post('/invitations/activate', publicLimiter, async (req, res, next) => {
   try {
-    const { organizationId, code, deviceFingerprint, platform, model } = req.body;
-    const { user, deviceRow } = await onboardingService.activateInvitation({
-      organizationId,
-      code,
+    const { organizationId, code } = req.body;
+    if (!organizationId || !code) {
+      return res.status(400).json({ error: { code: 'MISSING_FIELDS', message: 'organizationId et code sont requis.' } });
+    }
+    const result = await onboardingService.activateInvitation({ organizationId, code });
+    res.json(result);
+  } catch (err) { next(err); }
+});
+
+/**
+ * @openapi
+ * /onboarding/invitations/link:
+ *   post:
+ *     tags: [Onboarding]
+ *     summary: >
+ *       Étape 2 de l'activation : vérifie le moyen de connexion (téléphone OTP, email OTP ou Google)
+ *       et ouvre la session si valide.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [activationToken, method, deviceFingerprint]
+ *             properties:
+ *               activationToken: { type: string }
+ *               method: { type: string, enum: [phone, email, google] }
+ *               credential:
+ *                 type: object
+ *                 description: "{ code } pour phone/email, { idToken } pour google"
+ *               deviceFingerprint: { type: string }
+ *     responses:
+ *       200: { description: Session ouverte }
+ *       401: { description: Code incorrect, token expiré, ou moyen de connexion non correspondant }
+ */
+router.post('/invitations/link', publicLimiter, async (req, res, next) => {
+  try {
+    const { activationToken, method, credential, deviceFingerprint, platform, model } = req.body;
+    if (!activationToken || !method) {
+      return res.status(400).json({ error: { code: 'MISSING_FIELDS', message: 'activationToken et method sont requis.' } });
+    }
+    const { user, deviceRow } = await onboardingService.linkActivationMethod({
+      activationToken,
+      method,
+      credential: credential || {},
       device: { deviceFingerprint, platform, model },
     });
     const result = await authService.issueSessionForUser({ user, deviceRow, ip: req.ip, userAgent: req.headers['user-agent'] });

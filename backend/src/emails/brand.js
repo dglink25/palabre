@@ -105,8 +105,8 @@ function wrapEmail({ title, preheader = '', bodyHtml, accent = 'primary' }) {
           <tr>
             <td style="border-top:1px solid ${COLORS.border}; padding:20px 32px;">
               <p style="margin:0; font-family:${FONT_STACK}; font-size:12px; line-height:1.5; color:${COLORS.textSecondary};">
-                Cet e-mail vous a été envoyé automatiquement par Palabre, votre plateforme de communication d'entreprise.
-                Si vous n'êtes pas à l'origine de cette action, ignorez ce message ou contactez le support.
+                Cet e-mail est envoye automatiquement par Palabre.
+                Si vous n'etes pas a l'origine de cette action, ignorez ce message.
               </p>
             </td>
           </tr>

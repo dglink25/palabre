@@ -1,21 +1,5 @@
 #!/usr/bin/env bash
-#
-# palabre.sh - commande unique, à la racine du projet, pour démarrer,
-# arrêter ou reconstruire précisément un module de la plateforme (ou
-# l'ensemble). Le fichier d'orchestration vit dans docker/, à côté des
-# dossiers backend/, frontend/, ai/, asterisk/, mediasoup/, wireguard/.
-#
-# Usage :
-#   ./palabre.sh start   <module|all>
-#   ./palabre.sh stop    <module|all>
-#   ./palabre.sh restart <module|all>
-#   ./palabre.sh logs    <module>
-#   ./palabre.sh status
-#
-# Modules disponibles : postgres, redis, backend, frontend-web, mediasoup,
-#                        asterisk, ai, wireguard
-# Groupes disponibles : core (postgres+redis+backend), telephony (mediasoup+asterisk), all
-#
+
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

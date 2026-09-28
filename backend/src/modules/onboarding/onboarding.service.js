@@ -171,26 +171,24 @@ async function submitRequest(id, draftToken) {
   const orgName = (updated.step1_organization && updated.step1_organization.name) || 'votre organisation';
 
   if (leaderEmail) {
-    sendMail({
+    await sendMail({
       to: leaderEmail,
-      subject: 'Palabre - Demande d inscription recue',
-      text: `Demande d inscription pour ${orgName} bien recue.\n\nSuivi de votre dossier : ${statusLink}`,
+      subject: 'Palabre - Demande recue',
+      text: `Dossier ${orgName} recu. Suivi : ${statusLink}`,
       html: wrapEmail({
-        title: 'Demande bien recue',
-        preheader: `Demande ${orgName} - en cours d instruction`,
+        title: 'Demande recue',
+        preheader: `Dossier ${orgName} en cours d instruction`,
         accent: 'primary',
         bodyHtml: `
-          <p style="margin:0 0 8px 0;">Bonjour,</p>
-          <p style="margin:0 0 16px 0;">Votre demande d inscription pour <strong>${orgName}</strong> a bien ete recue et va etre instruite par le super-administrateur de Palabre.</p>
-          <p style="margin:0 0 8px 0;">Pour suivre son etat a tout moment :</p>
-          ${button({ url: statusLink, label: 'Acceder a ma demande', accent: 'primary' })}
+          <p style="margin:0 0 16px 0;">Dossier <strong>${orgName}</strong> recu et en cours d instruction.</p>
+          ${button({ url: statusLink, label: 'Suivre mon dossier', accent: 'primary' })}
         `,
       }),
     }).catch((e) => console.error('[onboarding] echec e-mail de confirmation', e.message));
   }
   if (leaderPhone) {
-    convessaSend(leaderPhone, `*Palabre - Demande reçue*\n\nVotre demande d'inscription pour *${orgName}* a bien été reçue et va être instruite.\n\nSuivi de votre dossier : ${statusLink}`)
-      .catch((e) => console.error('[onboarding] échec WhatsApp de confirmation', e.message));
+    convessaSend(leaderPhone, `Palabre - Dossier recu\n\n${orgName} en cours d instruction.\n\nSuivi : ${statusLink}`)
+      .catch((e) => console.error('[onboarding] echec WhatsApp de confirmation', e.message));
   }
 
   return updated;
@@ -475,31 +473,29 @@ async function approveRequest(id, reviewerId) {
     await client.query('COMMIT');
 
     // Notifications best-effort (ne doivent pas faire échouer l'approbation
-    // si l'envoi rate) : e-mail HTML de marque + WhatsApp si un numéro est disponible.
+    // si l'envoi rate) : e-mail HTML de marque + WhatsApp si un numero est disponible.
     if (leader.email) {
       const html = wrapEmail({
-        title: 'Organisation approuvee',
-        preheader: `${org.name} approuvee sur Palabre`,
+        title: 'Compte administrateur pret',
+        preheader: `${org.name} - activation requise`,
         accent: 'success',
         bodyHtml: `
-          <p style="margin:0 0 8px 0;">Bonjour,</p>
-          <p style="margin:0 0 16px 0;">Votre dossier <strong>${org.name}</strong> a ete approuve. Votre compte administrateur est pret.</p>
-          ${calloutBox({ label: 'Identifiant de votre organisation', value: organization.id, accent: 'success' })}
-          ${calloutBox({ label: 'Code d activation (premiere connexion)', value: invitationCode, accent: 'success' })}
-          <p style="margin:16px 0 4px 0; font-size:13px; color:#5F6368;">Conservez ces deux informations : elles sont toutes les deux necessaires pour activer votre compte administrateur.</p>
-          <p style="margin:0 0 0 0; color:#5F6368; font-size:13px;">Le code expire dans ${INVITATION_TTL_HOURS} heures.</p>
+          <p style="margin:0 0 16px 0;">Dossier <strong>${org.name}</strong> valide. Votre compte administrateur est pret.</p>
+          ${calloutBox({ label: 'Identifiant organisation', value: organization.id, accent: 'success' })}
+          ${calloutBox({ label: 'Code activation', value: invitationCode, accent: 'success' })}
+          <p style="margin:16px 0 0 0; color:#5F6368; font-size:13px;">Ces deux informations sont requises pour activer votre compte. Code valable ${INVITATION_TTL_HOURS}h.</p>
         `,
       });
-      sendMail({
+      await sendMail({
         to: leader.email,
-        subject: 'Palabre - Organisation approuvee',
-        text: `Organisation ${org.name} approuvee.\n\nIdentifiant : ${organization.id}\nCode d activation (premiere connexion) : ${invitationCode}\n\nCe code expire dans ${INVITATION_TTL_HOURS}h.`,
+        subject: 'Palabre - Compte administrateur active',
+        text: `Identifiant : ${organization.id}\nCode : ${invitationCode}\nExpire dans ${INVITATION_TTL_HOURS}h.`,
         html,
       }).catch((e) => console.error('[onboarding] echec e-mail activation', e.message));
     }
     if (leader.phone) {
-      const whatsappText = `*Palabre - Organisation approuvée*\n\nVotre organisation *${org.name}* est approuvée. Votre compte administrateur est prêt.\n\n*Identifiant de votre organisation :*\n${organization.id}\n\n*Code d'activation (première connexion) :*\n${invitationCode}\n\nConservez ces deux informations : elles sont toutes les deux nécessaires pour activer votre compte sur l'application Palabre.\nLe code expire dans ${INVITATION_TTL_HOURS} heures.`;
-      convessaSend(leader.phone, whatsappText).catch((e) => console.error('[onboarding] échec WhatsApp activation', e.message));
+      const whatsappText = `Palabre - Compte admin approuve\n\nOrganisation : ${org.name}\nIdentifiant : ${organization.id}\nCode activation : ${invitationCode}\nExpire dans ${INVITATION_TTL_HOURS}h.`;
+      convessaSend(leader.phone, whatsappText).catch((e) => console.error('[onboarding] echec WhatsApp activation', e.message));
     }
 
     await writeAudit({
@@ -532,25 +528,31 @@ async function approveRequest(id, reviewerId) {
 }
 
 /**
- * Première connexion de l'administrateur nouvellement créé : consomme le
- * code d'activation puis ouvre une session, comme un login classique.
+ * Étape 1 de l'activation : valide le code d'invitation et retourne un
+ * `activationToken` signé (TTL 10 min) contenant les informations masquées
+ * du compte (téléphone et email partiellement cachés).
+ *
+ * L'administrateur DOIT ensuite lier son moyen de connexion via
+ * `linkActivationMethod` — aucune session n'est émise ici.
  */
-async function activateInvitation({ organizationId, code, device }) {
+async function activateInvitation({ organizationId, code }) {
   const { rows } = await pool.query(
-    `SELECT * FROM org_admin_invitations
-     WHERE organization_id = $1 AND consumed_at IS NULL
-     ORDER BY created_at DESC LIMIT 1`,
+    `SELECT i.*, u.phone_e164, u.email, u.full_name, u.id as user_id
+     FROM org_admin_invitations i
+     JOIN users u ON u.id = i.user_id
+     WHERE i.organization_id = $1 AND i.consumed_at IS NULL
+     ORDER BY i.created_at DESC LIMIT 1`,
     [organizationId]
   );
   const invitation = rows[0];
   if (!invitation) {
-    const err = new Error('Invitation introuvable ou déjà utilisée.');
+    const err = new Error('Invitation introuvable ou deja utilisee.');
     err.code = 'INVITATION_NOT_FOUND';
     err.httpStatus = 404;
     throw err;
   }
   if (new Date(invitation.expires_at) < new Date()) {
-    const err = new Error('Ce code d\'activation a expiré.');
+    const err = new Error('Ce code d\'activation a expire.');
     err.code = 'INVITATION_EXPIRED';
     err.httpStatus = 410;
     throw err;
@@ -562,13 +564,138 @@ async function activateInvitation({ organizationId, code, device }) {
     throw err;
   }
 
-  await pool.query('UPDATE org_admin_invitations SET consumed_at = now() WHERE id = $1', [invitation.id]);
-  const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [invitation.user_id]);
+  // NE PAS consommer l'invitation ici — elle sera consommée quand le moyen
+  // de connexion aura été vérifié avec succès dans linkActivationMethod.
+  // Cela évite qu'un attaquant valide le code mais n'aille pas au bout.
+
+  const jwt = require('jsonwebtoken');
+  const secret = process.env.SUPER_ADMIN_STEP_SECRET || `${process.env.JWT_ACCESS_SECRET}_activation`;
+
+  // Masquer téléphone et email (afficher uniquement les 2 derniers chiffres/caractères)
+  const phone = invitation.phone_e164 || '';
+  const email = invitation.email || '';
+  const phoneMask = phone.length > 2 ? `${'*'.repeat(phone.length - 2)}${phone.slice(-2)}` : '**';
+  const emailParts = email.split('@');
+  const emailMask = email
+    ? `${'*'.repeat(Math.max(1, emailParts[0].length - 2))}${emailParts[0].slice(-2)}@${emailParts[1] || ''}`
+    : '';
+
+  const activationToken = jwt.sign(
+    {
+      purpose:        'org_admin_activation',
+      invitationId:   invitation.id,
+      userId:         invitation.user_id,
+      organizationId,
+    },
+    secret,
+    { expiresIn: '10m' }
+  );
+
+  return {
+    activationToken,
+    organizationId,
+    phoneHint:  phoneMask,
+    emailHint:  emailMask,
+    hasPhone:   !!phone,
+    hasEmail:   !!email,
+    fullName:   invitation.full_name,
+  };
+}
+
+/**
+ * Étape 2 de l'activation : vérifie le moyen de connexion choisi par
+ * l'administrateur (téléphone OTP, email OTP, ou Google Firebase).
+ *
+ * Règle de sécurité : le moyen doit correspondre aux données du dossier
+ * (même numéro de téléphone ou même email).
+ *
+ * Si valide : consomme l'invitation et ouvre la session.
+ */
+async function linkActivationMethod({ activationToken, method, credential, device }) {
+  const jwt = require('jsonwebtoken');
+  const secret = process.env.SUPER_ADMIN_STEP_SECRET || `${process.env.JWT_ACCESS_SECRET}_activation`;
+
+  let payload;
+  try {
+    payload = jwt.verify(activationToken, secret);
+  } catch {
+    const err = new Error('Token d\'activation invalide ou expire. Recommencez.');
+    err.code = 'ACTIVATION_TOKEN_INVALID';
+    err.httpStatus = 401;
+    throw err;
+  }
+  if (payload.purpose !== 'org_admin_activation') {
+    const err = new Error('Token invalide.');
+    err.code = 'ACTIVATION_TOKEN_INVALID';
+    err.httpStatus = 401;
+    throw err;
+  }
+
+  // Vérifier que l'invitation n'a pas été consommée entre-temps
+  const { rows: invRows } = await pool.query(
+    'SELECT * FROM org_admin_invitations WHERE id = $1 AND consumed_at IS NULL',
+    [payload.invitationId]
+  );
+  if (!invRows[0]) {
+    const err = new Error('Invitation deja utilisee ou expiree.');
+    err.code = 'INVITATION_NOT_FOUND';
+    err.httpStatus = 404;
+    throw err;
+  }
+
+  const { rows: userRows } = await pool.query('SELECT * FROM users WHERE id = $1', [payload.userId]);
+  const user = userRows[0];
+  if (!user) {
+    const err = new Error('Utilisateur introuvable.');
+    err.code = 'USER_NOT_FOUND';
+    err.httpStatus = 404;
+    throw err;
+  }
+
+  if (method === 'phone') {
+    // Vérifier que le numéro correspond au compte
+    const otpService = require('../auth/otp.service');
+    await otpService.verifyOtp(user.phone_e164, 'login', credential.code);
+    if (credential.phone && credential.phone !== user.phone_e164) {
+      const err = new Error('Ce numero ne correspond pas au numero enregistre pour ce compte.');
+      err.code = 'PHONE_MISMATCH';
+      err.httpStatus = 401;
+      throw err;
+    }
+
+  } else if (method === 'email') {
+    const emailService = require('../auth/email.service');
+    await emailService.verifyCode(user.email, 'link', credential.code);
+
+  } else if (method === 'google') {
+    const { verifyFirebaseIdToken } = require('../../config/firebase');
+    const identity = await verifyFirebaseIdToken(credential.idToken);
+    if (identity.email.toLowerCase() !== (user.email || '').toLowerCase()) {
+      const err = new Error('Ce compte Google ne correspond pas a l\'email enregistre pour cette organisation.');
+      err.code = 'EMAIL_MISMATCH';
+      err.httpStatus = 401;
+      throw err;
+    }
+    // Lier le compte Google s'il ne l'est pas encore
+    await pool.query(
+      `INSERT INTO oauth_accounts (user_id, provider, provider_uid, provider_email)
+       VALUES ($1,'google',$2,$3) ON CONFLICT (provider, provider_uid) DO NOTHING`,
+      [user.id, identity.providerUid, identity.email]
+    );
+
+  } else {
+    const err = new Error('Methode d\'activation non supportee.');
+    err.code = 'INVALID_METHOD';
+    err.httpStatus = 400;
+    throw err;
+  }
+
+  // Tout est validé — consommer l'invitation
+  await pool.query('UPDATE org_admin_invitations SET consumed_at = now() WHERE id = $1', [payload.invitationId]);
 
   const deviceService = require('../auth/device.service');
   const deviceRow = await deviceService.getOrCreateDevice(device);
-
-  return { user: userResult.rows[0], deviceRow };
+  return { user, deviceRow };
 }
 
 module.exports = {
@@ -583,4 +710,5 @@ module.exports = {
   rejectRequest,
   approveRequest,
   activateInvitation,
+  linkActivationMethod,
 };

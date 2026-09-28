@@ -150,7 +150,7 @@ export default function RequestDetailPage() {
       {/* ── Etape 8 : QR code affiché après approbation ── */}
       {approval && (
         <div className="card" style={{ borderTop: '4px solid var(--color-success-green)' }}>
-          <h2>Etape 8 — Code QR de provisioning</h2>
+          <h2>Etape 8 : Code QR de provisioning</h2>
           <p className="text-secondary">
             Ce QR code ne sera plus jamais affiche apres avoir quitte cette page.
             Il contient le jeton de controle, la cle VPN WireGuard et l'URL de heartbeat.
@@ -276,7 +276,7 @@ export default function RequestDetailPage() {
           </div>
 
           <p style={{ fontSize: 14, fontWeight: 'bold', margin: '4px 0 10px 0' }}>
-            Champs a corriger (etape 3 — le demandeur ne pourra modifier que ces champs)
+            Champs a corriger (etape 3 : le demandeur ne pourra modifier que ces champs)
           </p>
 
           {[

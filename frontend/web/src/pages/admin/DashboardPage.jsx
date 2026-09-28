@@ -21,7 +21,7 @@ function StatCard({ label, value, color, to }) {
         {label}
       </p>
       <p style={{ fontSize: 32, fontWeight: 800, margin: 0, color }}>
-        {value ?? '—'}
+        {value ?? '-'}
       </p>
     </div>
   );
