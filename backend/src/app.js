@@ -1,0 +1,59 @@
+const express = require('express');
+const path = require('path');
+const helmet = require('helmet');
+const cors = require('cors');
+const swaggerUi = require('swagger-ui-express');
+
+const openapiSpec = require('./docs/swagger');
+const authRoutes = require('./modules/auth/auth.routes');
+const superAdminAuthRoutes = require('./modules/auth/superAdminAuth.routes');
+const userRoutes = require('./modules/users/user.routes');
+const securityRoutes = require('./modules/security/security.routes');
+const passkeyRoutes = require('./modules/security/passkey.routes');
+const sessionRoutes = require('./modules/sessions/session.routes');
+const onboardingRoutes = require('./modules/onboarding/onboarding.routes');
+
+const app = express();
+
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use(cors());
+app.use(express.json());
+
+// --- Fichiers uploadés (photos de profil, documents d'onboarding) ---
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+// Logo officiel, servi statiquement pour être référencé dans les e-mails
+// par une URL publique absolue (voir emails/brand.js).
+app.use('/brand', express.static(path.join(__dirname, 'brand')));
+
+// --- Documentation API (Swagger) ---
+app.get('/api/v1/openapi.json', (req, res) => res.json(openapiSpec));
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiSpec, {
+  customSiteTitle: 'Palabre API Docs',
+}));
+
+app.get('/health', (req, res) => res.json({ status: 'ok', service: 'palabre-backend' }));
+
+// --- Routes API ---
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/auth/super-admin', superAdminAuthRoutes);
+app.use('/api/v1/me', userRoutes);
+app.use('/api/v1/security', securityRoutes);
+app.use('/api/v1/security/passkeys', passkeyRoutes);
+app.use('/api/v1/sessions', sessionRoutes);
+app.use('/api/v1/onboarding', onboardingRoutes);
+
+// --- 404 ---
+app.use((req, res) => {
+  res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Ressource introuvable.' } });
+});
+
+// --- Gestion centralisée des erreurs ---
+app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
+  console.error('[error]', err);
+  const status = err.httpStatus || 400;
+  res.status(status).json({
+    error: { code: err.code || 'BAD_REQUEST', message: err.message || 'Erreur inattendue.' },
+  });
+});
+
+module.exports = app;

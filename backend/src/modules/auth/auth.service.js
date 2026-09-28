@@ -1,0 +1,276 @@
+const { pool } = require('../../config/db');
+const { verifyFirebaseIdToken } = require('../../config/firebase');
+const deviceService = require('./device.service');
+const otpService = require('./otp.service');
+const loginAttemptsService = require('./loginAttempts.service');
+const sessionService = require('../sessions/session.service');
+const presenceService = require('../sessions/presence.service');
+const { armSuperAdminIdleTimeout } = require('../../middleware/authMiddleware');
+
+/**
+ * ======================================================================
+ * INSCRIPTION / CONNEXION PAR TÉLÉPHONE (OTP WhatsApp)
+ * ======================================================================
+ * Aucune inscription ni connexion n'utilise de mot de passe : tout passe par
+ * un code à usage unique envoyé par WhatsApp (Convessa), ou par une identité
+ * fédérée vérifiée par Firebase.
+ */
+
+async function requestPhoneOtp(phoneE164, purpose) {
+  return otpService.sendOtp(phoneE164, purpose);
+}
+
+/**
+ * Finalise une inscription par téléphone après vérification du code OTP.
+ * Refuse si l'appareil a déjà servi à créer un autre compte.
+ */
+async function registerWithPhone({ phoneE164, code, device }) {
+  await otpService.verifyOtp(phoneE164, 'register', code);
+
+  const existingUser = await pool.query('SELECT * FROM users WHERE phone_e164 = $1', [phoneE164]);
+  if (existingUser.rows[0]) {
+    const err = new Error('Un compte existe déjà avec ce numéro. Connectez-vous plutôt.');
+    err.code = 'ACCOUNT_ALREADY_EXISTS';
+    err.httpStatus = 409;
+    throw err;
+  }
+
+  const deviceRow = await deviceService.getOrCreateDevice(device);
+  await deviceService.assertDeviceNotAlreadyRegistered(deviceRow);
+
+  const { rows } = await pool.query(
+    `INSERT INTO users (phone_e164) VALUES ($1) RETURNING *`,
+    [phoneE164]
+  );
+  const user = rows[0];
+
+  await deviceService.bindDeviceToNewUser(deviceRow.id, user.id);
+  await pool.query(
+    `INSERT INTO account_recovery_methods (user_id, method_type, reference, verified)
+     VALUES ($1, 'phone', $2, true)`,
+    [user.id, phoneE164]
+  );
+
+  return { user, deviceRow };
+}
+
+/**
+ * Connexion par téléphone après vérification du code OTP. L'appareil est
+ * enregistré s'il est nouveau (un appareil peut se CONNECTER à plusieurs
+ * comptes au fil du temps ; seule la première INSCRIPTION sur un appareil
+ * donné est restreinte à un seul compte).
+ */
+async function loginWithPhone({ phoneE164, code, device, ip }) {
+  await loginAttemptsService.assertNotLocked(phoneE164);
+
+  try {
+    await otpService.verifyOtp(phoneE164, 'login', code);
+  } catch (err) {
+    await loginAttemptsService.record({ identifier: phoneE164, method: 'phone', ip, success: false });
+    throw err;
+  }
+
+  const { rows } = await pool.query('SELECT * FROM users WHERE phone_e164 = $1', [phoneE164]);
+  const user = rows[0];
+  if (!user) {
+    await loginAttemptsService.record({ identifier: phoneE164, method: 'phone', ip, success: false });
+    const err = new Error('Aucun compte associé à ce numéro.');
+    err.code = 'ACCOUNT_NOT_FOUND';
+    err.httpStatus = 404;
+    throw err;
+  }
+
+  await loginAttemptsService.record({ identifier: phoneE164, method: 'phone', ip, success: true });
+  const deviceRow = await deviceService.getOrCreateDevice(device);
+  return { user, deviceRow };
+}
+
+/**
+ * ======================================================================
+ * INSCRIPTION / CONNEXION FÉDÉRÉE (Google, GitHub, Facebook, Apple, TikTok)
+ * ======================================================================
+ * Le client obtient un idToken Firebase après authentification auprès du
+ * provider choisi ; le backend le vérifie puis crée ou retrouve le compte.
+ * Contrainte produit : un identifiant fédéré (ex. un compte Google précis)
+ * n'est jamais lié qu'à un seul compte Palabre (contrainte UNIQUE en base).
+ */
+async function registerWithFederatedProvider({ idToken, device }) {
+  const identity = await verifyFirebaseIdToken(idToken);
+
+  const existingLink = await pool.query(
+    'SELECT * FROM oauth_accounts WHERE provider = $1 AND provider_uid = $2',
+    [identity.provider, identity.providerUid]
+  );
+  if (existingLink.rows[0]) {
+    const err = new Error(`Un compte Palabre existe déjà pour ce compte ${identity.provider}. Connectez-vous plutôt.`);
+    err.code = 'ACCOUNT_ALREADY_EXISTS';
+    err.httpStatus = 409;
+    throw err;
+  }
+
+  // Même règle d'unicité par appareil que pour l'inscription par téléphone.
+  const deviceRow = await deviceService.getOrCreateDevice(device);
+  await deviceService.assertDeviceNotAlreadyRegistered(deviceRow);
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const userInsert = await client.query(
+      `INSERT INTO users (full_name, email, photo_url) VALUES ($1, $2, $3) RETURNING *`,
+      [identity.name, identity.email, identity.photoUrl]
+    );
+    const user = userInsert.rows[0];
+
+    await client.query(
+      `INSERT INTO oauth_accounts (user_id, provider, provider_uid, provider_email)
+       VALUES ($1, $2, $3, $4)`,
+      [user.id, identity.provider, identity.providerUid, identity.email]
+    );
+    await client.query(
+      `INSERT INTO account_recovery_methods (user_id, method_type, reference, verified)
+       VALUES ($1, $2, $3, true)`,
+      [user.id, identity.provider, identity.providerUid]
+    );
+    await client.query('COMMIT');
+
+    await deviceService.bindDeviceToNewUser(deviceRow.id, user.id);
+    return { user, deviceRow };
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
+async function loginWithFederatedProvider({ idToken, device, ip }) {
+  const identity = await verifyFirebaseIdToken(idToken);
+  await loginAttemptsService.assertNotLocked(identity.providerUid);
+
+  const existingLink = await pool.query(
+    'SELECT * FROM oauth_accounts WHERE provider = $1 AND provider_uid = $2',
+    [identity.provider, identity.providerUid]
+  );
+
+  if (!existingLink.rows[0]) {
+    await loginAttemptsService.record({ identifier: identity.providerUid, method: identity.provider, ip, success: false });
+    const err = new Error(`Aucun compte Palabre n'est lié à ce compte ${identity.provider}.`);
+    err.code = 'ACCOUNT_NOT_FOUND';
+    err.httpStatus = 404;
+    throw err;
+  }
+
+  await loginAttemptsService.record({ identifier: identity.providerUid, method: identity.provider, ip, success: true });
+  const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [existingLink.rows[0].user_id]);
+  const deviceRow = await deviceService.getOrCreateDevice(device);
+  return { user: userResult.rows[0], deviceRow };
+}
+
+/**
+ * Lie un nouveau moyen de connexion fédéré à un compte déjà connecté —
+ * uniquement si ce provider n'est pas déjà associé à ce compte, ET que
+ * l'identifiant fédéré n'est pas déjà utilisé par un AUTRE utilisateur.
+ */
+async function linkFederatedProvider(userId, idToken) {
+  const identity = await verifyFirebaseIdToken(idToken);
+
+  const alreadyLinkedElsewhere = await pool.query(
+    'SELECT * FROM oauth_accounts WHERE provider = $1 AND provider_uid = $2',
+    [identity.provider, identity.providerUid]
+  );
+  if (alreadyLinkedElsewhere.rows[0] && alreadyLinkedElsewhere.rows[0].user_id !== userId) {
+    const err = new Error(`Ce compte ${identity.provider} est déjà utilisé par un autre utilisateur Palabre.`);
+    err.code = 'PROVIDER_ALREADY_LINKED';
+    err.httpStatus = 409;
+    throw err;
+  }
+
+  const alreadyLinkedHere = await pool.query(
+    'SELECT * FROM oauth_accounts WHERE provider = $1 AND user_id = $2',
+    [identity.provider, userId]
+  );
+  if (alreadyLinkedHere.rows[0]) {
+    const err = new Error(`Ce moyen de connexion (${identity.provider}) est déjà associé à votre compte.`);
+    err.code = 'PROVIDER_ALREADY_LINKED_SELF';
+    err.httpStatus = 409;
+    throw err;
+  }
+
+  await pool.query(
+    `INSERT INTO oauth_accounts (user_id, provider, provider_uid, provider_email)
+     VALUES ($1, $2, $3, $4)`,
+    [userId, identity.provider, identity.providerUid, identity.email]
+  );
+  await pool.query(
+    `INSERT INTO account_recovery_methods (user_id, method_type, reference, verified)
+     VALUES ($1, $2, $3, true)`,
+    [userId, identity.provider, identity.providerUid]
+  );
+
+  return { provider: identity.provider };
+}
+
+/**
+ * Finalise la connexion (téléphone ou fédérée) en émettant une session.
+ * Si l'utilisateur a activé la 2FA, la session est créée avec
+ * two_factor_passed = false tant que l'étape biométrique n'est pas validée
+ * (voir security.service.confirmTwoFactorForSession).
+ */
+async function issueSessionForUser({ user, deviceRow, ip, userAgent }) {
+  const twoFactorPassed = !user.two_factor_enabled; // pas de 2FA => déjà "validé"
+  const { session, accessToken, refreshToken } = await sessionService.createSession({
+    user,
+    deviceId: deviceRow.id,
+    ip,
+    userAgent,
+    twoFactorPassed,
+  });
+
+  // La session Postgres existe désormais ; on marque l'appareil "en ligne"
+  // côté Redis immédiatement — le client devra ensuite envoyer un
+  // heartbeat régulier (POST /sessions/heartbeat) pour le rester.
+  await presenceService.setOnline(user.id, deviceRow.id);
+
+  // Le super-administrateur a, en plus, une fenêtre d'inactivité stricte de
+  // 15 minutes, indépendante du heartbeat : on l'amorce dès la connexion.
+  if (user.is_super_admin) {
+    await armSuperAdminIdleTimeout(session.id);
+  }
+
+  return {
+    user: sanitizeUser(user),
+    requiresTwoFactor: user.two_factor_enabled,
+    session: { id: session.id },
+    accessToken,
+    refreshToken,
+  };
+}
+
+function sanitizeUser(user) {
+  const { id, full_name, email, email_verified, phone_e164, photo_url, sector, locale, timezone, two_factor_enabled, preferences, is_super_admin } = user;
+  return {
+    id,
+    fullName: full_name,
+    email,
+    emailVerified: !!email_verified,
+    phone: phone_e164,
+    photoUrl: photo_url,
+    sector,
+    locale,
+    timezone,
+    twoFactorEnabled: two_factor_enabled,
+    preferences: preferences || {},
+    isSuperAdmin: !!is_super_admin,
+  };
+}
+
+module.exports = {
+  requestPhoneOtp,
+  registerWithPhone,
+  loginWithPhone,
+  registerWithFederatedProvider,
+  loginWithFederatedProvider,
+  linkFederatedProvider,
+  issueSessionForUser,
+  sanitizeUser,
+};

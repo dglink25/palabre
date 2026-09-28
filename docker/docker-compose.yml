@@ -1,0 +1,120 @@
+name: palabre
+
+# Architecture de base Palabre — chaque service correspond à une case du
+# schéma fourni, avec son propre dossier au même niveau : ../backend,
+# ../frontend/web, ../frontend/mobile, ../ai, ../asterisk, ../mediasoup,
+# ../wireguard. Ce fichier vit dans docker/, à côté de ces dossiers, et n'est
+# pas imbriqué dans l'un d'eux. Les services `backend` et `frontend-web` sont
+# pleinement implémentés dans cette livraison ; les autres restent des
+# services "placeholder" prêts à être complétés lors des phases suivantes de
+# la roadmap (voir cahier des charges, section 49).
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: palabre-postgres
+    profiles: ["postgres", "core", "all"]
+    environment:
+      POSTGRES_USER: palabre
+      POSTGRES_PASSWORD: palabre
+      POSTGRES_DB: palabre
+    volumes:
+      - palabre_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U palabre"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: palabre-redis
+    profiles: ["redis", "core", "all"]
+    ports:
+      - "6380:6379"
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: palabre-backend
+    profiles: ["backend", "core", "all"]
+    env_file: ../backend/.env
+    environment:
+      DATABASE_URL: postgres://palabre:palabre@postgres:5432/palabre
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "4001:4000"
+    volumes:
+      - ../backend/src:/app/src
+      - ../backend/migrations:/app/migrations
+      - palabre_uploads:/app/uploads
+      # Clé de service Firebase (et tout autre secret fichier) : déposez-la
+      # dans backend/secrets/ (ignoré par git), elle apparaît en lecture
+      # seule dans /run/secrets du conteneur.
+      - ../backend/secrets:/run/secrets:ro
+
+  frontend-web:
+    build:
+      context: ../frontend/web
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:4001/api/v1}
+        VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY:-}
+        VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN:-}
+        VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID:-}
+        VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID:-}
+    container_name: palabre-frontend-web
+    profiles: ["frontend", "frontend-web", "all"]
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  # frontend-mobile n'est pas un service Docker au sens propre (application
+  # React Native compilée en APK, voir palabre/frontend/mobile) : elle n'a
+  # donc pas d'entrée ici, mais son dossier existe au même niveau que les
+  # autres modules pour respecter l'arborescence demandée.
+
+  mediasoup:
+    build:
+      context: ../mediasoup
+    container_name: palabre-mediasoup
+    profiles: ["mediasoup", "telephony", "all"]
+    ports:
+      - "3478:3478/udp"
+
+  asterisk:
+    build:
+      context: ../asterisk
+    container_name: palabre-asterisk
+    profiles: ["asterisk", "telephony", "all"]
+    depends_on:
+      - mediasoup
+
+  ai:
+    build:
+      context: ../ai
+    container_name: palabre-ai
+    profiles: ["ai", "all"]
+    # STT / TTS / LLM hébergés localement (voir section 37 du cahier des charges)
+
+  wireguard:
+    build:
+      context: ../wireguard
+    container_name: palabre-wireguard
+    profiles: ["wireguard", "vpn", "all"]
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    ports:
+      - "51820:51820/udp"
+
+volumes:
+  palabre_postgres_data:
+  palabre_uploads:

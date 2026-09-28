@@ -1,0 +1,35 @@
+{
+  "name": "palabre-backend",
+  "version": "0.1.0",
+  "description": "Palabre - backend d'authentification, profil, sécurité et sessions",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "migrate": "node src/db/migrate.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.11.5",
+    "ioredis": "^5.4.1",
+    "dotenv": "^16.4.5",
+    "jsonwebtoken": "^9.0.2",
+    "firebase-admin": "^12.1.1",
+    "ua-parser-js": "^1.0.38",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0",
+    "express-rate-limit": "^7.2.0",
+    "helmet": "^7.1.0",
+    "cors": "^2.8.5",
+    "uuid": "^9.0.1",
+    "node-fetch": "^2.7.0",
+    "libphonenumber-js": "^1.11.4",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.13",
+    "@simplewebauthn/server": "^10.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
