@@ -110,6 +110,24 @@ services:
 
   # ── Services temps réel (Phase 1 — messagerie) ──────────────────────────────
 
+  coturn:
+    build:
+      context: ../coturn
+      dockerfile: Dockerfile
+    container_name: palabre-coturn
+    profiles: ["coturn", "realtime", "all"]
+    network_mode: host
+    environment:
+      TURN_REALM:        ${TURN_REALM:-palabre.app}
+      TURN_SECRET:       ${TURN_SECRET:-change_me_turn_secret}
+      TURN_EXTERNAL_IP:  ${TURN_EXTERNAL_IP:-}
+      TURN_MIN_PORT:     "49152"
+      TURN_MAX_PORT:     "65535"
+      TURN_VERBOSE:      "0"
+    volumes:
+      - palabre_coturn_data:/var/lib/coturn
+    restart: unless-stopped
+
   presence:
     build:
       context: ../services/presence
@@ -215,3 +233,4 @@ volumes:
   palabre_uploads:
   palabre_mnesia_data:
   palabre_media_storage:
+  palabre_coturn_data:

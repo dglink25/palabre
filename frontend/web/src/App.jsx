@@ -20,6 +20,7 @@ import SecurityPage from './pages/security/SecurityPage';
 import SessionsPage from './pages/sessions/SessionsPage';
 import RequestsListPage from './pages/admin/RequestsListPage';
 import RequestDetailPage from './pages/admin/RequestDetailPage';
+import DashboardPage from './pages/admin/DashboardPage';
 
 export default function App() {
   return (
@@ -48,8 +49,9 @@ export default function App() {
           </Route>
 
           <Route element={<SuperAdminRoute><Layout /></SuperAdminRoute>}>
-            <Route path="/admin/onboarding" element={<RequestsListPage />} />
-            <Route path="/admin/onboarding/:id" element={<RequestDetailPage />} />
+            <Route path="/admin"                  element={<DashboardPage />} />
+            <Route path="/admin/onboarding"       element={<RequestsListPage />} />
+            <Route path="/admin/onboarding/:id"   element={<RequestDetailPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

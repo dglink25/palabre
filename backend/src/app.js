@@ -13,6 +13,7 @@ const passkeyRoutes = require('./modules/security/passkey.routes');
 const sessionRoutes = require('./modules/sessions/session.routes');
 const onboardingRoutes = require('./modules/onboarding/onboarding.routes');
 const signalRoutes = require('./modules/messaging/signal.routes');
+const turnRoutes   = require('./modules/calls/turn.routes');
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use('/api/v1/security/passkeys', passkeyRoutes);
 app.use('/api/v1/sessions', sessionRoutes);
 app.use('/api/v1/onboarding', onboardingRoutes);
 app.use('/api/v1/messaging/signal', signalRoutes);
+app.use('/api/v1/calls', turnRoutes);
 
 // --- 404 ---
 app.use((req, res) => {

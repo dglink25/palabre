@@ -254,21 +254,24 @@ async function correctRequest(id, draftToken, patchByStep) {
 
 async function listRequests({ status, page = 1, pageSize = 20 }) {
   const conditions = [];
-  const params = [];
+  const filterParams = [];
   if (status) {
-    params.push(status);
-    conditions.push(`status = $${params.length}`);
+    filterParams.push(status);
+    conditions.push(`status = $${filterParams.length}`);
   }
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
-  params.push(pageSize, (page - 1) * pageSize);
+  const paginationParams = [...filterParams, pageSize, (page - 1) * pageSize];
   const { rows } = await pool.query(
     `SELECT id, status, step1_organization, step2_leader, submitted_at, reviewed_at, created_at
      FROM organization_requests ${where}
-     ORDER BY created_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
-    params
+     ORDER BY created_at DESC LIMIT $${filterParams.length + 1} OFFSET $${filterParams.length + 2}`,
+    paginationParams
   );
-  const countResult = await pool.query(`SELECT COUNT(*) FROM organization_requests ${where}`, params.slice(0, conditions.length));
+  const countResult = await pool.query(
+    `SELECT COUNT(*) FROM organization_requests ${where}`,
+    filterParams
+  );
   return { items: rows, total: parseInt(countResult.rows[0].count, 10), page, pageSize };
 }
 
@@ -434,10 +437,22 @@ async function approveRequest(id, reviewerId) {
       `INSERT INTO tenant_control_tokens (organization_id, token_hash, qr_issued_at) VALUES ($1,$2,now())`,
       [organization.id, crypto.createHash('sha256').update(rawControlToken).digest('hex')]
     );
-    const vpnPairingKey = crypto.randomBytes(32).toString('base64');
+    // Clé de pairing VPN WireGuard : paire Curve25519 générée côté serveur.
+    // La clé privée est renvoyée UNE SEULE FOIS dans le qrPayload pour que
+    // l'instance locale configure son interface WireGuard.
+    // Le serveur central ne conserve que la clé publique pour configurer son peer.
+    const { privateKey: wgPrivateKey, publicKey: wgPublicKey } = crypto.generateKeyPairSync('x25519', {
+      publicKeyEncoding:  { type: 'spki',  format: 'der' },
+      privateKeyEncoding: { type: 'pkcs8', format: 'der' },
+    });
+    // Encoder en base64 format WireGuard (32 octets raw Curve25519)
+    // DER PKCS8 pour x25519 = 48 octets, les 16 derniers sont la clé raw
+    const wgPrivateKeyB64 = wgPrivateKey.subarray(16).toString('base64');
+    const wgPublicKeyB64  = wgPublicKey.subarray(12).toString('base64');
+
     await client.query(
       `INSERT INTO vpn_peers (organization_id, public_key, status) VALUES ($1,$2,'pending')`,
-      [organization.id, vpnPairingKey]
+      [organization.id, wgPublicKeyB64]
     );
 
     // Code d'activation à usage unique (remplace "mot de passe imposé à la
@@ -501,9 +516,10 @@ async function approveRequest(id, reviewerId) {
       // Payload de démarrage à encoder en QR par le client (section 10.1) -
       // ces secrets bruts ne sont plus jamais récupérables après cette réponse.
       qrPayload: {
-        tenantId: organization.id,
+        tenantId:     organization.id,
         controlToken: rawControlToken,
-        vpnPairingKey,
+        vpnPrivateKey: wgPrivateKeyB64,   // clé privée WireGuard de l'instance locale
+        vpnPublicKey:  wgPublicKeyB64,    // clé publique (déjà stockée côté serveur)
         heartbeatUrl: `${process.env.APP_BASE_URL || ''}/api/v1/tenants/heartbeat`,
       },
     };
