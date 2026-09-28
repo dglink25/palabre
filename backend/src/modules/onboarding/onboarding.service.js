@@ -8,6 +8,24 @@ const { convessaSend } = require('../auth/otp.service');
 const INVITATION_CODE_LENGTH = 8;
 const INVITATION_TTL_HOURS = 72;
 
+const FIELD_LABELS = {
+  'step1_organization.name': 'Nom de l\'organisation',
+  'step1_organization.headquarters': 'Siège',
+  'step1_organization.country': 'Pays',
+  'step1_organization.city': 'Ville',
+  'step1_organization.address': 'Adresse complète',
+  'step1_organization.sector': 'Secteur d\'activité',
+  'step1_organization.ifuNumber': 'Numéro IFU',
+  'step2_leader.fullName': 'Nom complet du dirigeant',
+  'step2_leader.gender': 'Sexe',
+  'step2_leader.email': 'E-mail du dirigeant',
+  'step2_leader.phone': 'Téléphone du dirigeant',
+  'step3_documents.rccm': 'RCCM',
+  'step3_documents.ifuAttestation': 'Attestation IFU',
+  'step3_documents.leaderId': 'Pièce d\'identité du dirigeant',
+  'step3_documents.logo': 'Logo de l\'organisation',
+};
+
 /**
  * ======================================================================
  * ÉTAPE 1-4 - SAISIE DE LA DEMANDE (section 8)
@@ -313,7 +331,7 @@ async function rejectRequest(id, { reason, flaggedFields }, reviewerId) {
 
   if (leaderEmail) {
     const fieldsListHtml = (flaggedFields || []).length
-      ? `<ul style="margin:8px 0 0 0; padding-left:20px; color:#202124;">${(flaggedFields || []).map((f) => `<li style="margin-bottom:4px;">${f}</li>`).join('')}</ul>`
+      ? `<ul style="margin:8px 0 0 0; padding-left:20px; color:#202124;">${(flaggedFields || []).map((f) => `<li style="margin-bottom:4px;">${FIELD_LABELS[f] || f}</li>`).join('')}</ul>`
       : '';
     const html = wrapEmail({
       title: 'Votre demande nécessite une correction',
@@ -451,19 +469,21 @@ async function approveRequest(id, reviewerId) {
         bodyHtml: `
           <p style="margin:0 0 8px 0;">Bonjour,</p>
           <p style="margin:0 0 16px 0;">Votre demande d'inscription pour <strong>${org.name}</strong> a été approuvée par le super-administrateur de Palabre. Votre compte administrateur est prêt.</p>
+          ${calloutBox({ label: 'Identifiant de votre organisation', value: organization.id, accent: 'success' })}
           ${calloutBox({ label: 'Code d\'activation (première connexion)', value: invitationCode, accent: 'success' })}
-          <p style="margin:16px 0 0 0; color:#5F6368; font-size:13px;">Ce code expire dans ${INVITATION_TTL_HOURS} heures et ne sert qu'à votre toute première connexion sur l'application Palabre.</p>
+          <p style="margin:16px 0 4px 0; font-size:13px; color:#5F6368;">Conservez ces deux informations : l'identifiant et le code d'activation sont tous les deux nécessaires pour activer votre compte administrateur sur l'application Palabre.</p>
+          <p style="margin:0 0 0 0; color:#5F6368; font-size:13px;">Le code d'activation expire dans ${INVITATION_TTL_HOURS} heures et ne sert qu'à votre toute première connexion.</p>
         `,
       });
       sendMail({
         to: leader.email,
         subject: 'Votre organisation est approuvée sur Palabre',
-        text: `Votre organisation "${org.name}" est approuvée sur Palabre.\nCode d'activation (première connexion) : ${invitationCode}\nCe code expire dans ${INVITATION_TTL_HOURS}h.`,
+        text: `Votre organisation "${org.name}" est approuvée sur Palabre.\n\nIdentifiant de votre organisation : ${organization.id}\nCode d'activation (première connexion) : ${invitationCode}\n\nConservez ces deux informations : elles sont toutes les deux nécessaires pour activer votre compte.\nLe code expire dans ${INVITATION_TTL_HOURS}h.`,
         html,
       }).catch((e) => console.error('[onboarding] échec e-mail activation', e.message));
     }
     if (leader.phone) {
-      const whatsappText = `*Palabre - Organisation approuvée*\n\nVotre organisation *${org.name}* est approuvée. Votre compte administrateur est prêt.\n\n*Code d'activation (première connexion) :* ${invitationCode}\n\nCe code expire dans ${INVITATION_TTL_HOURS} heures et ne sert qu'à votre toute première connexion.`;
+      const whatsappText = `*Palabre - Organisation approuvée*\n\nVotre organisation *${org.name}* est approuvée. Votre compte administrateur est prêt.\n\n*Identifiant de votre organisation :*\n${organization.id}\n\n*Code d'activation (première connexion) :*\n${invitationCode}\n\nConservez ces deux informations : elles sont toutes les deux nécessaires pour activer votre compte sur l'application Palabre.\nLe code expire dans ${INVITATION_TTL_HOURS} heures.`;
       convessaSend(leader.phone, whatsappText).catch((e) => console.error('[onboarding] échec WhatsApp activation', e.message));
     }
 

@@ -18,7 +18,40 @@ function loadDraftToken(id) {
   return localStorage.getItem(DRAFT_TOKEN_PREFIX + id);
 }
 
-const STEP_LABELS = ['Organisation', 'Dirigeant', 'Documents', 'Certification'];
+const STEP_LABELS = ['Organisation', 'Dirigeant', 'Documents', 'Récapitulatif'];
+
+// Labels lisibles pour les champs obligatoires (utilisés dans les messages d'erreur)
+const MISSING_FIELD_LABELS = {
+  'step1_organization.name': 'Nom de l\'organisation',
+  'step1_organization.headquarters': 'Siège',
+  'step1_organization.country': 'Pays',
+  'step1_organization.city': 'Ville',
+  'step1_organization.address': 'Adresse complète',
+  'step1_organization.sector': 'Secteur d\'activité',
+  'step2_leader.fullName': 'Nom complet du dirigeant',
+  'step2_leader.gender': 'Sexe',
+  'step2_leader.email': 'E-mail du dirigeant',
+  'step2_leader.phone': 'Téléphone du dirigeant',
+  'step3_documents.ifuAttestation': 'Attestation IFU',
+  'step3_documents.leaderId': 'Pièce d\'identité du dirigeant',
+  'step3_documents.logo': 'Logo de l\'organisation',
+  'step4_certification.infoCertified': 'Certification des informations',
+  'step4_certification.termsAccepted': 'Acceptation des conditions',
+};
+
+const GENDER_LABEL = { male: 'Masculin', female: 'Féminin' };
+
+function RecapRow({ label, value, missing }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '8px 0', borderBottom: '1px solid var(--color-border)', gap: 12 }}>
+      <span style={{ color: 'var(--color-text-secondary)', fontSize: 13, flexShrink: 0, minWidth: 160 }}>{label}</span>
+      {missing
+        ? <span style={{ color: 'var(--color-alert-red)', fontSize: 13, fontWeight: 'bold' }}>- manquant</span>
+        : <span style={{ fontSize: 13, textAlign: 'right' }}>{value}</span>
+      }
+    </div>
+  );
+}
 
 export default function OnboardingWizard() {
   const [params, setParams] = useSearchParams();
@@ -145,8 +178,9 @@ export default function OnboardingWizard() {
       );
       navigate(`/onboarding/status?id=${requestId}&token=${draftToken}`);
     } catch (e) {
-      if (e.missingFields) {
-        setError(`Demande incomplète : ${e.missingFields.join(', ')}`);
+      if (e.missingFields && e.missingFields.length > 0) {
+        const labels = e.missingFields.map((f) => MISSING_FIELD_LABELS[f] || f);
+        setError(`Demande incomplète. Champs manquants :\n• ${labels.join('\n• ')}`);
       } else {
         setError(friendlyMessage(e));
       }
@@ -165,7 +199,7 @@ export default function OnboardingWizard() {
       </div>
       <h1>Demande d'inscription d'organisation</h1>
       <p className="text-secondary">
-        Votre saisie est enregistrée automatiquement à chaque étape. Une fois la demande soumise, consultez votre e-mail et votreWhatsApp.
+        Votre saisie est enregistrée automatiquement à chaque étape. Une fois la demande soumise, consultez votre e-mail et votre WhatsApp.
       </p>
       <div className="steps-indicator">
         {STEP_LABELS.map((_, i) => <span key={i} className={i <= stepIndex ? 'done' : ''} />)}
@@ -268,23 +302,55 @@ export default function OnboardingWizard() {
 
       {stepIndex === 3 && (
         <div>
-          <label className="checkbox-field">
-            <input
-              type="checkbox"
-              checked={step4.infoCertified}
-              onChange={(e) => setStep4({ ...step4, infoCertified: e.target.checked })}
-            />
-            <span>Je certifie l'exactitude des informations fournies</span>
-          </label>
+          {/* ── Récapitulatif Organisation ── */}
+          <h3 style={{ marginBottom: 4 }}>Organisation</h3>
+          <div style={{ marginBottom: 20 }}>
+            <RecapRow label="Nom" value={step1.name} missing={!step1.name} />
+            <RecapRow label="Siège" value={step1.headquarters} missing={!step1.headquarters} />
+            <RecapRow label="Pays" value={step1.country} missing={!step1.country} />
+            <RecapRow label="Ville" value={step1.city} missing={!step1.city} />
+            <RecapRow label="Adresse" value={step1.address} missing={!step1.address} />
+            <RecapRow label="Secteur d'activité" value={step1.sector} missing={!step1.sector} />
+            <RecapRow label="Numéro IFU" value={step1.ifuNumber || '-'} />
+          </div>
 
-          <label className="checkbox-field">
-            <input
-              type="checkbox"
-              checked={step4.termsAccepted}
-              onChange={(e) => setStep4({ ...step4, termsAccepted: e.target.checked })}
-            />
-            <span>J'accepte les conditions d'utilisation</span>
-          </label>
+          {/* ── Récapitulatif Dirigeant ── */}
+          <h3 style={{ marginBottom: 4 }}>Dirigeant</h3>
+          <div style={{ marginBottom: 20 }}>
+            <RecapRow label="Nom complet" value={step2.fullName} missing={!step2.fullName} />
+            <RecapRow label="Sexe" value={GENDER_LABEL[step2.gender]} missing={!step2.gender} />
+            <RecapRow label="E-mail" value={step2.email} missing={!step2.email} />
+            <RecapRow label="Téléphone" value={step2.phone} missing={!step2.phone} />
+          </div>
+
+          {/* ── Récapitulatif Documents ── */}
+          <h3 style={{ marginBottom: 4 }}>Documents</h3>
+          <div style={{ marginBottom: 24 }}>
+            <RecapRow label="RCCM" value={docs.rccm ? 'Envoyé ✓' : 'Non fourni (facultatif)'} />
+            <RecapRow label="Attestation IFU" value={docs.ifuAttestation ? 'Envoyé ✓' : undefined} missing={!docs.ifuAttestation} />
+            <RecapRow label="Pièce d'identité dirigeant" value={docs.leaderId ? 'Envoyé ✓' : undefined} missing={!docs.leaderId} />
+            <RecapRow label="Logo de l'organisation" value={docs.logo ? 'Envoyé ✓' : undefined} missing={!docs.logo} />
+          </div>
+
+          {/* ── Certification ── */}
+          <div style={{ borderTop: '2px solid var(--color-border)', paddingTop: 16, marginBottom: 8 }}>
+            <label className="checkbox-field">
+              <input
+                type="checkbox"
+                checked={step4.infoCertified}
+                onChange={(e) => setStep4({ ...step4, infoCertified: e.target.checked })}
+              />
+              <span>Je certifie l'exactitude des informations fournies</span>
+            </label>
+            <label className="checkbox-field">
+              <input
+                type="checkbox"
+                checked={step4.termsAccepted}
+                onChange={(e) => setStep4({ ...step4, termsAccepted: e.target.checked })}
+              />
+              <span>J'accepte les <Link to="/terms" target="_blank">conditions d'utilisation</Link></span>
+            </label>
+          </div>
 
           <Recaptcha onVerify={setCaptchaToken} />
         </div>

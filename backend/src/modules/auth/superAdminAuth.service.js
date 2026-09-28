@@ -39,7 +39,10 @@ function isSuperAdminEmail(email) {
 }
 
 function signStepToken(payload) {
-  return jwt.sign(payload, STEP_TOKEN_SECRET, { expiresIn: STEP_TOKEN_TTL });
+  // On écarte exp et iat hérités d'un payload décodé pour éviter le conflit
+  // avec l'option expiresIn : jsonwebtoken refuse les deux simultanément.
+  const { exp, iat, ...cleanPayload } = payload;
+  return jwt.sign(cleanPayload, STEP_TOKEN_SECRET, { expiresIn: STEP_TOKEN_TTL });
 }
 
 function verifyStepToken(token, expectedStep) {
