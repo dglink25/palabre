@@ -173,20 +173,20 @@ async function submitRequest(id, draftToken) {
   if (leaderEmail) {
     sendMail({
       to: leaderEmail,
-      subject: 'Votre demande d\'inscription Palabre a bien été reçue',
-      text: `Bonjour,\n\nVotre demande d'inscription pour "${orgName}" a bien été reçue et va être instruite par le super-administrateur.\n\nPour suivre son état ou la compléter à tout moment : ${statusLink}\n\n- L'équipe Palabre`,
+      subject: 'Palabre - Demande d inscription recue',
+      text: `Demande d inscription pour ${orgName} bien recue.\n\nSuivi de votre dossier : ${statusLink}`,
       html: wrapEmail({
-        title: 'Votre demande a bien été reçue',
-        preheader: `Demande d'inscription ${orgName} - en cours d'instruction`,
+        title: 'Demande bien recue',
+        preheader: `Demande ${orgName} - en cours d instruction`,
         accent: 'primary',
         bodyHtml: `
           <p style="margin:0 0 8px 0;">Bonjour,</p>
-          <p style="margin:0 0 16px 0;">Votre demande d'inscription pour <strong>${orgName}</strong> a bien été reçue et va être instruite par le super-administrateur de Palabre.</p>
-          <p style="margin:0 0 8px 0;">Pour suivre son état à tout moment, ou la compléter si un complément de dossier est demandé :</p>
-          ${button({ url: statusLink, label: 'Accéder à ma demande', accent: 'primary' })}
+          <p style="margin:0 0 16px 0;">Votre demande d inscription pour <strong>${orgName}</strong> a bien ete recue et va etre instruite par le super-administrateur de Palabre.</p>
+          <p style="margin:0 0 8px 0;">Pour suivre son etat a tout moment :</p>
+          ${button({ url: statusLink, label: 'Acceder a ma demande', accent: 'primary' })}
         `,
       }),
-    }).catch((e) => console.error('[onboarding] échec e-mail de confirmation', e.message));
+    }).catch((e) => console.error('[onboarding] echec e-mail de confirmation', e.message));
   }
   if (leaderPhone) {
     convessaSend(leaderPhone, `*Palabre - Demande reçue*\n\nVotre demande d'inscription pour *${orgName}* a bien été reçue et va être instruite.\n\nSuivi de votre dossier : ${statusLink}`)
@@ -334,24 +334,24 @@ async function rejectRequest(id, { reason, flaggedFields }, reviewerId) {
       ? `<ul style="margin:8px 0 0 0; padding-left:20px; color:#202124;">${(flaggedFields || []).map((f) => `<li style="margin-bottom:4px;">${FIELD_LABELS[f] || f}</li>`).join('')}</ul>`
       : '';
     const html = wrapEmail({
-      title: 'Votre demande nécessite une correction',
-      preheader: `Demande d'inscription ${orgName} - action requise`,
+      title: 'Correction requise pour votre dossier',
+      preheader: `Dossier ${orgName} - action requise`,
       accent: 'warning',
       bodyHtml: `
         <p style="margin:0 0 8px 0;">Bonjour,</p>
-        <p style="margin:0 0 16px 0;">Votre demande d'inscription pour <strong>${orgName}</strong> sur Palabre a été examinée et nécessite une correction avant de pouvoir être validée.</p>
-        ${calloutBox({ label: 'Motif indiqué par le super-administrateur', value: reason, accent: 'warning' })}
-        ${fieldsListHtml ? `<p style="margin:16px 0 4px 0; font-weight:bold;">Éléments à corriger :</p>${fieldsListHtml}` : ''}
-        <p style="margin:16px 0 8px 0;">Pour tout complément de dossier, cliquez sur le bouton ci-dessous pour accéder directement à votre demande - aucune nouvelle demande n'est nécessaire :</p>
-        ${button({ url: statusLink, label: 'Compléter mon dossier', accent: 'warning' })}
+        <p style="margin:0 0 16px 0;">Votre dossier <strong>${orgName}</strong> sur Palabre a ete examine et necessite une correction avant validation.</p>
+        ${calloutBox({ label: 'Motif indique par le super-administrateur', value: reason, accent: 'warning' })}
+        ${fieldsListHtml ? `<p style="margin:16px 0 4px 0; font-weight:bold;">Elements a corriger :</p>${fieldsListHtml}` : ''}
+        <p style="margin:16px 0 8px 0;">Cliquez ci-dessous pour acceder directement a votre demande :</p>
+        ${button({ url: statusLink, label: 'Acceder a mon dossier', accent: 'warning' })}
       `,
     });
     await sendMail({
       to: leaderEmail,
-      subject: 'Votre demande d\'inscription Palabre nécessite une correction',
-      text: `Bonjour,\n\nVotre demande d'inscription d'organisation (${orgName}) sur Palabre a été renvoyée pour correction.\n\nMotif : ${reason}\n\nPour tout complément de dossier, accédez directement à votre demande : ${statusLink}\n\n- L'équipe Palabre`,
+      subject: 'Palabre - Correction requise pour votre dossier',
+      text: `Dossier ${orgName} - correction requise.\n\nMotif : ${reason}\n\nAccedez a votre demande : ${statusLink}`,
       html,
-    }).catch((e) => console.error('[onboarding] échec envoi e-mail de rejet', e.message));
+    }).catch((e) => console.error('[onboarding] echec envoi e-mail de rejet', e.message));
   }
 
   if (leaderPhone) {
@@ -463,24 +463,24 @@ async function approveRequest(id, reviewerId) {
     // si l'envoi rate) : e-mail HTML de marque + WhatsApp si un numéro est disponible.
     if (leader.email) {
       const html = wrapEmail({
-        title: 'Votre organisation est approuvée',
-        preheader: `${org.name} est désormais approuvée sur Palabre`,
+        title: 'Organisation approuvee',
+        preheader: `${org.name} approuvee sur Palabre`,
         accent: 'success',
         bodyHtml: `
           <p style="margin:0 0 8px 0;">Bonjour,</p>
-          <p style="margin:0 0 16px 0;">Votre demande d'inscription pour <strong>${org.name}</strong> a été approuvée par le super-administrateur de Palabre. Votre compte administrateur est prêt.</p>
+          <p style="margin:0 0 16px 0;">Votre dossier <strong>${org.name}</strong> a ete approuve. Votre compte administrateur est pret.</p>
           ${calloutBox({ label: 'Identifiant de votre organisation', value: organization.id, accent: 'success' })}
-          ${calloutBox({ label: 'Code d\'activation (première connexion)', value: invitationCode, accent: 'success' })}
-          <p style="margin:16px 0 4px 0; font-size:13px; color:#5F6368;">Conservez ces deux informations : l'identifiant et le code d'activation sont tous les deux nécessaires pour activer votre compte administrateur sur l'application Palabre.</p>
-          <p style="margin:0 0 0 0; color:#5F6368; font-size:13px;">Le code d'activation expire dans ${INVITATION_TTL_HOURS} heures et ne sert qu'à votre toute première connexion.</p>
+          ${calloutBox({ label: 'Code d activation (premiere connexion)', value: invitationCode, accent: 'success' })}
+          <p style="margin:16px 0 4px 0; font-size:13px; color:#5F6368;">Conservez ces deux informations : elles sont toutes les deux necessaires pour activer votre compte administrateur.</p>
+          <p style="margin:0 0 0 0; color:#5F6368; font-size:13px;">Le code expire dans ${INVITATION_TTL_HOURS} heures.</p>
         `,
       });
       sendMail({
         to: leader.email,
-        subject: 'Votre organisation est approuvée sur Palabre',
-        text: `Votre organisation "${org.name}" est approuvée sur Palabre.\n\nIdentifiant de votre organisation : ${organization.id}\nCode d'activation (première connexion) : ${invitationCode}\n\nConservez ces deux informations : elles sont toutes les deux nécessaires pour activer votre compte.\nLe code expire dans ${INVITATION_TTL_HOURS}h.`,
+        subject: 'Palabre - Organisation approuvee',
+        text: `Organisation ${org.name} approuvee.\n\nIdentifiant : ${organization.id}\nCode d activation (premiere connexion) : ${invitationCode}\n\nCe code expire dans ${INVITATION_TTL_HOURS}h.`,
         html,
-      }).catch((e) => console.error('[onboarding] échec e-mail activation', e.message));
+      }).catch((e) => console.error('[onboarding] echec e-mail activation', e.message));
     }
     if (leader.phone) {
       const whatsappText = `*Palabre - Organisation approuvée*\n\nVotre organisation *${org.name}* est approuvée. Votre compte administrateur est prêt.\n\n*Identifiant de votre organisation :*\n${organization.id}\n\n*Code d'activation (première connexion) :*\n${invitationCode}\n\nConservez ces deux informations : elles sont toutes les deux nécessaires pour activer votre compte sur l'application Palabre.\nLe code expire dans ${INVITATION_TTL_HOURS} heures.`;

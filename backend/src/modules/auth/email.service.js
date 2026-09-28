@@ -10,10 +10,10 @@ const MAX_ATTEMPTS = 5;
 const RESEND_COOLDOWN = parseInt(process.env.EMAIL_OTP_RESEND_COOLDOWN_SECONDS || '60', 10);
 
 const PURPOSE_PRESENTATION = {
-  verify_email: { subject: 'Vérifiez votre adresse e-mail - Palabre', title: 'Vérification de votre adresse e-mail', accent: 'primary', intro: 'Utilisez le code ci-dessous pour confirmer que cette adresse e-mail vous appartient et l\'associer à votre compte Palabre.' },
-  recovery: { subject: 'Récupération de votre compte - Palabre', title: 'Récupération de votre compte', accent: 'warning', intro: 'Une demande de récupération de compte a été effectuée. Saisissez le code ci-dessous pour continuer.' },
-  link: { subject: 'Association d\'un moyen de connexion - Palabre', title: 'Association d\'un moyen de connexion', accent: 'primary', intro: 'Utilisez le code ci-dessous pour confirmer l\'association de cette adresse e-mail à votre compte.' },
-  confirm_action: { subject: 'Confirmation de modification requise - Palabre', title: 'Confirmation de modification', accent: 'primary', intro: 'Une modification sensible de votre compte super-administrateur est en attente. Saisissez le code ci-dessous pour la confirmer.' },
+  verify_email: { subject: 'Palabre - Verification de votre adresse e-mail', title: 'Verification de votre adresse e-mail', accent: 'primary', intro: 'Utilisez le code ci-dessous pour confirmer que cette adresse e-mail vous appartient.' },
+  recovery: { subject: 'Palabre - Recuperation de votre compte', title: 'Recuperation de votre compte', accent: 'warning', intro: 'Une demande de recuperation de compte a ete effectuee. Saisissez le code ci-dessous pour continuer.' },
+  link: { subject: 'Palabre - Association d un moyen de connexion', title: 'Association d un moyen de connexion', accent: 'primary', intro: 'Utilisez le code ci-dessous pour confirmer l association de cette adresse e-mail a votre compte.' },
+  confirm_action: { subject: 'Palabre - Confirmation de modification requise', title: 'Confirmation de modification', accent: 'primary', intro: 'Une modification sensible de votre compte est en attente. Saisissez le code ci-dessous pour la confirmer.' },
 };
 
 function generateCode() {
