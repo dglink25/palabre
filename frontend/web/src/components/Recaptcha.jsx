@@ -21,7 +21,7 @@ function loadRecaptchaScript() {
  * Vérification anti-robot sur les formulaires publics exposés à l'abus
  * (envoi d'OTP, démarrage de récupération, soumission d'une demande
  * d'inscription). Si VITE_RECAPTCHA_SITE_KEY n'est pas configuré, le
- * composant ne rend rien et `onVerify` n'est jamais appelé — le backend
+ * composant ne rend rien et `onVerify` n'est jamais appelé - le backend
  * ignore alors aussi la vérification (mode développement, voir
  * middleware/captcha.js).
  */

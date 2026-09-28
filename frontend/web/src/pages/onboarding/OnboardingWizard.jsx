@@ -160,7 +160,7 @@ export default function OnboardingWizard() {
   return (
     <AuthLayout cardWidth={560}>
       <div style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
-        <Link to="/login" className="text-secondary">J'ai déjà une organisation — Se connecter</Link>
+        <Link to="/login" className="text-secondary">J'ai déjà une organisation - Se connecter</Link>
         <Link to="/onboarding/status" className="text-secondary">Suivre une demande déjà commencée</Link>
       </div>
       <h1>Demande d'inscription d'organisation</h1>
@@ -170,7 +170,7 @@ export default function OnboardingWizard() {
       <div className="steps-indicator">
         {STEP_LABELS.map((_, i) => <span key={i} className={i <= stepIndex ? 'done' : ''} />)}
       </div>
-      <p className="text-secondary">Étape {stepIndex + 1} sur 4 — {STEP_LABELS[stepIndex]}</p>
+      <p className="text-secondary">Étape {stepIndex + 1} sur 4 - {STEP_LABELS[stepIndex]}</p>
 
       <Alert variant="danger">{error}</Alert>
       <Alert variant="success">{notice}</Alert>
@@ -222,7 +222,7 @@ export default function OnboardingWizard() {
           <div className="field">
             <label>Sexe</label>
             <select value={step2.gender} onChange={(e) => setStep2({ ...step2, gender: e.target.value })}>
-              <option value="">—</option>
+              <option value="">-</option>
               <option value="male">Masculin</option>
               <option value="female">Féminin</option>
             </select>

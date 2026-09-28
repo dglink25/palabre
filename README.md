@@ -4,7 +4,7 @@
 
 ```
 palabre/
-├── backend/          # API Node/Express (auth, profil, sécurité, sessions) — implémenté
+├── backend/          # API Node/Express (auth, profil, sécurité, sessions) - implémenté
 │   ├── src/
 │   ├── migrations/
 │   ├── package.json
@@ -22,7 +22,7 @@ palabre/
 │   └── Dockerfile
 ├── wireguard/            # Tunnel VPN par tenant (placeholder)
 │   └── Dockerfile
-├── docker/                # Orchestration seule — docker-compose.yml
+├── docker/                # Orchestration seule - docker-compose.yml
 │   └── docker-compose.yml
 └── palabre.sh              # Commande unique pour démarrer/arrêter un module précis
 ```
@@ -45,7 +45,7 @@ Uniquement `backend/` :
    - `POST /auth/federated/register` vs `POST /auth/federated/login`
      (Google, GitHub, Facebook, Apple, TikTok via Firebase) ;
    - un identifiant fédéré n'est jamais lié qu'à un seul compte Palabre ;
-   - un appareil donné ne peut servir à **créer** qu'un seul compte — la
+   - un appareil donné ne peut servir à **créer** qu'un seul compte - la
      **connexion** à un compte existant depuis ce même appareil reste
      possible, avec message explicite en cas de conflit ;
    - vérification d'adresse e-mail par code (`/me/email/...`) ;
@@ -60,9 +60,9 @@ Uniquement `backend/` :
    organisation).
 5. **Sessions multi-appareils façon WhatsApp/Gmail** : refresh token rotatif,
    détection de réutilisation, liste des appareils connectés, révocation à
-   distance — **plus** une présence temps réel sur Redis (`session:{deviceId}`,
+   distance - **plus** une présence temps réel sur Redis (`session:{deviceId}`,
    TTL renouvelé par `POST /sessions/heartbeat`).
-6. **Onboarding — demande d'inscription d'organisation** (section 8-9) :
+6. **Onboarding - demande d'inscription d'organisation** (section 8-9) :
    formulaire public en 4 étapes, reprenable sans perte de données via un
    jeton de brouillon (`/onboarding/requests`) ; instruction par le
    super-administrateur (`/onboarding/admin/requests`) avec rejet motivé +
@@ -78,7 +78,7 @@ Uniquement `backend/` :
    - connexion via Google interceptée et remplacée par un parcours à 3 étapes dès que l'e-mail détecté est le sien : code de 12 caractères par e-mail (3 min) → confirmation du numéro complet enregistré (indice : 2 derniers chiffres) → OTP WhatsApp (3 min) → session (`/auth/super-admin/step/*`) ;
    - mêmes réglages de profil que n'importe quel utilisateur (`/me`, `/me/preferences`, etc.) ;
    - **toute modification** qu'il effectue (profil, sécurité, sessions, décisions d'onboarding) exige une double vérification par code e-mail préalable (`/security/step-up/start` puis `/verify`, jeton à joindre en en-tête `X-Confirmation-Token`) ;
-   - déconnexion automatique après 15 minutes d'inactivité, renouvelées par chaque requête (pas seulement le heartbeat) — propre à ce compte, les autres utilisateurs n'y sont pas soumis.
+   - déconnexion automatique après 15 minutes d'inactivité, renouvelées par chaque requête (pas seulement le heartbeat) - propre à ce compte, les autres utilisateurs n'y sont pas soumis.
 
 `frontend/mobile`, `ai`, `asterisk`, `mediasoup`, `wireguard` sont des
 dossiers/services "placeholder", prêts à recevoir leur implémentation lors
@@ -88,11 +88,11 @@ implémenté (voir ci-dessous).
 ## Frontend web (`frontend/web`)
 
 Application React (Vite), consommant exactement les fonctionnalités
-backend décrites plus haut — aucune de plus :
+backend décrites plus haut - aucune de plus :
 
 - **Connexion / inscription** : téléphone (OTP WhatsApp), fédérée (Google,
   GitHub, Facebook, Apple, TikTok via Firebase, chargé depuis le CDN au
-  runtime — voir plus bas), et **passkey en connexion directe** (comme
+  runtime - voir plus bas), et **passkey en connexion directe** (comme
   GitHub, sans identifiant à saisir) ; inscription et connexion toujours sur
   des écrans/actions séparés ;
 - **Parcours super-administrateur** intégré et systématique, quel que soit
@@ -100,7 +100,7 @@ backend décrites plus haut — aucune de plus :
   complet → OTP WhatsApp (3 étapes) ; téléphone → OTP WhatsApp → code e-mail
   (2 étapes) ;
 - **Vérification en deux étapes par passkey** (WebAuthn natif du
-  navigateur — Touch ID, Windows Hello, clé de sécurité) ;
+  navigateur - Touch ID, Windows Hello, clé de sécurité) ;
 - **Récupération de compte** par téléphone ;
 - **Onboarding public** : formulaire en 4 étapes reprenable (jeton de
   brouillon), upload de documents, soumission, suivi de statut, correction
@@ -134,7 +134,7 @@ Le fichier fourni est déjà en place à **`frontend/web/public/logo.png`**
 (utilisé par le navigateur, favicon compris) et **`backend/src/brand/logo.png`**
 (utilisé dans l'en-tête des e-mails, servi via `/brand/logo.png`). Pour le
 remplacer par une nouvelle version, déposez le nouveau fichier PNG carré aux
-deux emplacements en conservant le nom `logo.png` — aucune autre
+deux emplacements en conservant le nom `logo.png` - aucune autre
 modification n'est nécessaire, toutes les pages et tous les e-mails le
 référencent par ce chemin.
 
@@ -158,15 +158,15 @@ npm run dev             # http://localhost:3000, contre un backend déjà démar
 ```
 
 Via Docker : `./palabre.sh start frontend-web` (les variables `VITE_*` sont
-alors lues depuis `docker/.env` — copiez `docker/.env.example`).
+alors lues depuis `docker/.env` - copiez `docker/.env.example`).
 
 > **Important pour les passkeys** : WebAuthn lie chaque passkey à une
 > origine précise (`PASSKEY_ORIGIN` côté backend, ex. `http://localhost:3000`)
 > et à un `PASSKEY_RP_ID` (le nom d'hôte, ex. `localhost`). Si vous changez
 > le port ou le domaine du frontend, mettez à jour ces deux variables dans
-> `backend/.env` — sinon les passkeys existants cesseront de fonctionner.
+> `backend/.env` - sinon les passkeys existants cesseront de fonctionner.
 
-## Passkeys (WebAuthn) — remplace l'ancien mécanisme "empreinte d'appareil"
+## Passkeys (WebAuthn) - remplace l'ancien mécanisme "empreinte d'appareil"
 
 Le cahier des charges demandait un second facteur par empreinte digitale.
 La première version de ce backend utilisait un mécanisme "maison"
@@ -190,7 +190,7 @@ dépendance supplémentaire côté client) :
   serveur** (`requireTwoFactorIfEnabled`) sur les actions sensibles
   (modification de profil, photo, préférences, e-mail, questions de
   sécurité, ajout/suppression de passkey, révocation de session, décisions
-  d'onboarding) — et non plus seulement suggérée par un écran côté
+  d'onboarding) - et non plus seulement suggérée par un écran côté
   frontend.
 
 ## Démarrage

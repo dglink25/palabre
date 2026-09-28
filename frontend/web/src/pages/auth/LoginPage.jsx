@@ -146,10 +146,10 @@ export default function LoginPage() {
 
   if (superAdminStep) {
     const stepMeta = {
-      email_code: { title: 'Étape 1 sur 3 — code reçu par e-mail', submit: submitSaEmailCode },
-      phone_confirmation: { title: `Étape 2 sur 3 — confirmez le numéro se terminant par ${phoneHint}`, submit: submitSaPhoneConfirm },
-      phone_otp: { title: 'Étape 3 sur 3 — code reçu par WhatsApp', submit: submitSaPhoneOtp },
-      phone_login_email: { title: 'Étape 2 sur 2 — code reçu par e-mail', submit: submitSaPhoneLoginEmail },
+      email_code: { title: 'Étape 1 sur 3 - code reçu par e-mail', submit: submitSaEmailCode },
+      phone_confirmation: { title: `Étape 2 sur 3 - confirmez le numéro se terminant par ${phoneHint}`, submit: submitSaPhoneConfirm },
+      phone_otp: { title: 'Étape 3 sur 3 - code reçu par WhatsApp', submit: submitSaPhoneOtp },
+      phone_login_email: { title: 'Étape 2 sur 2 - code reçu par e-mail', submit: submitSaPhoneLoginEmail },
     }[superAdminStep];
 
     return (

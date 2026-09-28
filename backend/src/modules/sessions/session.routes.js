@@ -15,7 +15,7 @@ const router = express.Router();
  *       Signale que l'appareil courant est toujours actif et renouvelle son TTL de présence
  *       (Redis, clé `session:{deviceId}`). À appeler régulièrement par le client (ex. toutes
  *       les 30-45s) : tant que ce heartbeat arrive avant expiration du TTL, la session reste
- *       considérée comme active — sans limite de durée totale.
+ *       considérée comme active - sans limite de durée totale.
  *     security: [{ bearerAuth: [] }]
  *     responses:
  *       200:

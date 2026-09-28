@@ -9,12 +9,12 @@ const { redis } = require('../../config/redis');
 
 /**
  * ======================================================================
- * PASSKEYS (WebAuthn) — authentification et 2FA "comme sur GitHub"
+ * PASSKEYS (WebAuthn) - authentification et 2FA "comme sur GitHub"
  * ======================================================================
  * Un passkey est une paire de clés générée et gardée par l'authentificateur
  * (Touch ID, Windows Hello, clé de sécurité, ou le trousseau du téléphone) :
  * la clé privée ne quitte JAMAIS l'appareil. Le serveur ne stocke que la
- * clé publique et vérifie une signature à chaque connexion — c'est le
+ * clé publique et vérifie une signature à chaque connexion - c'est le
  * standard W3C WebAuthn, implémenté ici via la bibliothèque de référence
  * @simplewebauthn/server plutôt qu'à la main (la validation CBOR/COSE et la
  * vérification de signature sont trop sensibles pour être réinventées).

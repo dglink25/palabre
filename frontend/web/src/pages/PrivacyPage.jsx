@@ -3,7 +3,7 @@ export default function PrivacyPage() {
     <div className="legal-page fade-in">
       <h1>Politique de confidentialité</h1>
         <p className="text-secondary">
-          Dernière mise à jour : {new Date().toLocaleDateString('fr-FR')} — <strong>modèle à faire valider par un juriste</strong> avant publication, au regard du droit applicable dans votre pays d'exploitation.
+          Dernière mise à jour : {new Date().toLocaleDateString('fr-FR')} - <strong>modèle à faire valider par un juriste</strong> avant publication, au regard du droit applicable dans votre pays d'exploitation.
         </p>
 
         <h2>1. Données collectées</h2>

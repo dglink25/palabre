@@ -5,7 +5,7 @@ import AuthIllustration from './AuthIllustration';
  * Mise en page des pages de type "formulaire" (connexion, récupération,
  * onboarding, activation) : un bandeau minimal (logo + retour), un fond de
  * couleur pleine (bleu primaire, aucun dégradé), une carte blanche à
- * gauche et une illustration à droite — inspiré de la composition demandée
+ * gauche et une illustration à droite - inspiré de la composition demandée
  * (schéma à côté du formulaire), avec les couleurs strictes de la charte
  * Palabre. Pas de pied de page ici : ces écrans doivent tenir sans défiler
  * la page ; si le contenu d'un formulaire est dense, seule la carte défile

@@ -1,7 +1,7 @@
 /**
  * Firebase Admin est utilisé uniquement pour VÉRIFIER, côté serveur, l'ID token
  * produit par le client après une connexion fédérée (Google, GitHub, Facebook,
- * Apple, TikTok — configurés comme providers dans le projet Firebase / Google
+ * Apple, TikTok - configurés comme providers dans le projet Firebase / Google
  * Cloud Console). Palabre ne gère aucun secret propre à ces providers : c'est
  * Firebase qui fédère, notre backend ne fait que valider l'identité obtenue.
  */
@@ -14,7 +14,7 @@ function initFirebase() {
 
   const path = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
   if (!path) {
-    console.warn('[firebase] FIREBASE_SERVICE_ACCOUNT_PATH non défini — la connexion fédérée sera indisponible.');
+    console.warn('[firebase] FIREBASE_SERVICE_ACCOUNT_PATH non défini - la connexion fédérée sera indisponible.');
     return admin;
   }
 
@@ -22,7 +22,7 @@ function initFirebase() {
   try {
     serviceAccount = require(path);
   } catch (e) {
-    // Le détail (chemin du fichier, cause) reste dans les logs serveur —
+    // Le détail (chemin du fichier, cause) reste dans les logs serveur -
     // jamais renvoyé au navigateur (information interne, et message peu
     // exploitable pour un utilisateur final).
     console.error(`[firebase] impossible de charger la clé de service à "${path}" :`, e.message);

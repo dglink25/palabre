@@ -1,7 +1,7 @@
 /**
  * Illustration décorative abstraite (nœuds reliés, écho du tourbillon du
  * logo), utilisée dans le panneau de droite des pages d'authentification.
- * Uniquement les 4 couleurs vives de la charte, en aplats — aucun dégradé.
+ * Uniquement les 4 couleurs vives de la charte, en aplats - aucun dégradé.
  */
 export default function AuthIllustration() {
   return (

@@ -166,7 +166,7 @@ router.post('/recovery/questions/list', async (req, res, next) => {
  *   post:
  *     tags: [Sécurité]
  *     summary: >
- *       Confirme les réponses aux questions de sécurité et ouvre une session si TOUTES sont correctes —
+ *       Confirme les réponses aux questions de sécurité et ouvre une session si TOUTES sont correctes -
  *       nécessite qu'au moins deux questions aient été configurées au préalable, pour limiter les essais
  *       exhaustifs sur une seule question.
  *     requestBody:

@@ -4,7 +4,7 @@ const { pool } = require('../../config/db');
  * Le client (app mobile/web) doit calculer et transmettre une empreinte
  * d'appareil stable (ex : identifiant matériel + salt applicatif côté mobile,
  * ou un identifiant persistant côté navigateur). Le backend ne fait que
- * l'enregistrer et vérifier son unicité — il ne peut pas la générer lui-même.
+ * l'enregistrer et vérifier son unicité - il ne peut pas la générer lui-même.
  */
 async function getOrCreateDevice({ deviceFingerprint, platform, model }) {
   if (!deviceFingerprint) {
@@ -31,7 +31,7 @@ async function getOrCreateDevice({ deviceFingerprint, platform, model }) {
  * seul compte Palabre, quel que soit le moyen utilisé (téléphone, Google,
  * GitHub, Facebook, Apple, TikTok). Si l'appareil a déjà été utilisé pour
  * inscrire un compte, toute nouvelle tentative d'INSCRIPTION doit être
- * refusée avec un message explicite — la CONNEXION à un compte existant
+ * refusée avec un message explicite - la CONNEXION à un compte existant
  * depuis ce même appareil reste bien sûr autorisée.
  */
 async function assertDeviceNotAlreadyRegistered(device) {

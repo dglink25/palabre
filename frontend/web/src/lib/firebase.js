@@ -2,7 +2,7 @@
  * Le SDK Firebase Auth est chargé depuis le CDN officiel de Google au
  * moment de l'exécution, plutôt qu'installé via npm. Le paquet npm
  * "firebase" embarque près de 20 sous-paquets @firebase/* (Firestore,
- * Storage, Messaging, Analytics...) même si l'on n'utilise que Auth — sur
+ * Storage, Messaging, Analytics...) même si l'on n'utilise que Auth - sur
  * une connexion lente ou instable, cela suffit à faire échouer `npm
  * install`. Le CDN ne télécharge que ce qui est réellement utilisé, une
  * seule fois, mis en cache par le navigateur.
@@ -39,7 +39,7 @@ async function getFirebaseAuth() {
 
 /**
  * Firebase lève des erreurs techniques (ex. "Firebase: Error
- * (auth/popup-closed-by-user).") — jamais montrées telles quelles. On les
+ * (auth/popup-closed-by-user).") - jamais montrées telles quelles. On les
  * retraduit en code reconnu par errorMessages.js, comme pour les passkeys.
  */
 function translateFirebaseError(err) {
@@ -75,7 +75,7 @@ export const federatedProviders = {
   github: () => signInWith((m) => new m.GithubAuthProvider()),
   facebook: () => signInWith((m) => new m.FacebookAuthProvider()),
   apple: () => signInWith((m) => new m.OAuthProvider('apple.com')),
-  // Provider OIDC personnalisé, nommé "oidc.tiktok" côté Firebase Console —
+  // Provider OIDC personnalisé, nommé "oidc.tiktok" côté Firebase Console -
   // doit correspondre exactement à providerMap dans config/firebase.js (backend).
   tiktok: () => signInWith((m) => new m.OAuthProvider('oidc.tiktok')),
 };

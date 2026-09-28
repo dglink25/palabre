@@ -40,7 +40,7 @@ async function verifyConfirmation(user, sessionId, code) {
 
 /**
  * Middleware à poser sur les routes de modification. N'a d'effet que pour
- * le super-administrateur — les autres utilisateurs ne sont pas concernés
+ * le super-administrateur - les autres utilisateurs ne sont pas concernés
  * par cette exigence.
  */
 function requireWriteConfirmation(req, res, next) {

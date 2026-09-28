@@ -86,7 +86,7 @@ async function rotateRefreshToken(oldRefreshToken) {
       [session.refresh_family_id]
     );
     await Promise.all(revoked.map((r) => presenceService.setOffline(r.user_id, r.device_id)));
-    const err = new Error('Réutilisation de refresh token détectée — toutes les sessions liées ont été révoquées.');
+    const err = new Error('Réutilisation de refresh token détectée - toutes les sessions liées ont été révoquées.');
     err.code = 'REFRESH_REUSE_DETECTED';
     throw err;
   }

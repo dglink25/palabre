@@ -4,7 +4,7 @@ const STORAGE_KEY = 'palabre_device_fingerprint';
  * Le backend exige un `deviceFingerprint` stable pour appliquer la règle
  * "un appareil ne peut créer qu'un seul compte" (voir device.service.js
  * côté backend). Pour un navigateur, on génère un identifiant aléatoire une
- * seule fois et on le persiste — il identifie CE navigateur sur CETTE
+ * seule fois et on le persiste - il identifie CE navigateur sur CETTE
  * machine, pas l'utilisateur.
  */
 export function getDeviceFingerprint() {

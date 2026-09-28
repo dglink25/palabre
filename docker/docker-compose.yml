@@ -1,6 +1,6 @@
 name: palabre
 
-# Architecture de base Palabre — chaque service correspond à une case du
+# Architecture de base Palabre - chaque service correspond à une case du
 # schéma fourni, avec son propre dossier au même niveau : ../backend,
 # ../frontend/web, ../frontend/mobile, ../ai, ../asterisk, ../mediasoup,
 # ../wireguard. Ce fichier vit dans docker/, à côté de ces dossiers, et n'est

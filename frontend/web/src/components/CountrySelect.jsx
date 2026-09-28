@@ -7,7 +7,7 @@ import { AFRICAN_COUNTRIES, flagEmoji, findCountry } from '../lib/africanCountri
  *
  * Props :
  *  - value      : code ISO2 du pays sélectionné (ex. "BJ")
- *  - onChange   : (country) => void  — reçoit l'objet complet { code, name, dialCode }
+ *  - onChange   : (country) => void  - reçoit l'objet complet { code, name, dialCode }
  *  - defaultCountryCode : code ISO2 par défaut
  */
 export default function CountrySelect({ value, onChange, defaultCountryCode = 'BJ', placeholder = 'Sélectionner un pays' }) {

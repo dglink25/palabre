@@ -1,0 +1,48 @@
+
+# Environnement / secrets
+.env
+.env.*
+!.env.example
+!.env.example.*
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Firebase / Google service accounts
+**/*firebase*.json
+**/*service-account*.json
+**/*adminsdk*.json
+**/service-account.json
+**/google-credentials*.json
+
+# Secrets locaux
+backend/secrets/*
+run/secrets/*
+!backend/secrets/README.md
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Logs
+*.log
+logs/
+
+# Uploads / données locales
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Docker / données locales
+docker/data/
+docker/volumes/
+
+# OS / éditeurs
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+

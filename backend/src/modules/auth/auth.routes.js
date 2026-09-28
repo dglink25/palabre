@@ -96,7 +96,7 @@ router.post('/phone/register', requireValidPhone('phone'), async (req, res, next
  *   post:
  *     tags: [Auth - Téléphone]
  *     summary: >
- *       CONNEXION par téléphone après validation du code OTP (distinct de /phone/register — ne crée jamais
+ *       CONNEXION par téléphone après validation du code OTP (distinct de /phone/register - ne crée jamais
  *       de compte). Pour le super-administrateur, ne renvoie pas de session directement : renvoie un défi
  *       de second facteur par e-mail (voir /auth/super-admin/step/phone-login-email).
  *     requestBody:
@@ -163,7 +163,7 @@ router.post('/super-admin/step/phone-login-email', loginLimiter, async (req, res
  * /auth/federated/register:
  *   post:
  *     tags: [Auth - Fédérée]
- *     summary: INSCRIPTION via Google, GitHub, Facebook, Apple ou TikTok (idToken Firebase) — distinct de /federated/login. Si l'e-mail Google détecté est celui du super-administrateur, renvoie un défi de vérification renforcée (voir /auth/super-admin/step/*) au lieu d'une session.
+ *     summary: INSCRIPTION via Google, GitHub, Facebook, Apple ou TikTok (idToken Firebase) - distinct de /federated/login. Si l'e-mail Google détecté est celui du super-administrateur, renvoie un défi de vérification renforcée (voir /auth/super-admin/step/*) au lieu d'une session.
  *     requestBody:
  *       required: true
  *       content:
@@ -183,7 +183,7 @@ router.post('/federated/register', async (req, res, next) => {
     const { idToken } = req.body;
 
     // Interception : si l'e-mail Google détecté est celui du
-    // super-administrateur, on ne crée/connecte jamais directement — on
+    // super-administrateur, on ne crée/connecte jamais directement - on
     // bascule sur le parcours renforcé à 3 étapes (voir superAdminAuth.*).
     const identity = await verifyFirebaseIdToken(idToken);
     if (identity.provider === 'google' && superAdminAuthService.isSuperAdminEmail(identity.email)) {
@@ -201,7 +201,7 @@ router.post('/federated/register', async (req, res, next) => {
  * /auth/federated/login:
  *   post:
  *     tags: [Auth - Fédérée]
- *     summary: CONNEXION via Google, GitHub, Facebook, Apple ou TikTok (idToken Firebase) — ne crée jamais de compte. Si l'e-mail Google détecté est celui du super-administrateur, renvoie un défi de vérification renforcée (voir /auth/super-admin/step/*) au lieu d'une session.
+ *     summary: CONNEXION via Google, GitHub, Facebook, Apple ou TikTok (idToken Firebase) - ne crée jamais de compte. Si l'e-mail Google détecté est celui du super-administrateur, renvoie un défi de vérification renforcée (voir /auth/super-admin/step/*) au lieu d'une session.
  *     requestBody:
  *       required: true
  *       content:

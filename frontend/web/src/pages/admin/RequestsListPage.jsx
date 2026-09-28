@@ -41,10 +41,10 @@ export default function RequestsListPage() {
           <tbody>
             {items.map((r) => (
               <tr key={r.id}>
-                <td>{r.step1_organization?.name || '—'}</td>
-                <td>{r.step2_leader?.fullName || '—'}</td>
+                <td>{r.step1_organization?.name || '-'}</td>
+                <td>{r.step2_leader?.fullName || '-'}</td>
                 <td><Badge variant={STATUS_VARIANT[r.status]}>{STATUS_LABEL[r.status]}</Badge></td>
-                <td className="text-secondary">{r.submitted_at ? new Date(r.submitted_at).toLocaleString('fr-FR') : '—'}</td>
+                <td className="text-secondary">{r.submitted_at ? new Date(r.submitted_at).toLocaleString('fr-FR') : '-'}</td>
                 <td><Link to={`/admin/onboarding/${r.id}`}>Instruire</Link></td>
               </tr>
             ))}

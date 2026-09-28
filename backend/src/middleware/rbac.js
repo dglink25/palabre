@@ -8,7 +8,7 @@ const { pool } = require('../config/db');
  * organisation précise, via `memberships` (user × organization × role).
  * `requireSuperAdmin` couvre le rôle plateforme (hors organisation) ;
  * `requireOrgRole` couvre les rôles internes à une organisation, et prend
- * soin de vérifier l'appartenance à CETTE organisation précisément — c'est
+ * soin de vérifier l'appartenance à CETTE organisation précisément - c'est
  * ce qui garantit qu'une organisation ne peut jamais accéder aux données
  * d'une autre (isolation stricte demandée section 36).
  */

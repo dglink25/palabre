@@ -2,7 +2,7 @@ const { parsePhoneNumberFromString } = require('libphonenumber-js');
 
 /**
  * Valide et normalise un numéro au format E.164 (+229...). Renvoie le
- * numéro normalisé ou null s'il est invalide — à utiliser systématiquement
+ * numéro normalisé ou null s'il est invalide - à utiliser systématiquement
  * avant d'écrire un numéro en base ou d'envoyer un OTP (section 36 :
  * "validation des données").
  */

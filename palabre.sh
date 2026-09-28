@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# palabre.sh — commande unique, à la racine du projet, pour démarrer,
+# palabre.sh - commande unique, à la racine du projet, pour démarrer,
 # arrêter ou reconstruire précisément un module de la plateforme (ou
 # l'ensemble). Le fichier d'orchestration vit dans docker/, à côté des
 # dossiers backend/, frontend/, ai/, asterisk/, mediasoup/, wireguard/.

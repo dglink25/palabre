@@ -167,7 +167,7 @@ async function loginWithFederatedProvider({ idToken, device, ip }) {
 }
 
 /**
- * Lie un nouveau moyen de connexion fédéré à un compte déjà connecté —
+ * Lie un nouveau moyen de connexion fédéré à un compte déjà connecté -
  * uniquement si ce provider n'est pas déjà associé à ce compte, ET que
  * l'identifiant fédéré n'est pas déjà utilisé par un AUTRE utilisateur.
  */
@@ -227,7 +227,7 @@ async function issueSessionForUser({ user, deviceRow, ip, userAgent }) {
   });
 
   // La session Postgres existe désormais ; on marque l'appareil "en ligne"
-  // côté Redis immédiatement — le client devra ensuite envoyer un
+  // côté Redis immédiatement - le client devra ensuite envoyer un
   // heartbeat régulier (POST /sessions/heartbeat) pour le rester.
   await presenceService.setOnline(user.id, deviceRow.id);
 

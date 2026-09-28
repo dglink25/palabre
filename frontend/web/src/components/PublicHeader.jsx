@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 
 /**
  * En-tête public, toujours visible (sticky) sur toutes les pages non
- * connectées — accueil, connexion, récupération, onboarding. Pas de liens
+ * connectées - accueil, connexion, récupération, onboarding. Pas de liens
  * "Conditions d'utilisation" / "Confidentialité" ici : par convention,
  * ces liens vivent uniquement dans le pied de page (voir PublicFooter).
  */

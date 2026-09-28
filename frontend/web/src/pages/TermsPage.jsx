@@ -3,7 +3,7 @@ export default function TermsPage() {
     <div className="legal-page fade-in">
       <h1>Conditions d'utilisation</h1>
         <p className="text-secondary">
-          Dernière mise à jour : {new Date().toLocaleDateString('fr-FR')} — <strong>modèle à faire valider par un juriste avant publication</strong>, adapté à votre structure juridique et à votre pays d'exploitation.
+          Dernière mise à jour : {new Date().toLocaleDateString('fr-FR')} - <strong>modèle à faire valider par un juriste avant publication</strong>, adapté à votre structure juridique et à votre pays d'exploitation.
         </p>
 
         <h2>1. Objet</h2>

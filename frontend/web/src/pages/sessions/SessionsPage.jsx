@@ -48,7 +48,7 @@ export default function SessionsPage() {
               {sessions.map((s) => (
                 <tr key={s.id}>
                   <td>
-                    {s.platform || 'Appareil'} {s.model ? `— ${s.model}` : ''}
+                    {s.platform || 'Appareil'} {s.model ? `- ${s.model}` : ''}
                     {s.isCurrent && <span> <Badge variant="primary">Cet appareil</Badge></span>}
                   </td>
                   <td>

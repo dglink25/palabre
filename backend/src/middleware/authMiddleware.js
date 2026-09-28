@@ -4,7 +4,7 @@ const { redis } = require('../config/redis');
 const sessionService = require('../modules/sessions/session.service');
 const presenceService = require('../modules/sessions/presence.service');
 
-// Déconnexion automatique après inactivité — demandée UNIQUEMENT pour le
+// Déconnexion automatique après inactivité - demandée UNIQUEMENT pour le
 // super-administrateur (les utilisateurs normaux restent connectés tant
 // qu'ils envoient un heartbeat, voir presence.service.js). Contrairement au
 // heartbeat (déclenché par le client), ce compteur est renouvelé par
@@ -41,7 +41,7 @@ async function requireAuth(req, res, next) {
     const stillActive = await redis.exists(idleKey);
     if (!stillActive) {
       // Plus de 15 minutes sans requête : on révoque la session pour de bon
-      // (pas seulement un refus ponctuel) — la prochaine action exigera une
+      // (pas seulement un refus ponctuel) - la prochaine action exigera une
       // reconnexion complète, y compris le parcours renforcé si via Google.
       await sessionService.revokeSession(user.id, payload.sid);
       await presenceService.setOffline(user.id, payload.did);
@@ -62,7 +62,7 @@ async function requireAuth(req, res, next) {
 
 /**
  * À appeler juste après avoir émis les jetons d'une session super-admin
- * (connexion initiale) pour amorcer la fenêtre d'inactivité de 15 minutes —
+ * (connexion initiale) pour amorcer la fenêtre d'inactivité de 15 minutes -
  * sans quoi la toute première requête suivant la connexion échouerait faute
  * de clé Redis existante.
  */

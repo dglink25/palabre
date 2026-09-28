@@ -6,7 +6,7 @@ function getTransporter() {
   if (transporter) return transporter;
 
   if (!process.env.MAIL_HOST) {
-    console.warn('[mailer] MAIL_HOST non défini — les e-mails seront seulement journalisés en console (mode dev).');
+    console.warn('[mailer] MAIL_HOST non défini - les e-mails seront seulement journalisés en console (mode dev).');
     transporter = {
       sendMail: async (opts) => {
         console.log('[mailer:dev] e-mail simulé →', { to: opts.to, subject: opts.subject });

@@ -17,7 +17,7 @@ function draftTokenFromRequest(req) {
 }
 
 /* ======================================================================
- * FORMULAIRE PUBLIC (section 8) — aucune authentification, protégé par
+ * FORMULAIRE PUBLIC (section 8) - aucune authentification, protégé par
  * jeton de brouillon (voir draftToken.js) + limitation de débit.
  * ====================================================================== */
 
@@ -30,7 +30,7 @@ function draftTokenFromRequest(req) {
  *     responses:
  *       201:
  *         description: >
- *           Brouillon créé. `draftToken` n'est renvoyé qu'ICI, une seule fois — à conserver côté client
+ *           Brouillon créé. `draftToken` n'est renvoyé qu'ICI, une seule fois - à conserver côté client
  *           (ex. localStorage) pour reprendre la saisie plus tard sans perte de données.
  */
 router.post('/requests', publicLimiter, async (req, res, next) => {
@@ -71,7 +71,7 @@ router.get('/requests/:id', publicLimiter, async (req, res, next) => {
  *     tags: [Onboarding]
  *     summary: >
  *       Met à jour une étape du formulaire (step1 = Organisation, step2 = Dirigeant, step4 = Certification).
- *       Fusion superficielle avec les données déjà saisies — reprise de saisie sans perte de données.
+ *       Fusion superficielle avec les données déjà saisies - reprise de saisie sans perte de données.
  *     parameters:
  *       - in: path
  *         name: id
@@ -108,7 +108,7 @@ router.patch('/requests/:id/steps/:stepKey', publicLimiter, async (req, res, nex
  * /onboarding/requests/{id}/documents:
  *   post:
  *     tags: [Onboarding]
- *     summary: Étape 3 — Téléverse un document (RCCM, attestation IFU, pièce d'identité du dirigeant, logo).
+ *     summary: Étape 3 - Téléverse un document (RCCM, attestation IFU, pièce d'identité du dirigeant, logo).
  *     parameters:
  *       - in: path
  *         name: id
@@ -152,7 +152,7 @@ router.post('/requests/:id/documents', publicLimiter, docUpload.single('file'), 
  * /onboarding/requests/{id}/submit:
  *   post:
  *     tags: [Onboarding]
- *     summary: Étape 4 — Soumet la demande complète pour instruction par le super-administrateur.
+ *     summary: Étape 4 - Soumet la demande complète pour instruction par le super-administrateur.
  *     parameters:
  *       - in: path
  *         name: id
@@ -164,7 +164,7 @@ router.post('/requests/:id/documents', publicLimiter, docUpload.single('file'), 
  *         schema: { type: string }
  *     responses:
  *       200: { description: Demande soumise }
- *       422: { description: Demande incomplète — voir `missingFields` dans la réponse d'erreur }
+ *       422: { description: Demande incomplète - voir `missingFields` dans la réponse d'erreur }
  */
 router.post('/requests/:id/submit', publicLimiter, requireCaptcha, async (req, res, next) => {
   try {
@@ -179,7 +179,7 @@ router.post('/requests/:id/submit', publicLimiter, requireCaptcha, async (req, r
  *     tags: [Onboarding]
  *     summary: >
  *       Corrige UNIQUEMENT les champs signalés par le super-administrateur après un rejet
- *       (section 9, point 3) — sans recréer une nouvelle demande.
+ *       (section 9, point 3) - sans recréer une nouvelle demande.
  *     parameters:
  *       - in: path
  *         name: id
@@ -246,7 +246,7 @@ router.post('/invitations/activate', publicLimiter, async (req, res, next) => {
 });
 
 /* ======================================================================
- * INSTRUCTION — SUPER-ADMINISTRATEUR UNIQUEMENT (section 9)
+ * INSTRUCTION - SUPER-ADMINISTRATEUR UNIQUEMENT (section 9)
  * ====================================================================== */
 
 /**
@@ -344,7 +344,7 @@ router.post('/admin/requests/:id/reject', requireAuth, requireSuperAdmin, requir
  *     summary: >
  *       Approuve la demande : crée l'organisation et son administrateur, génère le jeton de contrôle de
  *       tenant et le pairage VPN, envoie le code d'activation à l'administrateur, et renvoie le payload
- *       à encoder en QR code (section 10.1) — ces secrets ne sont plus récupérables après cette réponse.
+ *       à encoder en QR code (section 10.1) - ces secrets ne sont plus récupérables après cette réponse.
  *     security: [{ bearerAuth: [] }]
  *     parameters:
  *       - in: path

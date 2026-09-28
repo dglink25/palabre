@@ -2,7 +2,7 @@
 
 -- ========== PASSKEYS (WebAuthn) ==========
 -- Remplace le mécanisme "biometric_credentials" (clé WebCrypto maison) par
--- de vrais passkeys conformes au standard W3C WebAuthn — la table
+-- de vrais passkeys conformes au standard W3C WebAuthn - la table
 -- biometric_credentials reste en base pour ne rien casser rétroactivement,
 -- mais n'est plus utilisée par l'API à partir de cette version.
 
@@ -25,5 +25,5 @@ CREATE INDEX idx_passkeys_user ON passkeys(user_id);
 -- Toute connexion du super-administrateur est désormais renforcée, quel que
 -- soit le canal : après l'OTP WhatsApp habituel, un code e-mail (6 chiffres,
 -- réutilise email_verifications/purpose='confirm_action') est exigé avant
--- l'émission de la session. Aucune colonne supplémentaire nécessaire — la
+-- l'émission de la session. Aucune colonne supplémentaire nécessaire - la
 -- logique est portée par superAdminAuth.service.js.

@@ -15,13 +15,13 @@ const { normalizePhone } = require('../../middleware/validators');
  * super-administrateur, la connexion normale (auth.service.js) est
  * court-circuitée au profit de ce parcours à 3 étapes :
  *
- *   1. Code de 12 caractères envoyé par e-mail (3 min) — confirme la
+ *   1. Code de 12 caractères envoyé par e-mail (3 min) - confirme la
  *      maîtrise de la boîte mail enregistrée.
  *   2. Confirmation du numéro de téléphone enregistré (un indice affichant
  *      seulement ses 2 derniers chiffres, mais la valeur ATTENDUE est le
- *      numéro complet — afficher uniquement 2 chiffres et n'en exiger que
+ *      numéro complet - afficher uniquement 2 chiffres et n'en exiger que
  *      2 en retour n'aurait quasiment aucune valeur de sécurité).
- *   3. Code OTP WhatsApp (3 min) envoyé à ce numéro — confirme la
+ *   3. Code OTP WhatsApp (3 min) envoyé à ce numéro - confirme la
  *      possession réelle du téléphone.
  *
  * Chaque étape se transmet via un jeton signé à courte durée de vie
@@ -63,7 +63,7 @@ function verifyStepToken(token, expectedStep) {
 
 /**
  * Code à 12 caractères : au moins 2 majuscules, 3 minuscules, 3 chiffres,
- * 2 caractères spéciaux — le reste tiré au hasard du jeu complet, puis tout
+ * 2 caractères spéciaux - le reste tiré au hasard du jeu complet, puis tout
  * mélangé pour que la composition ne soit pas prévisible en position.
  */
 function generateComplexEmailCode() {
@@ -120,10 +120,10 @@ async function startStepUp({ identity, device }) {
 
   await sendMail({
     to: SUPER_ADMIN_EMAIL,
-    subject: 'Code de connexion super-administrateur — Palabre',
+    subject: 'Code de connexion super-administrateur - Palabre',
     text: `Code de vérification (étape 1/3) : ${code}\n\nCe code expire dans 3 minutes. Si vous n'êtes pas à l'origine de cette tentative de connexion, sécurisez immédiatement votre compte Google.`,
     html: wrapEmail({
-      title: 'Connexion super-administrateur — étape 1 sur 3',
+      title: 'Connexion super-administrateur - étape 1 sur 3',
       preheader: `Code de connexion : ${code}`,
       accent: 'alert',
       bodyHtml: `
@@ -192,7 +192,7 @@ async function verifyEmailStep({ stepToken, code }) {
 
 /**
  * L'utilisateur choisit un pays et saisit un numéro complet. Le numéro
- * normalisé doit correspondre EXACTEMENT au numéro enregistré — les 2
+ * normalisé doit correspondre EXACTEMENT au numéro enregistré - les 2
  * derniers chiffres servis en indice à l'étape précédente ne sont qu'un
  * repère pour l'utilisateur, pas le critère de validation (2 chiffres
  * seuls seraient trivialement devinables).
@@ -225,7 +225,7 @@ async function verifyPhoneConfirmationStep({ stepToken, country, phone }) {
 
 /**
  * Dernière étape : le code WhatsApp valide, on finalise enfin la
- * connexion — création de la liaison Google si c'était la première fois,
+ * connexion - création de la liaison Google si c'était la première fois,
  * puis émission d'une session comme pour un login classique.
  */
 async function verifyPhoneOtpStep({ stepToken, code }) {
@@ -263,8 +263,8 @@ async function verifyPhoneOtpStep({ stepToken, code }) {
  * ======================================================================
  * Le téléphone a déjà été prouvé (OTP WhatsApp validé par auth.service.js
  * AVANT d'appeler cette fonction) : il ne s'agit donc plus de re-prouver le
- * téléphone, seulement d'ajouter un second facteur indépendant — un code
- * envoyé à l'e-mail enregistré — avant d'émettre la session. C'est
+ * téléphone, seulement d'ajouter un second facteur indépendant - un code
+ * envoyé à l'e-mail enregistré - avant d'émettre la session. C'est
  * délibéré et systématique : toute connexion du super-administrateur est
  * renforcée, quel que soit le canal (Google : 3 étapes ; téléphone : 2).
  */
@@ -278,10 +278,10 @@ async function startPhoneLoginSecondFactor({ user, device }) {
 
   await sendMail({
     to: SUPER_ADMIN_EMAIL,
-    subject: 'Palabre — Code de connexion super-administrateur',
+    subject: 'Palabre - Code de connexion super-administrateur',
     text: `Code de vérification (étape 2/2, connexion par téléphone) : ${code}\n\nCe code expire dans 3 minutes. Si vous n'êtes pas à l'origine de cette tentative de connexion, sécurisez immédiatement votre compte.`,
     html: wrapEmail({
-      title: 'Connexion super-administrateur — étape 2 sur 2',
+      title: 'Connexion super-administrateur - étape 2 sur 2',
       preheader: `Code de connexion : ${code}`,
       accent: 'alert',
       bodyHtml: `

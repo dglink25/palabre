@@ -62,7 +62,7 @@ async function sendOtp(phoneE164, purpose, ttlSecondsOverride) {
     [phoneE164, purpose, codeHash, OTP_MAX_ATTEMPTS, expiresAt]
   );
 
-  const message = `*Palabre — Code de vérification*\n\nVotre code : *${code}*\n\nSaisissez ce code dans l'application pour vérifier votre compte. Il expire dans ${Math.round(ttlSeconds / 60)} minutes.\n\nSi vous n'avez pas demandé ce code, ignorez ce message.`;
+  const message = `*Palabre - Code de vérification*\n\nVotre code : *${code}*\n\nSaisissez ce code dans l'application pour vérifier votre compte. Il expire dans ${Math.round(ttlSeconds / 60)} minutes.\n\nSi vous n'avez pas demandé ce code, ignorez ce message.`;
   const sendResult = await convessaSend(phoneE164, message);
 
   await pool.query(

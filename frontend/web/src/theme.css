@@ -1,14 +1,14 @@
-/* Charte graphique Palabre V1.0 — couleurs exactes, aucun dégradé. */
+/* Charte graphique Palabre V1.0 - couleurs exactes, aucun dégradé. */
 :root {
-  --color-primary-blue: #1A73E8;   /* Bleu Réseau Primaire — CTA, liens, navigation active */
-  --color-success-green: #34A853;  /* Vert Émeraude — disponibilité, statut opérationnel, succès */
-  --color-warning-amber: #FBBC05;  /* Jaune Ambre — vigilance, transition, en attente */
-  --color-alert-red: #EA4335;      /* Rouge Énergie — urgence, arrêt critique */
-  --color-white: #FFFFFF;          /* Blanc Pur — fond principal */
-  --color-offwhite: #F8F9FA;       /* Gris Banquise — fond secondaire */
-  --color-border: #E0E0E0;         /* Gris Filet — séparateurs / contours */
-  --color-text-secondary: #5F6368; /* Gris Média — texte secondaire */
-  --color-text-primary: #202124;   /* Anthracite Sombre — texte principal */
+  --color-primary-blue: #1A73E8;   /* Bleu Réseau Primaire - CTA, liens, navigation active */
+  --color-success-green: #34A853;  /* Vert Émeraude - disponibilité, statut opérationnel, succès */
+  --color-warning-amber: #FBBC05;  /* Jaune Ambre - vigilance, transition, en attente */
+  --color-alert-red: #EA4335;      /* Rouge Énergie - urgence, arrêt critique */
+  --color-white: #FFFFFF;          /* Blanc Pur - fond principal */
+  --color-offwhite: #F8F9FA;       /* Gris Banquise - fond secondaire */
+  --color-border: #E0E0E0;         /* Gris Filet - séparateurs / contours */
+  --color-text-secondary: #5F6368; /* Gris Média - texte secondaire */
+  --color-text-primary: #202124;   /* Anthracite Sombre - texte principal */
   --font-stack: -apple-system, 'Segoe UI', Roboto, Arial, Helvetica, sans-serif;
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -95,7 +95,7 @@ h1, h2, h3 { color: var(--color-text-primary); margin: 0 0 12px 0; }
 .main-content { flex: 1; padding: 32px; max-width: 900px; }
 
 /* Barre supérieure mobile : remplace ENTIÈREMENT la barre latérale sous
-   860px (voir media query plus bas) — plus de tentative de faire tenir la
+   860px (voir media query plus bas) - plus de tentative de faire tenir la
    navigation en horizontal, source du rendu cassé constaté sur mobile. */
 .mobile-topbar {
   display: none;
@@ -480,7 +480,7 @@ th { color: var(--color-text-secondary); font-size: 12px; text-transform: upperc
 
   /* Espace connecté : la barre latérale disparaît complètement au profit
      d'une barre supérieure fixe + menu plein écran (voir mobile-topbar /
-     mobile-menu ci-dessus) — plus de navigation en scroll horizontal. */
+     mobile-menu ci-dessus) - plus de navigation en scroll horizontal. */
   .sidebar { display: none; }
   .mobile-topbar { display: flex; }
   .app-shell { padding-top: 56px; }

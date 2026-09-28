@@ -10,7 +10,7 @@ const INVITATION_TTL_HOURS = 72;
 
 /**
  * ======================================================================
- * ÉTAPE 1-4 — SAISIE DE LA DEMANDE (section 8)
+ * ÉTAPE 1-4 - SAISIE DE LA DEMANDE (section 8)
  * ======================================================================
  */
 
@@ -20,7 +20,7 @@ async function createDraft() {
     `INSERT INTO organization_requests (draft_token_hash) VALUES ($1) RETURNING id, status, created_at`,
     [hashDraftToken(draftToken)]
   );
-  // Le jeton n'est renvoyé qu'ICI, une seule fois — comme le code QR
+  // Le jeton n'est renvoyé qu'ICI, une seule fois - comme le code QR
   // technique (section 10.3), il n'est ni stocké en clair ni récupérable
   // après coup : à l'appelant de le conserver côté client (navigateur).
   return { ...rows[0], draftToken };
@@ -145,7 +145,7 @@ async function submitRequest(id, draftToken) {
   const updated = rows[0];
 
   // Confirmation de réception, avec un lien d'accès direct au suivi du
-  // dossier (le même jeton de brouillon reste valable — c'est l'applicant
+  // dossier (le même jeton de brouillon reste valable - c'est l'applicant
   // lui-même qui vient de le fournir pour authentifier cet appel).
   const statusLink = buildStatusLink(id, draftToken);
   const leaderEmail = updated.step2_leader && updated.step2_leader.email;
@@ -156,10 +156,10 @@ async function submitRequest(id, draftToken) {
     sendMail({
       to: leaderEmail,
       subject: 'Votre demande d\'inscription Palabre a bien été reçue',
-      text: `Bonjour,\n\nVotre demande d'inscription pour "${orgName}" a bien été reçue et va être instruite par le super-administrateur.\n\nPour suivre son état ou la compléter à tout moment : ${statusLink}\n\n— L'équipe Palabre`,
+      text: `Bonjour,\n\nVotre demande d'inscription pour "${orgName}" a bien été reçue et va être instruite par le super-administrateur.\n\nPour suivre son état ou la compléter à tout moment : ${statusLink}\n\n- L'équipe Palabre`,
       html: wrapEmail({
         title: 'Votre demande a bien été reçue',
-        preheader: `Demande d'inscription ${orgName} — en cours d'instruction`,
+        preheader: `Demande d'inscription ${orgName} - en cours d'instruction`,
         accent: 'primary',
         bodyHtml: `
           <p style="margin:0 0 8px 0;">Bonjour,</p>
@@ -171,7 +171,7 @@ async function submitRequest(id, draftToken) {
     }).catch((e) => console.error('[onboarding] échec e-mail de confirmation', e.message));
   }
   if (leaderPhone) {
-    convessaSend(leaderPhone, `*Palabre — Demande reçue*\n\nVotre demande d'inscription pour *${orgName}* a bien été reçue et va être instruite.\n\nSuivi de votre dossier : ${statusLink}`)
+    convessaSend(leaderPhone, `*Palabre - Demande reçue*\n\nVotre demande d'inscription pour *${orgName}* a bien été reçue et va être instruite.\n\nSuivi de votre dossier : ${statusLink}`)
       .catch((e) => console.error('[onboarding] échec WhatsApp de confirmation', e.message));
   }
 
@@ -180,7 +180,7 @@ async function submitRequest(id, draftToken) {
 
 /**
  * Correction après rejet (section 9, point 3) : SEULS les champs listés
- * dans flagged_fields peuvent être modifiés — on refuse toute autre clé
+ * dans flagged_fields peuvent être modifiés - on refuse toute autre clé
  * pour empêcher un demandeur de changer des informations non signalées à
  * l'insu du super-administrateur.
  */
@@ -294,7 +294,7 @@ async function rejectRequest(id, { reason, flaggedFields }, reviewerId) {
 
   // Le jeton de brouillon est tourné à chaque rejet : le super-administrateur
   // n'a jamais accès au jeton en clair (seul son hash est stocké, comme un
-  // mot de passe) — on en émet donc un nouveau pour permettre l'envoi d'un
+  // mot de passe) - on en émet donc un nouveau pour permettre l'envoi d'un
   // lien d'accès direct fonctionnel, tout en invalidant l'ancien.
   const newDraftToken = generateDraftToken();
   const { rows } = await pool.query(
@@ -317,27 +317,27 @@ async function rejectRequest(id, { reason, flaggedFields }, reviewerId) {
       : '';
     const html = wrapEmail({
       title: 'Votre demande nécessite une correction',
-      preheader: `Demande d'inscription ${orgName} — action requise`,
+      preheader: `Demande d'inscription ${orgName} - action requise`,
       accent: 'warning',
       bodyHtml: `
         <p style="margin:0 0 8px 0;">Bonjour,</p>
         <p style="margin:0 0 16px 0;">Votre demande d'inscription pour <strong>${orgName}</strong> sur Palabre a été examinée et nécessite une correction avant de pouvoir être validée.</p>
         ${calloutBox({ label: 'Motif indiqué par le super-administrateur', value: reason, accent: 'warning' })}
         ${fieldsListHtml ? `<p style="margin:16px 0 4px 0; font-weight:bold;">Éléments à corriger :</p>${fieldsListHtml}` : ''}
-        <p style="margin:16px 0 8px 0;">Pour tout complément de dossier, cliquez sur le bouton ci-dessous pour accéder directement à votre demande — aucune nouvelle demande n'est nécessaire :</p>
+        <p style="margin:16px 0 8px 0;">Pour tout complément de dossier, cliquez sur le bouton ci-dessous pour accéder directement à votre demande - aucune nouvelle demande n'est nécessaire :</p>
         ${button({ url: statusLink, label: 'Compléter mon dossier', accent: 'warning' })}
       `,
     });
     await sendMail({
       to: leaderEmail,
       subject: 'Votre demande d\'inscription Palabre nécessite une correction',
-      text: `Bonjour,\n\nVotre demande d'inscription d'organisation (${orgName}) sur Palabre a été renvoyée pour correction.\n\nMotif : ${reason}\n\nPour tout complément de dossier, accédez directement à votre demande : ${statusLink}\n\n— L'équipe Palabre`,
+      text: `Bonjour,\n\nVotre demande d'inscription d'organisation (${orgName}) sur Palabre a été renvoyée pour correction.\n\nMotif : ${reason}\n\nPour tout complément de dossier, accédez directement à votre demande : ${statusLink}\n\n- L'équipe Palabre`,
       html,
     }).catch((e) => console.error('[onboarding] échec envoi e-mail de rejet', e.message));
   }
 
   if (leaderPhone) {
-    const whatsappText = `*Palabre — Demande d'inscription à corriger*\n\nVotre demande d'inscription pour *${orgName}* nécessite une correction avant validation.\n\n*Motif :* ${reason}\n\nPour tout complément de dossier, cliquez sur ce lien pour accéder directement à votre demande :\n${statusLink}`;
+    const whatsappText = `*Palabre - Demande d'inscription à corriger*\n\nVotre demande d'inscription pour *${orgName}* nécessite une correction avant validation.\n\n*Motif :* ${reason}\n\nPour tout complément de dossier, cliquez sur ce lien pour accéder directement à votre demande :\n${statusLink}`;
     convessaSend(leaderPhone, whatsappText).catch((e) => console.error('[onboarding] échec WhatsApp de rejet', e.message));
   }
 
@@ -358,7 +358,7 @@ function hashInvitationCode(code) {
  * 10.1), et envoie à l'administrateur son code d'activation (l'équivalent,
  * en système sans mot de passe, des "identifiants sécurisés envoyés par
  * e-mail" avec "changement imposé à la première connexion" : ici, la
- * première connexion doit obligatoirement passer par ce code — voir
+ * première connexion doit obligatoirement passer par ce code - voir
  * `activateInvitation`). Ne couvre pas la génération d'APK ni les codes
  * USSD (section 9, points 10-12), qui relèvent de modules distincts.
  */
@@ -387,7 +387,7 @@ async function approveRequest(id, reviewerId) {
 
     // Compte administrateur : créé directement par le super-administrateur
     // (le dirigeant n'a pas eu besoin de s'inscrire lui-même au préalable).
-    // Conflit possible si ce téléphone/email a déjà un compte Palabre —
+    // Conflit possible si ce téléphone/email a déjà un compte Palabre -
     // dans ce cas on rattache l'organisation à ce compte existant plutôt
     // que d'échouer, pour rester utilisable en conditions réelles.
     let adminUser;
@@ -463,7 +463,7 @@ async function approveRequest(id, reviewerId) {
       }).catch((e) => console.error('[onboarding] échec e-mail activation', e.message));
     }
     if (leader.phone) {
-      const whatsappText = `*Palabre — Organisation approuvée*\n\nVotre organisation *${org.name}* est approuvée. Votre compte administrateur est prêt.\n\n*Code d'activation (première connexion) :* ${invitationCode}\n\nCe code expire dans ${INVITATION_TTL_HOURS} heures et ne sert qu'à votre toute première connexion.`;
+      const whatsappText = `*Palabre - Organisation approuvée*\n\nVotre organisation *${org.name}* est approuvée. Votre compte administrateur est prêt.\n\n*Code d'activation (première connexion) :* ${invitationCode}\n\nCe code expire dans ${INVITATION_TTL_HOURS} heures et ne sert qu'à votre toute première connexion.`;
       convessaSend(leader.phone, whatsappText).catch((e) => console.error('[onboarding] échec WhatsApp activation', e.message));
     }
 
@@ -478,7 +478,7 @@ async function approveRequest(id, reviewerId) {
     return {
       organization,
       adminUser: { id: adminUser.id, fullName: adminUser.full_name, email: adminUser.email, phone: adminUser.phone_e164 },
-      // Payload de démarrage à encoder en QR par le client (section 10.1) —
+      // Payload de démarrage à encoder en QR par le client (section 10.1) -
       // ces secrets bruts ne sont plus jamais récupérables après cette réponse.
       qrPayload: {
         tenantId: organization.id,

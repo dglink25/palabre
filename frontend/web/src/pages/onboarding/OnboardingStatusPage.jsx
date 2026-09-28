@@ -6,14 +6,14 @@ import { friendlyMessage } from '../../lib/errorMessages';
 import AuthLayout from '../../components/AuthLayout';
 
 const STATUS_VARIANT = { draft: 'neutral', submitted: 'primary', rejected: 'warning', approved: 'success' };
-const STATUS_LABEL = { draft: 'Brouillon', submitted: 'Soumise — en instruction', rejected: 'À corriger', approved: 'Approuvée' };
+const STATUS_LABEL = { draft: 'Brouillon', submitted: 'Soumise - en instruction', rejected: 'À corriger', approved: 'Approuvée' };
 
 export default function OnboardingStatusPage() {
   const [params] = useSearchParams();
   const requestId = params.get('id');
 
   // Le jeton peut arriver directement dans le lien envoyé par e-mail/WhatsApp
-  // (?token=...) — dans ce cas il fait foi et est aussitôt mémorisé pour cet
+  // (?token=...) - dans ce cas il fait foi et est aussitôt mémorisé pour cet
   // appareil ; à défaut, on retombe sur celui déjà enregistré localement.
   const urlToken = params.get('token');
   if (requestId && urlToken) {

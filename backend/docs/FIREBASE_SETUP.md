@@ -1,4 +1,4 @@
-# Configuration Firebase / Google Cloud Console — Authentification fédérée
+# Configuration Firebase / Google Cloud Console - Authentification fédérée
 
 Le backend (`src/config/firebase.js`) ne fait que **vérifier** un `idToken`
 déjà émis par Firebase après connexion au provider. Toute la configuration
@@ -12,7 +12,7 @@ n'aura jamais de token valide à vérifier.
    `palabre` (ou `palabre-prod` / `palabre-staging` si plusieurs
    environnements).
 2. Ce projet Firebase est automatiquement lié à un projet **Google Cloud**
-   du même nom — c'est ce projet GCP que vous retrouverez dans la Google
+   du même nom - c'est ce projet GCP que vous retrouverez dans la Google
    Cloud Console pour les étapes OAuth ci-dessous.
 3. Dans **Authentication → Sign-in method**, activez un par un les
    providers utilisés par Palabre (Google, GitHub, Facebook, Apple ;
@@ -27,7 +27,7 @@ n'aura jamais de token valide à vérifier.
 3. Pour l'app mobile Android : dans **Project Settings → Vos applications**,
    ajoutez l'app Android avec son **nom de package** et son
    **empreinte SHA-1** (`./gradlew signingReport` en debug, et l'empreinte
-   de la clé de release avant publication) — Google Sign-In sur Android en a
+   de la clé de release avant publication) - Google Sign-In sur Android en a
    besoin pour valider l'app appelante.
 4. Téléchargez `google-services.json` (Android) / `GoogleService-Info.plist`
    (iOS) depuis Project Settings et intégrez-les au projet mobile.
@@ -81,7 +81,7 @@ configurer comme **provider OIDC générique**.
    fournisseur → OpenID Connect (OIDC)** :
    - Nom du provider : donnez-lui l'identifiant `oidc.tiktok` (c'est cet
      identifiant qui est attendu par `providerMap` dans
-     `src/config/firebase.js` — si vous le nommez différemment, mettez à
+     `src/config/firebase.js` - si vous le nommez différemment, mettez à
      jour ce fichier en conséquence) ;
    - Issuer URL : `https://www.tiktok.com/`  ;
    - Client ID / Client Secret : ceux fournis par TikTok à l'étape 1.
@@ -94,7 +94,7 @@ que vérifier les tokens via une **clé de service** Firebase Admin, distincte.
 1. Firebase Console → Paramètres du projet → **Comptes de service** →
    **Générer une nouvelle clé privée** → télécharge un fichier JSON.
 2. Copiez ce fichier dans `backend/secrets/` (dossier ignoré par git, monté en
-   lecture seule dans le conteneur sous `/run/secrets/` — voir
+   lecture seule dans le conteneur sous `/run/secrets/` - voir
    `docker/docker-compose.yml`). Ne jamais le commiter ailleurs.
 3. Dans `backend/.env`, mettez son nom exact, par exemple :
    `FIREBASE_SERVICE_ACCOUNT_PATH=/run/secrets/palable-320b4-firebase-adminsdk-fbsvc-76c8806392.json`
@@ -108,5 +108,5 @@ que vérifier les tokens via une **clé de service** Firebase Admin, distincte.
 Le flux est toujours : **le client s'authentifie auprès du provider via le
 SDK Firebase**, obtient un `idToken` Firebase, puis l'envoie au backend
 Palabre (`POST /auth/federated/register` ou `/auth/federated/login`, voir
-`auth.routes.js`). Le backend ne fait que vérifier ce token — il ne pilote
+`auth.routes.js`). Le backend ne fait que vérifier ce token - il ne pilote
 jamais lui-même l'écran de connexion Google/GitHub/Facebook/Apple/TikTok.

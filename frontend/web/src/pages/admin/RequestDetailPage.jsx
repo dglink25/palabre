@@ -20,7 +20,7 @@ export default function RequestDetailPage() {
 
   const [reason, setReason] = useState('');
   const [flagged, setFlagged] = useState([]);
-  const [approval, setApproval] = useState(null); // { organization, adminUser, qrPayload } — affiché une seule fois
+  const [approval, setApproval] = useState(null); // { organization, adminUser, qrPayload } - affiché une seule fois
 
   async function load() {
     setLoading(true);
@@ -69,7 +69,7 @@ export default function RequestDetailPage() {
         <div className="card">
           <h2>Organisation approuvée</h2>
           <p className="text-secondary">
-            Les informations ci-dessous ne seront plus jamais affichées après avoir quitté cette page — le code
+            Les informations ci-dessous ne seront plus jamais affichées après avoir quitté cette page - le code
             d'activation a déjà été envoyé à l'administrateur par e-mail et WhatsApp.
           </p>
           <p><strong>Identifiant de l'organisation :</strong> {approval.organization.id}</p>

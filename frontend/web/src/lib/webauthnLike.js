@@ -1,17 +1,17 @@
 /**
  * ======================================================================
- * FACTEUR "EMPREINTE D'APPAREIL" (2FA) — CryptoKey non-extractable
+ * FACTEUR "EMPREINTE D'APPAREIL" (2FA) - CryptoKey non-extractable
  * ======================================================================
  * Le backend (security.service.js) vérifie une signature ECDSA P-256 avec
  * une clé publique PEM (format SPKI), via Node `crypto.createVerify`, qui
- * attend une signature au format DER — alors que l'API WebCrypto du
+ * attend une signature au format DER - alors que l'API WebCrypto du
  * navigateur produit ses signatures ECDSA au format brut IEEE P1363
  * (r || s concaténés). Ce module génère la paire de clés, exporte la clé
  * publique en PEM, et convertit chaque signature en DER avant envoi.
  *
  * Important : ceci n'est PAS le protocole WebAuthn du W3C (qui utiliserait
  * des clés COSE/CBOR et signerait authenticatorData+clientDataHash, pas un
- * defi arbitraire) — c'est un mécanisme "clé liée à l'appareil" plus simple
+ * defi arbitraire) - c'est un mécanisme "clé liée à l'appareil" plus simple
  * délibérément choisi côté backend pour rester indépendant du matériel.
  * La clé privée ne quitte jamais l'appareil (non-extractable, stockée dans
  * IndexedDB), mais un vrai geste biométrique du système d'exploitation

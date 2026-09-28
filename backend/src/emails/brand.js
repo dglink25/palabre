@@ -1,6 +1,6 @@
 /**
  * ======================================================================
- * GABARIT D'E-MAIL — CHARTE GRAPHIQUE PALABRE V1.0
+ * GABARIT D'E-MAIL - CHARTE GRAPHIQUE PALABRE V1.0
  * ======================================================================
  * Couleurs EXACTES de la charte, aucune autre teinte, aucun dégradé,
  * aucun emoji. HTML en tableaux avec styles en ligne (compatibilité
@@ -10,15 +10,15 @@
  */
 
 const COLORS = {
-  primaryBlue: '#1A73E8',   // Bleu Réseau Primaire — CTA, liens, en-tête
-  successGreen: '#34A853',  // Vert Émeraude — succès, statut opérationnel
-  warningAmber: '#FBBC05',  // Jaune Ambre — vigilance, transition
-  alertRed: '#EA4335',      // Rouge Énergie — urgence, arrêt critique
-  white: '#FFFFFF',         // Blanc Pur — fond principal
-  offWhite: '#F8F9FA',      // Gris Banquise — fond secondaire
-  border: '#E0E0E0',        // Gris Filet — séparateurs / contours
-  textSecondary: '#5F6368', // Gris Média — texte secondaire
-  textPrimary: '#202124',   // Anthracite Sombre — texte principal
+  primaryBlue: '#1A73E8',   // Bleu Réseau Primaire - CTA, liens, en-tête
+  successGreen: '#34A853',  // Vert Émeraude - succès, statut opérationnel
+  warningAmber: '#FBBC05',  // Jaune Ambre - vigilance, transition
+  alertRed: '#EA4335',      // Rouge Énergie - urgence, arrêt critique
+  white: '#FFFFFF',         // Blanc Pur - fond principal
+  offWhite: '#F8F9FA',      // Gris Banquise - fond secondaire
+  border: '#E0E0E0',        // Gris Filet - séparateurs / contours
+  textSecondary: '#5F6368', // Gris Média - texte secondaire
+  textPrimary: '#202124',   // Anthracite Sombre - texte principal
 };
 
 const FONT_STACK = "Arial, Helvetica, 'Segoe UI', sans-serif";
@@ -40,7 +40,7 @@ function accentColor(accent) {
 }
 
 /**
- * Bloc de mise en avant (code, motif, information clé) — fond blanc,
+ * Bloc de mise en avant (code, motif, information clé) - fond blanc,
  * bordure fine dans la couleur d'accent, jamais de remplissage dégradé.
  */
 function calloutBox({ label, value, accent = 'primary' }) {

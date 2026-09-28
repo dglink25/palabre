@@ -2,7 +2,7 @@ import { api } from './apiClient';
 
 /**
  * Passkeys reposent sur l'API navigator.credentials du navigateur (standard
- * W3C WebAuthn) — aucune bibliothèque tierce nécessaire côté client. Le
+ * W3C WebAuthn) - aucune bibliothèque tierce nécessaire côté client. Le
  * serveur (voir passkey.service.js, basé sur @simplewebauthn/server) échange
  * des options/réponses encodées en base64url ; ces quelques fonctions font
  * la conversion entre ArrayBuffer (utilisé par le navigateur) et base64url
@@ -78,7 +78,7 @@ export function isPasskeySupported() {
 
 /**
  * Le navigateur lève des DOMException techniques (ex. "The operation either
- * timed out or was not allowed...") — jamais montrées telles quelles à
+ * timed out or was not allowed...") - jamais montrées telles quelles à
  * l'utilisateur. On les retraduit en code reconnu par errorMessages.js,
  * pour que le même pipeline `friendlyMessage()` s'applique partout, y
  * compris à ces erreurs natives du navigateur.

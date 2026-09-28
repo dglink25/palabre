@@ -3,7 +3,7 @@
  * formulaires publics les plus exposés à l'abus automatisé : demande
  * d'inscription d'organisation, envoi d'OTP téléphone, démarrage de
  * récupération de compte. Chargé côté client depuis le CDN Google (voir
- * components/Recaptcha.jsx) — aucune dépendance npm des deux côtés.
+ * components/Recaptcha.jsx) - aucune dépendance npm des deux côtés.
  *
  * Si RECAPTCHA_SECRET_KEY n'est pas défini, la vérification est ignorée
  * (mode développement), à l'image du comportement du mailer en l'absence

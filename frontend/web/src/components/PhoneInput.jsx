@@ -14,7 +14,7 @@ function parseE164(value) {
 /**
  * Champ téléphone "comme sur les sites pro" : sélecteur de pays (drapeau +
  * indicatif) avec recherche, combiné à un champ pour le numéro local
- * uniquement — l'utilisateur ne compose jamais lui-même le préfixe
+ * uniquement - l'utilisateur ne compose jamais lui-même le préfixe
  * international. `onChange` reçoit directement le numéro complet au format
  * E.164 (ex. "+22961000000"), prêt à être envoyé à l'API.
  *

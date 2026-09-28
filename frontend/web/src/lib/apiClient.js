@@ -44,7 +44,7 @@ export function clearCachedConfirmationToken() {
 }
 
 /**
- * `opts.form` : true si body est un FormData (upload) — pas de Content-Type
+ * `opts.form` : true si body est un FormData (upload) - pas de Content-Type
  * manuel, le navigateur pose le boundary multipart lui-même.
  * `opts.auth` : false pour les routes publiques (défaut : true).
  * `opts.headers` : en-têtes additionnels (ex. X-Draft-Token).
@@ -69,7 +69,7 @@ async function request(path, { method = 'GET', body, form = false, auth = true, 
     });
   } catch {
     // Le serveur est injoignable (réseau coupé, mauvaise URL d'API, CORS...)
-    // — jamais de message technique brut affiché à l'utilisateur.
+    // - jamais de message technique brut affiché à l'utilisateur.
     throw new ApiError(0, 'NETWORK_ERROR', 'Impossible de joindre le serveur.');
   }
 
@@ -85,7 +85,7 @@ async function request(path, { method = 'GET', body, form = false, auth = true, 
   }
 
   if (res.status === 428 && !_confirmRetried) {
-    // Double vérification requise (super-admin) — voir writeConfirmation.service.js.
+    // Double vérification requise (super-admin) - voir writeConfirmation.service.js.
     if (!confirmationHandler) {
       throw new ApiError(428, 'CONFIRMATION_REQUIRED', 'Double vérification requise.');
     }

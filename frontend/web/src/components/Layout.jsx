@@ -13,7 +13,7 @@ export default function Layout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
 
-  // Referme le menu mobile à chaque changement de page — sans ça, il reste
+  // Referme le menu mobile à chaque changement de page - sans ça, il reste
   // ouvert par-dessus la nouvelle page (c'est ce qui rendait l'espace
   // connecté illisible sur mobile).
   useEffect(() => { setMenuOpen(false); }, [location.pathname]);
@@ -24,7 +24,7 @@ export default function Layout() {
 
   return (
     <div className="app-shell">
-      {/* Barre supérieure mobile (< 860px) — remplace entièrement la barre
+      {/* Barre supérieure mobile (< 860px) - remplace entièrement la barre
           latérale, jamais affichées en même temps (voir theme.css). */}
       <div className="mobile-topbar">
         <a href="/" className="brand-inline">

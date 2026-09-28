@@ -25,7 +25,7 @@ export default function HomePage() {
         <h1>La plateforme de communication souveraine pour votre organisation</h1>
         <p>
           Messagerie, téléphonie et centre d'appels réunis dans un seul système, hébergé et contrôlé par
-          vous — pensé pour le Bénin et l'Afrique francophone.
+          vous - pensé pour le Bénin et l'Afrique francophone.
         </p>
         <div className="cta-row">
           {user ? (

@@ -3,13 +3,13 @@ const { redis } = require('../../config/redis');
 
 /**
  * ======================================================================
- * PRÉSENCE TEMPS RÉEL (Redis) — distincte de la table `sessions` (Postgres)
+ * PRÉSENCE TEMPS RÉEL (Redis) - distincte de la table `sessions` (Postgres)
  * ======================================================================
  * La table Postgres `sessions` reste la source de vérité pour "quels
  * appareils ont une session valide" (refresh tokens, révocation, historique
  * consultable dans /sessions). Redis, lui, répond à une question différente
  * et beaucoup plus fréquente : "cet appareil est-il connecté MAINTENANT ?"
- * — utile pour router un appel/message vers la bonne instance serveur, ou
+ * - utile pour router un appel/message vers la bonne instance serveur, ou
  * afficher un indicateur "en ligne" sans jamais toucher Postgres.
  *
  * Clé :   session:{deviceId} → JSON { userId, serverId, lastSeen }
@@ -52,7 +52,7 @@ async function setOnline(userId, deviceId) {
 
 /**
  * Heartbeat : renouvelle le TTL et met à jour `lastSeen`. Tant que le client
- * envoie ce heartbeat avant expiration, la session reste "active" — sans
+ * envoie ce heartbeat avant expiration, la session reste "active" - sans
  * limite de durée totale, contrairement au refresh token qui, lui, expire
  * à date fixe côté Postgres.
  */
@@ -86,7 +86,7 @@ async function getPresence(deviceId) {
 
 /**
  * Liste les appareils actuellement en ligne pour un utilisateur. Nettoie au
- * passage l'index des entrées dont le TTL a expiré (lazy cleanup — pas de
+ * passage l'index des entrées dont le TTL a expiré (lazy cleanup - pas de
  * job cron nécessaire).
  */
 async function listOnlineDevicesForUser(userId) {

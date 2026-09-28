@@ -1,7 +1,7 @@
 /**
  * Traduit un code d'erreur API (voir chaque *.service.js du backend) en un
  * message clair, professionnel et sans jargon technique. Si le code n'est
- * pas reconnu, on retombe sur le message du serveur (déjà en français) —
+ * pas reconnu, on retombe sur le message du serveur (déjà en français) -
  * jamais sur une trace technique brute.
  */
 const MESSAGES = {

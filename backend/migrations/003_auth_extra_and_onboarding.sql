@@ -1,6 +1,6 @@
 -- 003_auth_extra_and_onboarding.sql
 
--- ========== AUTHENTIFICATION / COMPTE — ce qui restait de la section 7 ==========
+-- ========== AUTHENTIFICATION / COMPTE - ce qui restait de la section 7 ==========
 
 ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS preferences JSONB NOT NULL DEFAULT '{}'::jsonb;
@@ -32,7 +32,7 @@ CREATE TABLE login_attempts (
 CREATE INDEX idx_login_attempts_identifier ON login_attempts(identifier, created_at);
 CREATE INDEX idx_login_attempts_ip ON login_attempts(ip_address, created_at);
 
--- ========== ONBOARDING — DEMANDE D'INSCRIPTION D'ORGANISATION (section 8-9) ==========
+-- ========== ONBOARDING - DEMANDE D'INSCRIPTION D'ORGANISATION (section 8-9) ==========
 
 CREATE TABLE organization_requests (
   id                     UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -45,17 +45,17 @@ CREATE TABLE organization_requests (
   status                 VARCHAR(20) NOT NULL DEFAULT 'draft'
                          CHECK (status IN ('draft','submitted','rejected','approved')),
 
-  -- Étape 1 — Organisation : nom, siège, pays, ville, adresse, secteur, IFU
+  -- Étape 1 - Organisation : nom, siège, pays, ville, adresse, secteur, IFU
   step1_organization     JSONB NOT NULL DEFAULT '{}'::jsonb,
-  -- Étape 2 — Dirigeant : nom complet, sexe, pièce d'identité (référence doc), email, téléphone
+  -- Étape 2 - Dirigeant : nom complet, sexe, pièce d'identité (référence doc), email, téléphone
   step2_leader           JSONB NOT NULL DEFAULT '{}'::jsonb,
-  -- Étape 3 — Documents : { rccm, ifuAttestation, leaderId, logo } → URLs de fichiers uploadés
+  -- Étape 3 - Documents : { rccm, ifuAttestation, leaderId, logo } → URLs de fichiers uploadés
   step3_documents        JSONB NOT NULL DEFAULT '{}'::jsonb,
-  -- Étape 4 — Certification : { infoCertified: bool, termsAccepted: bool }
+  -- Étape 4 - Certification : { infoCertified: bool, termsAccepted: bool }
   step4_certification    JSONB NOT NULL DEFAULT '{}'::jsonb,
 
   -- Champs précis que le super-administrateur demande de corriger en cas de
-  -- rejet (ex. ["step1_organization.address", "step3_documents.rccm"]) — la
+  -- rejet (ex. ["step1_organization.address", "step3_documents.rccm"]) - la
   -- correction ne doit pouvoir toucher QUE ces champs (section 9, point 3).
   flagged_fields          JSONB NOT NULL DEFAULT '[]'::jsonb,
   rejection_reason        TEXT,
