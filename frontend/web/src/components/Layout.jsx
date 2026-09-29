@@ -1,207 +1,161 @@
 import { useState, useEffect } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-// ── Icônes SVG inline ─────────────────────────────────────────────────────────
-const Icon = ({ d, size = 18 }) => (
+// ── Icônes SVG professionnelles ───────────────────────────────────────────────
+const Ico = ({ path, size = 18 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d={d} />
+    stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+    style={{ flexShrink: 0 }}>
+    {Array.isArray(path)
+      ? path.map((d, i) => <path key={i} d={d} />)
+      : <path d={path} />}
   </svg>
 );
 
-const Icons = {
-  dashboard:   'M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z',
-  profile:     'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
-  security:    'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
-  sessions:    'M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18',
-  requests:    'M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z',
-  org:         'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
-  vpn:         'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
-  apk:         'M12 18h.01M8 21h8a2 2 0 0 0 2-2v-2H6v2a2 2 0 0 0 2 2zM3 9l3-3m12 3l-3-3M3 9h18M3 9v6a2 2 0 0 0 2 2h1M21 9v6a2 2 0 0 0-2 2h-1',
-  logout:      'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9',
-  guide:       'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253',
+const ICONS = {
+  dashboard: ['M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z', 'M9 21V12h6v9'],
+  requests:  ['M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z'],
+  guide:     ['M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'],
+  org:       ['M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', 'M9 22V12h6v10'],
+  vpn:       ['M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'],
+  apk:       ['M12 18.5a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1z', 'M8 21h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z'],
+  profile:   ['M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2', 'M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z'],
+  security:  ['M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'],
+  sessions:  ['M9 3H5a2 2 0 0 0-2 2v4', 'M15 3h4a2 2 0 0 1 2 2v4', 'M3 9h18', 'M9 21H5a2 2 0 0 1-2-2v-4', 'M15 21h4a2 2 0 0 0 2-2v-4'],
+  logout:    ['M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4', 'M16 17l5-5-5-5', 'M21 12H9'],
+  menu:      ['M4 6h16', 'M4 12h16', 'M4 18h16'],
+  close:     ['M18 6L6 18', 'M6 6l12 12'],
+  chevron:   ['M9 18l6-6-6-6'],
 };
 
-// ── Lien de navigation ────────────────────────────────────────────────────────
-function NavItem({ to, icon, label, end = false }) {
+// ── Lien de navigation sidebar ────────────────────────────────────────────────
+function SideNavItem({ to, iconKey, label, end = false }) {
   return (
-    <NavLink
-      to={to}
-      end={end}
-      className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+    <NavLink to={to} end={end}
+      className={({ isActive }) => `snav-link${isActive ? ' snav-active' : ''}`}
     >
-      <Icon d={Icons[icon]} />
-      <span>{label}</span>
+      <Ico path={ICONS[iconKey]} size={17} />
+      <span className="snav-label">{label}</span>
     </NavLink>
   );
 }
 
-// ── Séparateur de section ─────────────────────────────────────────────────────
-function NavSection({ label }) {
-  return (
-    <div style={{
-      padding: '16px 24px 6px 24px',
-      fontSize: 11,
-      fontWeight: 700,
-      textTransform: 'uppercase',
-      letterSpacing: '0.8px',
-      color: 'var(--color-text-secondary)',
-    }}>
-      {label}
-    </div>
-  );
+function SideSection({ label }) {
+  return <div className="snav-section">{label}</div>;
 }
 
 // ── Layout principal ──────────────────────────────────────────────────────────
 export default function Layout() {
   const { user, logout } = useAuth();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const location = useLocation();
 
-  useEffect(() => { setMenuOpen(false); }, [location.pathname]);
+  useEffect(() => { setOpen(false); }, [location.pathname]);
 
   const isSuperAdmin = !!user?.isSuperAdmin;
   const isOrgAdmin   = !isSuperAdmin && !!user?.orgId;
 
-  // ── Items selon le rôle ───────────────────────────────────────────────────
-  const sharedItems = [
-    { to: '/profile',  icon: 'profile',  label: 'Profil',             end: true  },
-    { to: '/security', icon: 'security', label: 'Securite'                       },
-    { to: '/sessions', icon: 'sessions', label: 'Sessions & appareils'           },
+  const superItems = [
+    { to: '/admin',              key: 'dashboard', label: 'Tableau de bord', end: true },
+    { to: '/admin/onboarding',   key: 'requests',  label: 'Dossiers' },
+    { to: '/admin/installation', key: 'guide',     label: 'Guide installation' },
+  ];
+  const orgItems = [
+    { to: '/org/dashboard', key: 'org',      label: 'Organisation', end: true },
+    { to: '/org/vpn',       key: 'vpn',      label: 'Tunnel VPN' },
+    { to: '/org/apk',       key: 'apk',      label: 'Application mobile' },
+  ];
+  const accountItems = [
+    { to: '/profile',  key: 'profile',  label: 'Mon profil', end: true },
+    { to: '/security', key: 'security', label: 'Securite' },
+    { to: '/sessions', key: 'sessions', label: 'Sessions' },
   ];
 
-  const superAdminItems = [
-    { to: '/admin',              icon: 'dashboard', label: 'Tableau de bord',   end: true },
-    { to: '/admin/onboarding',   icon: 'requests',  label: 'Dossiers'                     },
-    { to: '/admin/installation', icon: 'guide',     label: 'Guide installation'           },
-  ];
-
-  const orgAdminItems = [
-    { to: '/org/dashboard', icon: 'org',     label: 'Organisation',    end: true },
-    { to: '/org/vpn',       icon: 'vpn',     label: 'Tunnel VPN'                },
-    { to: '/org/apk',       icon: 'apk',     label: 'Application mobile'        },
-  ];
-
-  const navContent = (
+  const navTree = (
     <>
       {isSuperAdmin && (
         <>
-          <NavSection label="Super-admin" />
-          {superAdminItems.map((item) => <NavItem key={item.to} {...item} />)}
+          <SideSection label="Administration" />
+          {superItems.map(i => <SideNavItem key={i.to} to={i.to} iconKey={i.key} label={i.label} end={i.end} />)}
         </>
       )}
-
       {isOrgAdmin && (
         <>
-          <NavSection label="Organisation" />
-          {orgAdminItems.map((item) => <NavItem key={item.to} {...item} />)}
+          <SideSection label="Organisation" />
+          {orgItems.map(i => <SideNavItem key={i.to} to={i.to} iconKey={i.key} label={i.label} end={i.end} />)}
         </>
       )}
-
-      <NavSection label="Mon compte" />
-      {sharedItems.map((item) => <NavItem key={item.to} {...item} />)}
+      <SideSection label="Mon compte" />
+      {accountItems.map(i => <SideNavItem key={i.to} to={i.to} iconKey={i.key} label={i.label} end={i.end} />)}
     </>
   );
 
-  const userLine = user?.fullName || user?.phone || user?.email || 'Utilisateur';
-  const userInitial = userLine.charAt(0).toUpperCase();
+  const userName = user?.fullName || user?.phone || user?.email || 'Utilisateur';
+  const userInitial = userName.charAt(0).toUpperCase();
+  const roleLabel = isSuperAdmin ? 'Super-administrateur' : isOrgAdmin ? 'Admin organisation' : 'Utilisateur';
 
   return (
-    <div className="app-shell">
+    <div className="shell">
 
-      {/* ── Topbar mobile ── */}
-      <div className="mobile-topbar">
-        <a href="/" className="brand-inline">
-          <img src="/logo.png" alt="Palabre" />
+      {/* ── Sidebar ── */}
+      <aside className={`shell-sidebar${open ? ' shell-sidebar-open' : ''}`}>
+
+        {/* Logo — cliquable vers accueil */}
+        <Link to="/" className="shell-logo" onClick={() => setOpen(false)}>
+          <img src="/logo.png" alt="Palabre" width="32" height="32" />
           <span>PALABRE</span>
-        </a>
-        <button
-          className="mobile-menu-toggle"
-          aria-label="Menu"
-          onClick={() => setMenuOpen((v) => !v)}
-        >
-          <span />
-        </button>
-      </div>
+        </Link>
 
-      {/* ── Menu mobile ── */}
-      <div className={`mobile-menu${menuOpen ? ' open' : ''}`}>
-        <nav>{navContent}</nav>
-        <div className="mobile-menu-footer">
-          <div className="text-secondary" style={{ marginBottom: 8 }}>{userLine}</div>
-          <button className="btn btn-secondary btn-block" onClick={logout}>
-            Se deconnecter
-          </button>
-        </div>
-      </div>
+        {/* Navigation */}
+        <nav className="shell-nav">{navTree}</nav>
 
-      {/* ── Sidebar desktop ── */}
-      <aside className="sidebar">
-        {/* Logo */}
-        <div className="brand">
-          <img src="/logo.png" alt="Palabre" />
-          <span>PALABRE</span>
-        </div>
-
-        {/* Navigation — scrollable si contenu long */}
-        <nav style={{ flex: 1, overflowY: 'auto' }}>
-          {navContent}
-        </nav>
-
-        {/* Identité utilisateur + déconnexion — toujours visible en bas */}
-        <div style={{
-          padding: '16px 20px',
-          borderTop: '1px solid var(--color-border)',
-          flexShrink: 0,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <div style={{
-              width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
-              backgroundColor: 'var(--color-primary-blue)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', fontWeight: 700, fontSize: 14,
-            }}>
-              {user?.photoUrl
-                ? <img src={user.photoUrl} alt="" style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover' }} />
-                : userInitial
-              }
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <div style={{
-                fontSize: 13, fontWeight: 600,
-                color: 'var(--color-text-primary)',
-                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-              }}>
-                {userLine}
-              </div>
-              {isSuperAdmin && (
-                <div style={{ fontSize: 11, color: 'var(--color-alert-red)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Super-admin
-                </div>
-              )}
-              {isOrgAdmin && (
-                <div style={{ fontSize: 11, color: 'var(--color-primary-blue)', fontWeight: 600 }}>
-                  Admin organisation
-                </div>
-              )}
-            </div>
+        {/* Identité + déconnexion */}
+        <div className="shell-user">
+          <div className="shell-user-avatar">
+            {user?.photoUrl
+              ? <img src={user.photoUrl} alt="" />
+              : <span>{userInitial}</span>}
           </div>
-          <button
-            className="btn btn-secondary btn-block"
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-            onClick={logout}
-          >
-            <Icon d={Icons.logout} size={15} />
-            Se deconnecter
+          <div className="shell-user-info">
+            <div className="shell-user-name">{userName}</div>
+            <div className="shell-user-role">{roleLabel}</div>
+          </div>
+          <button className="shell-logout-btn" onClick={logout} title="Se deconnecter">
+            <Ico path={ICONS.logout} size={16} />
           </button>
         </div>
       </aside>
 
-      {/* ── Contenu principal ── */}
-      <main className="main-content fade-in">
-        <Outlet />
-      </main>
+      {/* ── Overlay mobile ── */}
+      {open && <div className="shell-overlay" onClick={() => setOpen(false)} />}
+
+      {/* ── Zone principale ── */}
+      <div className="shell-body">
+
+        {/* Topbar mobile */}
+        <header className="shell-topbar">
+          <button className="shell-hamburger" onClick={() => setOpen(v => !v)}>
+            <Ico path={open ? ICONS.close : ICONS.menu} size={22} />
+          </button>
+          <Link to="/" className="shell-topbar-logo">
+            <img src="/logo.png" alt="Palabre" width="24" height="24" />
+            <span>PALABRE</span>
+          </Link>
+          <div className="shell-topbar-user">
+            <div className="shell-user-avatar shell-user-avatar-sm">
+              {user?.photoUrl
+                ? <img src={user.photoUrl} alt="" />
+                : <span>{userInitial}</span>}
+            </div>
+          </div>
+        </header>
+
+        {/* Contenu */}
+        <main className="shell-main fade-in">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }
