@@ -17,7 +17,6 @@ defmodule Presence.Heartbeat.Sweeper do
 
   require Logger
 
-  alias Presence.ETS.Manager, as: ETS
   alias Presence.Registry
 
   # 90 secondes sans heartbeat = zombie

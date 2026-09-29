@@ -16,7 +16,7 @@ defmodule Presence.Registry do
 
   require Logger
 
-  alias Presence.ETS.Manager, as: ETS
+  alias Presence.ETS.Manager, as: ETSManager
   alias Presence.PubSub
 
   # Map PID -> {user_id, device_id} pour retrouver le user quand le PID meurt
@@ -61,7 +61,7 @@ defmodule Presence.Registry do
     :unknown
   """
   def get_status(user_id) do
-    devices = ETS.get_all_devices(user_id)
+    devices = ETSManager.get_all_devices(user_id)
     case Enum.find(devices, &(&1.status == :online)) do
       nil ->
         case devices do
@@ -73,7 +73,7 @@ defmodule Presence.Registry do
   end
 
   def get_status(user_id, device_id) do
-    case ETS.get(user_id, device_id) do
+    case ETSManager.get(user_id, device_id) do
       {:ok, entry} -> {entry.status, entry.last_seen_at}
       :not_found -> :unknown
     end
@@ -81,7 +81,7 @@ defmodule Presence.Registry do
 
   @doc "Liste des membres en ligne pour une organisation (pour les indicateurs de présence)."
   def online_members(org_id) do
-    ETS.get_org_online(org_id)
+    ETSManager.get_org_online(org_id)
     |> Enum.map(& %{user_id: &1.user_id, device_id: &1.device_id, platform: &1.platform, connected_at: &1.connected_at})
   end
 
@@ -93,7 +93,7 @@ defmodule Presence.Registry do
   @impl true
   def handle_call({:set_online, user_id, org_id, device_id, platform, socket_pid}, _from, state) do
     now = DateTime.utc_now()
-    entry = %ETS.Manager{
+    entry = %ETSManager{
       user_id: user_id,
       org_id: org_id,
       device_id: device_id,
@@ -105,7 +105,7 @@ defmodule Presence.Registry do
     }
 
     # 1. Écriture ETS (immédiate, visible par tous)
-    ETS.put(entry)
+    ETSManager.put(entry)
 
     # 2. Écriture Mnesia (asynchrone, pour persistance)
     persist_async(entry)
@@ -129,9 +129,9 @@ defmodule Presence.Registry do
   @impl true
   def handle_cast({:heartbeat, user_id, device_id}, state) do
     now = DateTime.utc_now()
-    case ETS.get(user_id, device_id) do
+    case ETSManager.get(user_id, device_id) do
       {:ok, entry} ->
-        ETS.put(%{entry | last_seen_at: now})
+        ETSManager.put(%{entry | last_seen_at: now})
         # Pas de broadcast pour les heartbeats — trop fréquent
       :not_found -> :ok
     end
@@ -155,10 +155,10 @@ defmodule Presence.Registry do
 
   defp do_set_offline(user_id, device_id, state) do
     now = DateTime.utc_now()
-    case ETS.get(user_id, device_id) do
+    case ETSManager.get(user_id, device_id) do
       {:ok, entry} ->
         updated = %{entry | status: :offline, last_seen_at: now, socket_pid: nil}
-        ETS.put(updated)
+        ETSManager.put(updated)
         persist_async(updated)
         PubSub.broadcast_presence_change(entry.org_id, user_id, {:offline, now}, now)
         Logger.debug("[Presence] #{user_id} hors ligne (last seen: #{DateTime.to_iso8601(now)})")
