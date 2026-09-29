@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Layout from './components/Layout';
 import PublicLayout from './components/PublicLayout';
-import { ProtectedRoute, SuperAdminRoute } from './components/RouteGuards';
+import { ProtectedRoute, SuperAdminRoute, OrgAdminRoute } from './components/RouteGuards';
 import StepUpConfirmModal from './components/StepUpConfirmModal';
 import CookieBanner from './components/CookieBanner';
 
@@ -21,6 +21,10 @@ import SessionsPage from './pages/sessions/SessionsPage';
 import RequestsListPage from './pages/admin/RequestsListPage';
 import RequestDetailPage from './pages/admin/RequestDetailPage';
 import DashboardPage from './pages/admin/DashboardPage';
+import InstallationGuidePage from './pages/admin/InstallationGuidePage';
+import OrgDashboardPage from './pages/org/OrgDashboardPage';
+import OrgVpnPage from './pages/org/OrgVpnPage';
+import OrgApkPage from './pages/org/OrgApkPage';
 
 export default function App() {
   return (
@@ -28,13 +32,14 @@ export default function App() {
       <AuthProvider>
         <StepUpConfirmModal />
         <Routes>
+          {/* Pages publiques */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
           </Route>
 
-          {/* Pages de type formulaire : mise en page AuthLayout gérée par chaque page elle-même. */}
+          {/* Formulaires standalone */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/recovery" element={<RecoveryPage />} />
           <Route path="/two-factor" element={<TwoFactorChallengePage />} />
@@ -42,16 +47,26 @@ export default function App() {
           <Route path="/onboarding/status" element={<OnboardingStatusPage />} />
           <Route path="/activate" element={<AdminActivationPage />} />
 
+          {/* Espace connecté commun */}
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/security" element={<SecurityPage />} />
             <Route path="/sessions" element={<SessionsPage />} />
           </Route>
 
+          {/* Super-administrateur */}
           <Route element={<SuperAdminRoute><Layout /></SuperAdminRoute>}>
-            <Route path="/admin"                  element={<DashboardPage />} />
-            <Route path="/admin/onboarding"       element={<RequestsListPage />} />
-            <Route path="/admin/onboarding/:id"   element={<RequestDetailPage />} />
+            <Route path="/admin"                    element={<DashboardPage />} />
+            <Route path="/admin/onboarding"         element={<RequestsListPage />} />
+            <Route path="/admin/onboarding/:id"     element={<RequestDetailPage />} />
+            <Route path="/admin/installation"       element={<InstallationGuidePage />} />
+          </Route>
+
+          {/* Administrateur d'organisation */}
+          <Route element={<OrgAdminRoute><Layout /></OrgAdminRoute>}>
+            <Route path="/org/dashboard" element={<OrgDashboardPage />} />
+            <Route path="/org/vpn"       element={<OrgVpnPage />} />
+            <Route path="/org/apk"       element={<OrgApkPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

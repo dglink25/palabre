@@ -52,19 +52,19 @@ async function sendVerification(email, purpose) {
   const minutes = Math.round(TTL_SECONDS / 60);
   const html = wrapEmail({
     title: presentation.title,
-    preheader: `Votre code de vérification Palabre : ${code}`,
+    preheader: `Code Palabre : ${code}`,
     accent: presentation.accent,
     bodyHtml: `
       <p style="margin:0 0 8px 0;">${presentation.intro}</p>
-      ${calloutBox({ label: 'Code de vérification', value: code, accent: presentation.accent })}
-      <p style="margin:16px 0 0 0; color:#5F6368; font-size:13px;">Ce code expire dans ${minutes} minutes. Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.</p>
+      ${calloutBox({ label: 'Code de verification', value: code, accent: presentation.accent })}
+      <p style="margin:16px 0 0 0; color:#5F6368; font-size:13px;">Ce code expire dans ${minutes} minutes.</p>
     `,
   });
 
   await sendMail({
     to: email,
     subject: presentation.subject,
-    text: `${code} est votre code de vérification Palabre. Il expire dans ${minutes} minutes. Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.`,
+    text: `${code} - code de verification Palabre. Expire dans ${minutes} min.`,
     html,
   });
 

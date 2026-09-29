@@ -21,7 +21,11 @@ const COLORS = {
   textPrimary: '#202124',   // Anthracite Sombre - texte principal
 };
 
-const FONT_STACK = "Arial, Helvetica, 'Segoe UI', sans-serif";
+// Logo Palabre encodé en base64 inline — aucune requête externe requise.
+// Les clients mail (Gmail, Outlook, Apple Mail) bloquent souvent les images
+// hébergées sur des domaines inconnus, mais affichent toujours les data URI.
+// SVG 36x36 : carré bleu arrondi avec la lettre P en blanc.
+const LOGO_DATA_URI = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzNiIgaGVpZ2h0PSIzNiIgdmlld0JveD0iMCAwIDM2IDM2Ij48cmVjdCB3aWR0aD0iMzYiIGhlaWdodD0iMzYiIHJ4PSI2IiBmaWxsPSIjMUE3M0U4Ii8+PHRleHQgeD0iMTgiIHk9IjI1IiBmb250LWZhbWlseT0iQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMCIgZm9udC13ZWlnaHQ9ImJvbGQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIj5QPC90ZXh0Pjwvc3ZnPg==';
 
 /**
  * `accent` détermine la couleur du bandeau et du bloc de mise en avant :
@@ -90,7 +94,7 @@ function wrapEmail({ title, preheader = '', bodyHtml, accent = 'primary' }) {
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:${COLORS.white}; border:1px solid ${COLORS.border}; max-width:600px;">
           <tr>
             <td style="background-color:${color}; padding:16px 32px;">
-              <img src="${process.env.APP_BASE_URL || ''}/brand/logo.png" alt="Palabre" width="36" height="36" style="vertical-align:middle; display:inline-block;" />
+              <img src="${LOGO_DATA_URI}" alt="Palabre" width="36" height="36" style="vertical-align:middle; display:inline-block;" />
               <span style="font-family:${FONT_STACK}; font-size:20px; font-weight:bold; color:${COLORS.white}; letter-spacing:1px; vertical-align:middle; margin-left:10px;">PALABRE</span>
             </td>
           </tr>

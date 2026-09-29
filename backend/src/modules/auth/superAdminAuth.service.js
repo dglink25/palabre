@@ -124,7 +124,7 @@ async function startStepUp({ identity, device }) {
   await sendMail({
     to: SUPER_ADMIN_EMAIL,
     subject: 'Code de connexion super-administrateur - Palabre',
-    text: `Code de vérification (étape 1/3) : ${code}\n\nCe code expire dans 3 minutes. Si vous n'êtes pas à l'origine de cette tentative de connexion, sécurisez immédiatement votre compte Google.`,
+    text: `Code super-admin etape 1/3 : ${code}. Expire dans 3 minutes.`,
     html: wrapEmail({
       title: 'Connexion super-administrateur - étape 1 sur 3',
       preheader: `Code de connexion : ${code}`,
@@ -282,7 +282,7 @@ async function startPhoneLoginSecondFactor({ user, device }) {
   await sendMail({
     to: SUPER_ADMIN_EMAIL,
     subject: 'Palabre - Code de connexion super-administrateur',
-    text: `Code de vérification (étape 2/2, connexion par téléphone) : ${code}\n\nCe code expire dans 3 minutes. Si vous n'êtes pas à l'origine de cette tentative de connexion, sécurisez immédiatement votre compte.`,
+    text: `Code super-admin etape 2/2 : ${code}. Expire dans 3 minutes.`,
     html: wrapEmail({
       title: 'Connexion super-administrateur - étape 2 sur 2',
       preheader: `Code de connexion : ${code}`,

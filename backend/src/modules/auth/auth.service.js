@@ -97,18 +97,39 @@ async function loginWithPhone({ phoneE164, code, device, ip }) {
 async function registerWithFederatedProvider({ idToken, device }) {
   const identity = await verifyFirebaseIdToken(idToken);
 
+  // Vérifier si ce providerUid est déjà lié à un compte
   const existingLink = await pool.query(
     'SELECT * FROM oauth_accounts WHERE provider = $1 AND provider_uid = $2',
     [identity.provider, identity.providerUid]
   );
   if (existingLink.rows[0]) {
-    const err = new Error(`Un compte Palabre existe déjà pour ce compte ${identity.provider}. Connectez-vous plutôt.`);
+    const err = new Error(`Un compte Palabre existe deja pour ce compte ${identity.provider}. Connectez-vous plutot.`);
     err.code = 'ACCOUNT_ALREADY_EXISTS';
     err.httpStatus = 409;
     throw err;
   }
 
-  // Même règle d'unicité par appareil que pour l'inscription par téléphone.
+  // Vérifier si un compte avec cet email existe déjà (ex: admin org activé via téléphone)
+  // Dans ce cas, lier le provider Google à ce compte existant plutôt que d'en créer un nouveau
+  if (identity.email) {
+    const emailMatch = await pool.query(
+      'SELECT * FROM users WHERE email = $1',
+      [identity.email.toLowerCase()]
+    );
+    if (emailMatch.rows[0]) {
+      // Compte existant avec cet email — lier le provider et renvoyer le compte
+      const existingUser = emailMatch.rows[0];
+      await pool.query(
+        `INSERT INTO oauth_accounts (user_id, provider, provider_uid, provider_email)
+         VALUES ($1, $2, $3, $4) ON CONFLICT (provider, provider_uid) DO NOTHING`,
+        [existingUser.id, identity.provider, identity.providerUid, identity.email]
+      );
+      const deviceRow = await deviceService.getOrCreateDevice(device);
+      return { user: existingUser, deviceRow };
+    }
+  }
+
+  // Nouvelle inscription — vérification unicité appareil
   const deviceRow = await deviceService.getOrCreateDevice(device);
   await deviceService.assertDeviceNotAlreadyRegistered(deviceRow);
 
@@ -147,23 +168,55 @@ async function loginWithFederatedProvider({ idToken, device, ip }) {
   const identity = await verifyFirebaseIdToken(idToken);
   await loginAttemptsService.assertNotLocked(identity.providerUid);
 
+  // Chercher d'abord par providerUid (lien OAuth direct)
   const existingLink = await pool.query(
     'SELECT * FROM oauth_accounts WHERE provider = $1 AND provider_uid = $2',
     [identity.provider, identity.providerUid]
   );
 
-  if (!existingLink.rows[0]) {
+  let user;
+
+  if (existingLink.rows[0]) {
+    // Lien OAuth trouvé — connexion directe
+    const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [existingLink.rows[0].user_id]);
+    user = userResult.rows[0];
+  } else if (identity.email) {
+    // Pas de lien OAuth mais on a un email : chercher un compte avec cet email
+    // Cas typique : admin d'organisation activé via téléphone/email puis tente
+    // de se connecter via Google avec le même email
+    const emailMatch = await pool.query(
+      'SELECT * FROM users WHERE email = $1 AND email_verified = true',
+      [identity.email.toLowerCase()]
+    );
+
+    if (!emailMatch.rows[0]) {
+      await loginAttemptsService.record({ identifier: identity.providerUid, method: identity.provider, ip, success: false });
+      const err = new Error(`Aucun compte Palabre associe a l'adresse ${identity.email}. Utilisez le moyen de connexion avec lequel vous avez active votre compte.`);
+      err.code = 'ACCOUNT_NOT_FOUND';
+      err.httpStatus = 404;
+      throw err;
+    }
+
+    user = emailMatch.rows[0];
+
+    // Créer le lien OAuth automatiquement pour les prochaines connexions
+    await pool.query(
+      `INSERT INTO oauth_accounts (user_id, provider, provider_uid, provider_email)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (provider, provider_uid) DO UPDATE SET user_id = EXCLUDED.user_id`,
+      [user.id, identity.provider, identity.providerUid, identity.email]
+    );
+  } else {
     await loginAttemptsService.record({ identifier: identity.providerUid, method: identity.provider, ip, success: false });
-    const err = new Error(`Aucun compte Palabre n'est lié à ce compte ${identity.provider}.`);
+    const err = new Error(`Aucun compte Palabre lie a ce compte ${identity.provider}.`);
     err.code = 'ACCOUNT_NOT_FOUND';
     err.httpStatus = 404;
     throw err;
   }
 
   await loginAttemptsService.record({ identifier: identity.providerUid, method: identity.provider, ip, success: true });
-  const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [existingLink.rows[0].user_id]);
   const deviceRow = await deviceService.getOrCreateDevice(device);
-  return { user: userResult.rows[0], deviceRow };
+  return { user, deviceRow };
 }
 
 /**
@@ -247,20 +300,23 @@ async function issueSessionForUser({ user, deviceRow, ip, userAgent }) {
 }
 
 function sanitizeUser(user) {
-  const { id, full_name, email, email_verified, phone_e164, photo_url, sector, locale, timezone, two_factor_enabled, preferences, is_super_admin } = user;
+  const { id, full_name, email, email_verified, phone_e164, photo_url, sector, locale, timezone, two_factor_enabled, preferences, is_super_admin, org_id } = user;
   return {
     id,
-    fullName: full_name,
+    fullName:         full_name,
     email,
-    emailVerified: !!email_verified,
-    phone: phone_e164,
-    photoUrl: photo_url,
+    emailVerified:    !!email_verified,
+    phone:            phone_e164,
+    photoUrl:         photo_url,
     sector,
     locale,
     timezone,
     twoFactorEnabled: two_factor_enabled,
-    preferences: preferences || {},
-    isSuperAdmin: !!is_super_admin,
+    preferences:      preferences || {},
+    isSuperAdmin:     !!is_super_admin,
+    // org_id est injecté par authMiddleware via JOIN memberships
+    // ou par le claim 'org' du JWT — jamais null pour un admin d'organisation
+    orgId:            org_id || null,
   };
 }
 

@@ -43,8 +43,7 @@ const GENDER = { male: 'Masculin', female: 'Feminin' };
 
 // ── Composant QR code canvas ──────────────────────────────────────────────────
 
-function QrCanvas({ data }) {
-  const canvasRef = useRef(null);
+function QrCanvas({ data, canvasRef }) {
   useEffect(() => {
     if (canvasRef.current && data) {
       QRCode.toCanvas(canvasRef.current, data, {
@@ -52,7 +51,7 @@ function QrCanvas({ data }) {
         color: { dark: '#202124', light: '#FFFFFF' },
       });
     }
-  }, [data]);
+  }, [data, canvasRef]);
   return <canvas ref={canvasRef} style={{ display: 'block', border: '1px solid var(--color-border)' }} />;
 }
 
@@ -68,6 +67,7 @@ export default function RequestDetailPage() {
   const [flagged,  setFlagged]  = useState([]);
   const [approval, setApproval] = useState(null);
   const [qrData,   setQrData]   = useState('');
+  const qrCanvasRef = useRef(null);
 
   async function load() {
     setLoading(true); setError('');
@@ -111,11 +111,10 @@ export default function RequestDetailPage() {
   }
 
   function downloadQr() {
-    const canvas = document.querySelector('#qr-canvas-el');
-    if (!canvas) return;
+    if (!qrCanvasRef.current) return;
     const link = document.createElement('a');
     link.download = `palabre-qr-${id}.png`;
-    link.href = canvas.toDataURL('image/png');
+    link.href = qrCanvasRef.current.toDataURL('image/png');
     link.click();
   }
 
@@ -150,18 +149,14 @@ export default function RequestDetailPage() {
       {/* ── Etape 8 : QR code affiché après approbation ── */}
       {approval && (
         <div className="card" style={{ borderTop: '4px solid var(--color-success-green)' }}>
-          <h2>Etape 8 : Code QR de provisioning</h2>
+          <h2>Code QR de provisioning</h2>
           <p className="text-secondary">
             Ce QR code ne sera plus jamais affiche apres avoir quitte cette page.
-            Il contient le jeton de controle, la cle VPN WireGuard et l'URL de heartbeat.
-            Transmettez-le a l'administrateur de l'organisation.
+            Transmettez-le a l'administrateur de l'organisation maintenant.
           </p>
           <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', alignItems: 'flex-start', marginTop: 16 }}>
             <div>
-              <p style={{ fontSize: 13, fontWeight: 'bold', marginBottom: 8 }}>
-                QR code (scannez avec l'app Palabre mobile)
-              </p>
-              {qrData && <QrCanvas data={qrData} id="qr-canvas-el" />}
+              {qrData && <QrCanvas data={qrData} canvasRef={qrCanvasRef} />}
               <button
                 className="btn btn-secondary"
                 style={{ marginTop: 12, width: '100%' }}
@@ -171,20 +166,10 @@ export default function RequestDetailPage() {
               </button>
             </div>
             <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 13, fontWeight: 'bold', marginBottom: 8 }}>Informations transmises</p>
               <p><strong>Organisation ID :</strong> {approval.organization.id}</p>
               <p><strong>Administrateur :</strong> {approval.adminUser.fullName}</p>
               <p><strong>E-mail :</strong> {approval.adminUser.email}</p>
               <p><strong>Telephone :</strong> {approval.adminUser.phone}</p>
-              <div className="field" style={{ marginTop: 16 }}>
-                <label>Payload JSON (reference, ne pas partager)</label>
-                <textarea
-                  rows={8}
-                  readOnly
-                  value={JSON.stringify(approval.qrPayload, null, 2)}
-                  style={{ fontFamily: 'monospace', fontSize: 12 }}
-                />
-              </div>
             </div>
           </div>
         </div>
@@ -252,31 +237,20 @@ export default function RequestDetailPage() {
         <div className="card">
           <h2>Decision</h2>
 
-          {/* Approuver — etapes 4-8 */}
-          <button
-            className="btn btn-success"
-            onClick={approve}
-            style={{ marginBottom: 24 }}
-          >
-            Approuver la demande (etapes 4-8)
+          <button className="btn btn-success" onClick={approve} style={{ marginBottom: 24 }}>
+            Approuver la demande
           </button>
 
           <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: '0 0 24px 0' }} />
 
-          {/* Rejeter — etape 2 */}
-          <h3 style={{ marginBottom: 12 }}>Ou rejeter avec motif (etape 2)</h3>
+          <h3 style={{ marginBottom: 12 }}>Rejeter avec motif</h3>
           <div className="field">
             <label>Motif obligatoire (transmis au demandeur par e-mail)</label>
-            <textarea
-              rows={3}
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="Decrivez precisement les elements a corriger..."
-            />
+            <textarea rows={3} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Decrivez precisement les elements a corriger..." />
           </div>
 
           <p style={{ fontSize: 14, fontWeight: 'bold', margin: '4px 0 10px 0' }}>
-            Champs a corriger (etape 3 : le demandeur ne pourra modifier que ces champs)
+            Champs a corriger (le demandeur ne pourra modifier que ces champs)
           </p>
 
           {[

@@ -43,8 +43,10 @@ export default function AdminActivationPage() {
   const [otp,          setOtp]          = useState('');
 
   // UI
-  const [busy,  setBusy]  = useState(false);
-  const [error, setError] = useState('');
+  const [busy,     setBusy]     = useState(false);
+  const [error,    setError]    = useState('');
+  const [expired,  setExpired]  = useState(false);  // code expiré
+  const [renewed,  setRenewed]  = useState(false);  // renouvellement envoyé
 
   // ── Étape 1 : valider le code d'activation ──────────────────────────────────
   async function submitCode(e) {
@@ -53,7 +55,7 @@ export default function AdminActivationPage() {
       setError('Identifiant et code d\'activation sont requis.');
       return;
     }
-    setError(''); setBusy(true);
+    setError(''); setExpired(false); setRenewed(false); setBusy(true);
     try {
       const res = await api.post('/onboarding/invitations/activate', {
         organizationId: orgId.trim(),
@@ -67,7 +69,26 @@ export default function AdminActivationPage() {
       setHasEmail(res.hasEmail);
       setFullName(res.fullName || '');
       setStep(STEP_METHOD);
-    } catch (e) { setError(friendlyMessage(e)); } finally { setBusy(false); }
+    } catch (e) {
+      if (e?.code === 'INVITATION_EXPIRED') {
+        setExpired(true);
+        setError('');
+      } else {
+        setError(friendlyMessage(e));
+      }
+    } finally { setBusy(false); }
+  }
+
+  async function renewCode() {
+    if (!orgId.trim()) { setError('Entrez d\'abord l\'identifiant de l\'organisation.'); return; }
+    setError(''); setBusy(true);
+    try {
+      await api.post('/onboarding/invitations/renew', { organizationId: orgId.trim() }, { auth: false });
+      setRenewed(true);
+      setExpired(false);
+    } catch (e) {
+      setError(friendlyMessage(e));
+    } finally { setBusy(false); }
   }
 
   // ── Étape 2 : choisir téléphone ou email → envoyer OTP ──────────────────────
@@ -96,7 +117,9 @@ export default function AdminActivationPage() {
         ...getDeviceInfo(),
       }, { auth: false });
       applySession(session);
-      navigate('/profile');
+      if (session.user?.isSuperAdmin) navigate('/admin');
+      else if (session.user?.orgId) navigate('/org/dashboard');
+      else navigate('/profile');
     } catch (e) { setError(friendlyMessage(e)); setBusy(false); }
   }
 
@@ -113,7 +136,9 @@ export default function AdminActivationPage() {
         ...getDeviceInfo(),
       }, { auth: false });
       applySession(session);
-      navigate('/profile');
+      if (session.user?.isSuperAdmin) navigate('/admin');
+      else if (session.user?.orgId) navigate('/org/dashboard');
+      else navigate('/profile');
     } catch (e) { setError(friendlyMessage(e)); } finally { setBusy(false); }
   }
 
@@ -129,6 +154,30 @@ export default function AdminActivationPage() {
             reçus par e-mail et WhatsApp.
           </p>
           {error && <Alert variant="danger">{error}</Alert>}
+
+          {/* Code expiré */}
+          {expired && (
+            <div style={{ marginBottom: 16 }}>
+              <Alert variant="warning">
+                <strong>Code expire.</strong> Votre code d'activation n'est plus valable (duree de validite : 72h).
+                Vous pouvez en demander un nouveau ci-dessous.
+              </Alert>
+              {!renewed ? (
+                <button
+                  className="btn btn-block"
+                  onClick={renewCode}
+                  disabled={busy}
+                  style={{ marginTop: 8 }}
+                >
+                  {busy ? <Spinner /> : 'Recevoir un nouveau code par e-mail et WhatsApp'}
+                </button>
+              ) : (
+                <Alert variant="success">
+                  Nouveau code envoye. Verifiez votre e-mail et votre WhatsApp puis saisissez-le ci-dessus.
+                </Alert>
+              )}
+            </div>
+          )}
           <form onSubmit={submitCode}>
             <div className="field">
               <label>Identifiant de l'organisation</label>

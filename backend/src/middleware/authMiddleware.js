@@ -30,7 +30,14 @@ async function requireAuth(req, res, next) {
     return res.status(401).json({ error: { code: 'TOKEN_INVALID', message: 'Jeton d\'accès invalide ou expiré.' } });
   }
 
-  const { rows } = await pool.query('SELECT * FROM users WHERE id = $1', [payload.sub]);
+  const { rows } = await pool.query(
+    `SELECT u.*, m.organization_id as org_id
+     FROM users u
+     LEFT JOIN memberships m ON m.user_id = u.id AND m.status = 'active'
+     WHERE u.id = $1
+     ORDER BY m.created_at ASC LIMIT 1`,
+    [payload.sub]
+  );
   if (!rows[0]) {
     return res.status(401).json({ error: { code: 'USER_NOT_FOUND', message: 'Utilisateur introuvable.' } });
   }
@@ -53,7 +60,7 @@ async function requireAuth(req, res, next) {
     await redis.set(idleKey, '1', 'EX', SUPER_ADMIN_IDLE_TIMEOUT_SECONDS);
   }
 
-  req.user = user;
+  req.user = { ...user, org_id: user.org_id || payload.org || null };
   req.sessionId = payload.sid;
   req.deviceId = payload.did;
   req.twoFactorPassed = payload.twoFa;

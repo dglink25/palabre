@@ -274,6 +274,89 @@ router.post('/invitations/send-otp', publicLimiter, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+/**
+ * Renouvellement du code d'activation expire.
+ * Genere un nouveau code et le renvoie par e-mail et WhatsApp.
+ * Accessible uniquement si l'invitation precedente est expiree (pas consommee).
+ */
+router.post('/invitations/renew', publicLimiter, async (req, res, next) => {
+  try {
+    const { organizationId } = req.body;
+    if (!organizationId) {
+      return res.status(400).json({ error: { code: 'MISSING_FIELDS', message: 'organizationId requis.' } });
+    }
+
+    // Verifier qu'il existe une invitation expiree non consommee
+    const { pool } = require('../../config/db');
+    const { rows: invRows } = await pool.query(
+      `SELECT i.*, u.email, u.phone_e164, u.full_name, o.name as org_name
+       FROM org_admin_invitations i
+       JOIN users u ON u.id = i.user_id
+       JOIN organizations o ON o.id = i.organization_id
+       WHERE i.organization_id = $1 AND i.consumed_at IS NULL
+       ORDER BY i.created_at DESC LIMIT 1`,
+      [organizationId]
+    );
+    const inv = invRows[0];
+    if (!inv) {
+      return res.status(404).json({ error: { code: 'INVITATION_NOT_FOUND', message: 'Aucune invitation en attente pour cette organisation.' } });
+    }
+    if (new Date(inv.expires_at) > new Date()) {
+      return res.status(409).json({ error: { code: 'NOT_EXPIRED', message: 'Le code actuel est encore valide.' } });
+    }
+
+    // Generer un nouveau code
+    const crypto = require('crypto');
+    const INVITATION_CODE_LENGTH = 8;
+    const INVITATION_TTL_HOURS   = 72;
+    const generateCode = () => crypto.randomBytes(INVITATION_CODE_LENGTH).toString('hex').slice(0, INVITATION_CODE_LENGTH).toUpperCase();
+    const hashCode    = (c) => crypto.createHash('sha256').update(c).digest('hex');
+
+    const newCode    = generateCode();
+    const expiresAt  = new Date(Date.now() + INVITATION_TTL_HOURS * 3600 * 1000);
+
+    await pool.query(
+      `UPDATE org_admin_invitations
+       SET code_hash = $1, expires_at = $2, attempts = 0
+       WHERE id = $3`,
+      [hashCode(newCode), expiresAt, inv.id]
+    );
+
+    // Envoyer par e-mail
+    const { sendMail } = require('../../config/mailer');
+    const { wrapEmail, calloutBox } = require('../../emails/brand');
+    if (inv.email) {
+      const html = wrapEmail({
+        title: 'Nouveau code d activation',
+        preheader: `${inv.org_name} - nouveau code`,
+        accent: 'primary',
+        bodyHtml: `
+          <p style="margin:0 0 16px 0;">Voici votre nouveau code d activation pour <strong>${inv.org_name}</strong>.</p>
+          ${calloutBox({ label: 'Identifiant organisation', value: organizationId, accent: 'primary' })}
+          ${calloutBox({ label: 'Nouveau code d activation', value: newCode, accent: 'primary' })}
+          <p style="margin:16px 0 0 0; color:#5F6368; font-size:13px;">Code valable ${INVITATION_TTL_HOURS}h.</p>
+        `,
+      });
+      await sendMail({
+        to: inv.email,
+        subject: 'Palabre - Nouveau code d activation',
+        text: `Identifiant : ${organizationId}\nNouveau code : ${newCode}\nExpire dans ${INVITATION_TTL_HOURS}h.`,
+        html,
+      }).catch((e) => console.error('[onboarding] echec renouvellement code', e.message));
+    }
+
+    // Envoyer par WhatsApp
+    const { convessaSend } = require('../auth/otp.service');
+    if (inv.phone_e164) {
+      convessaSend(inv.phone_e164,
+        `Palabre - Nouveau code activation\n\nOrganisation : ${inv.org_name}\nIdentifiant : ${organizationId}\nCode : ${newCode}\nExpire dans ${INVITATION_TTL_HOURS}h.`
+      ).catch(() => {});
+    }
+
+    res.json({ ok: true, expiresAt });
+  } catch (err) { next(err); }
+});
+
 router.post('/invitations/activate', publicLimiter, async (req, res, next) => {
   try {
     const { organizationId, code } = req.body;

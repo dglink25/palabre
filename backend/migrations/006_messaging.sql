@@ -1,23 +1,31 @@
 -- ============================================================
--- Migration 006 — Messagerie temps réel
--- Messages chiffrés E2E, conversations, groupes, files de clés
+-- Migration 006 -- Messagerie temps reel E2E
+-- Remplace les tables placeholder de 002_platform_entities
+-- (conversations et messages) par le schema definitif.
 -- ============================================================
 
+-- ── Remplacer les tables placeholder de 002 ──────────────────
+-- Les tables conversations et messages creees en 002 etaient des
+-- placeholders sans donnees metier. On les remplace par le schema
+-- definitif avec chiffrement E2E et isolation multi-tenant.
+
+DROP TABLE IF EXISTS messages CASCADE;
+DROP TABLE IF EXISTS conversations CASCADE;
+
 -- ── Conversations 1:1 ────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS conversations (
+CREATE TABLE conversations (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   org_id          UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   user_a_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   user_b_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   last_message_at TIMESTAMPTZ,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-  -- Une seule conversation par paire dans une org
   CONSTRAINT uq_conversation UNIQUE (org_id, user_a_id, user_b_id),
   CONSTRAINT chk_different_users CHECK (user_a_id <> user_b_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_conversations_user_a ON conversations(org_id, user_a_id);
-CREATE INDEX IF NOT EXISTS idx_conversations_user_b ON conversations(org_id, user_b_id);
+CREATE INDEX idx_conversations_user_a ON conversations(org_id, user_a_id);
+CREATE INDEX idx_conversations_user_b ON conversations(org_id, user_b_id);
 
 -- ── Groupes ───────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS rooms (
@@ -45,23 +53,28 @@ CREATE TABLE IF NOT EXISTS room_members (
   PRIMARY KEY (room_id, user_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_room_members_user ON room_members(user_id, org_id);
+-- Ajouter org_id si la table existait deja sans cette colonne
+ALTER TABLE room_members ADD COLUMN IF NOT EXISTS
+  org_id UUID REFERENCES organizations(id) ON DELETE CASCADE;
 
--- ── Messages (ciphertext opaque — jamais déchiffré côté serveur) ──
-CREATE TABLE IF NOT EXISTS messages (
-  id             TEXT PRIMARY KEY,          -- UUID v7 généré côté client (idempotence)
+DROP INDEX IF EXISTS idx_room_members_user;
+CREATE INDEX idx_room_members_user ON room_members(user_id, org_id);
+
+-- ── Messages (ciphertext opaque -- jamais dechiffre cote serveur) ──
+CREATE TABLE messages (
+  id             TEXT PRIMARY KEY,
   org_id         UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   from_user_id   UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  to_user_id     UUID REFERENCES users(id) ON DELETE SET NULL,    -- NULL si groupe
-  to_room_id     UUID REFERENCES rooms(id) ON DELETE SET NULL,    -- NULL si 1:1
-  ciphertext     TEXT NOT NULL,             -- blob chiffré Signal Protocol, base64
-  sender_key_id  TEXT,                      -- identifiant de la clé émetteur
+  to_user_id     UUID REFERENCES users(id) ON DELETE SET NULL,
+  to_room_id     UUID REFERENCES rooms(id) ON DELETE SET NULL,
+  ciphertext     TEXT NOT NULL,
+  sender_key_id  TEXT,
   type           TEXT NOT NULL DEFAULT 'text'
                    CHECK (type IN ('text', 'media_ref', 'call_signal', 'delivery_receipt', 'read_receipt', 'system')),
   status         TEXT NOT NULL DEFAULT 'sent'
                    CHECK (status IN ('sent', 'delivered', 'read', 'failed')),
-  client_ts      BIGINT NOT NULL,           -- timestamp client (ms) — pour l'ordre d'affichage
-  server_ts      BIGINT NOT NULL,           -- timestamp serveur (ms) — pour la cohérence
+  client_ts      BIGINT NOT NULL,
+  server_ts      BIGINT NOT NULL,
   created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT chk_message_target CHECK (
@@ -70,38 +83,35 @@ CREATE TABLE IF NOT EXISTS messages (
   )
 );
 
--- Index pour les requêtes fréquentes
-CREATE INDEX IF NOT EXISTS idx_messages_to_user  ON messages(to_user_id, server_ts DESC) WHERE to_user_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_messages_to_room  ON messages(to_room_id, server_ts DESC) WHERE to_room_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_messages_from     ON messages(from_user_id, server_ts DESC);
-CREATE INDEX IF NOT EXISTS idx_messages_org      ON messages(org_id, server_ts DESC);
-CREATE INDEX IF NOT EXISTS idx_messages_status   ON messages(status) WHERE status != 'read';
+CREATE INDEX idx_messages_to_user  ON messages(to_user_id, server_ts DESC) WHERE to_user_id IS NOT NULL;
+CREATE INDEX idx_messages_to_room  ON messages(to_room_id, server_ts DESC) WHERE to_room_id IS NOT NULL;
+CREATE INDEX idx_messages_from     ON messages(from_user_id, server_ts DESC);
+CREATE INDEX idx_messages_org      ON messages(org_id, server_ts DESC);
+CREATE INDEX idx_messages_status   ON messages(status) WHERE status != 'read';
 
--- ── File de clés Signal Protocol (prékeys) ────────────────────
--- Chaque appareil dépose ses prékeys publiques sur le serveur.
--- Le serveur distribue une prékey à chaque nouvel expéditeur.
--- Le serveur ne voit que les clés PUBLIQUES — jamais les privées.
+-- ── File de cles Signal Protocol (prekeys) ────────────────────
 CREATE TABLE IF NOT EXISTS signal_prekeys (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   device_id    TEXT NOT NULL,
   key_id       INTEGER NOT NULL,
-  public_key   TEXT NOT NULL,               -- clé publique X25519, base64
-  signature    TEXT,                        -- signature de la clé (signed prekey)
+  public_key   TEXT NOT NULL,
+  signature    TEXT,
   is_signed    BOOLEAN NOT NULL DEFAULT false,
   consumed     BOOLEAN NOT NULL DEFAULT false,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT uq_prekey UNIQUE (user_id, device_id, key_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_prekeys_available ON signal_prekeys(user_id, device_id)
+DROP INDEX IF EXISTS idx_prekeys_available;
+CREATE INDEX idx_prekeys_available ON signal_prekeys(user_id, device_id)
   WHERE consumed = false;
 
--- ── Identité Signal par appareil (clé d'identité publique) ───
+-- ── Identite Signal par appareil ─────────────────────────────
 CREATE TABLE IF NOT EXISTS signal_identities (
   user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   device_id       TEXT NOT NULL,
-  identity_key    TEXT NOT NULL,            -- clé publique d'identité Ed25519, base64
+  identity_key    TEXT NOT NULL,
   registration_id INTEGER NOT NULL,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (user_id, device_id)

@@ -45,7 +45,15 @@ export default function LoginPage() {
 
   function finishLogin(session) {
     applySession(session);
-    navigate(session.requiresTwoFactor ? '/two-factor' : '/profile');
+    if (session.requiresTwoFactor) {
+      navigate('/two-factor');
+    } else if (session.user?.isSuperAdmin) {
+      navigate('/admin');
+    } else if (session.user?.orgId) {
+      navigate('/org/dashboard');
+    } else {
+      navigate('/profile');
+    }
   }
 
   function handleStepUpChallenge(result) {

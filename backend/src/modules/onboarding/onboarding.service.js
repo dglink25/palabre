@@ -174,7 +174,7 @@ async function submitRequest(id, draftToken) {
     await sendMail({
       to: leaderEmail,
       subject: 'Palabre - Demande recue',
-      text: `Dossier ${orgName} recu. Suivi : ${statusLink}`,
+      text: `Dossier ${orgName} recu et en cours d instruction.`,
       html: wrapEmail({
         title: 'Demande recue',
         preheader: `Dossier ${orgName} en cours d instruction`,
@@ -350,7 +350,7 @@ async function rejectRequest(id, { reason, flaggedFields }, reviewerId) {
     await sendMail({
       to: leaderEmail,
       subject: 'Palabre - Correction requise pour votre dossier',
-      text: `Dossier ${orgName} - correction requise.\n\nMotif : ${reason}\n\nAccedez a votre demande : ${statusLink}`,
+      text: `Dossier ${orgName} - correction requise.\n\nMotif : ${reason}`,
       html,
     }).catch((e) => console.error('[onboarding] echec envoi e-mail de rejet', e.message));
   }
@@ -404,27 +404,53 @@ async function approveRequest(id, reviewerId) {
     );
     const organization = orgInsert.rows[0];
 
-    // Compte administrateur : créé directement par le super-administrateur
-    // (le dirigeant n'a pas eu besoin de s'inscrire lui-même au préalable).
-    // Conflit possible si ce téléphone/email a déjà un compte Palabre -
-    // dans ce cas on rattache l'organisation à ce compte existant plutôt
-    // que d'échouer, pour rester utilisable en conditions réelles.
+    // Compte administrateur
+    // Si un utilisateur avec ce téléphone OU cet email existe déjà,
+    // on vérifie la cohérence avant de réutiliser — pas de réutilisation aveugle.
     let adminUser;
-    const existing = await client.query('SELECT * FROM users WHERE phone_e164 = $1 OR email = $2', [leader.phone, leader.email]);
+    const existing = await client.query(
+      'SELECT * FROM users WHERE phone_e164 = $1 OR (email = $2 AND email IS NOT NULL)',
+      [leader.phone, leader.email || null]
+    );
     if (existing.rows[0]) {
-      adminUser = existing.rows[0];
+      const found = existing.rows[0];
+      // Vérifier qu'il n'y a pas de conflit email/téléphone sur deux utilisateurs différents
+      if (existing.rows.length > 1) {
+        const err = new Error(`Conflit : le telephone et l'email du dossier correspondent a deux comptes differents. Corrigez le dossier.`);
+        err.code = 'USER_CONFLICT'; err.httpStatus = 409; throw err;
+      }
+      adminUser = found;
+      // Mettre à jour les infos si le compte existant est incomplet
+      if (!found.full_name || !found.email || !found.phone_e164) {
+        const upd = await client.query(
+          `UPDATE users SET
+            full_name  = COALESCE(full_name, $1),
+            email      = COALESCE(email, $2),
+            phone_e164 = COALESCE(phone_e164, $3)
+           WHERE id = $4 RETURNING *`,
+          [leader.fullName, leader.email, leader.phone, found.id]
+        );
+        adminUser = upd.rows[0];
+      }
     } else {
       const userInsert = await client.query(
-        `INSERT INTO users (full_name, email, phone_e164) VALUES ($1,$2,$3) RETURNING *`,
+        'INSERT INTO users (full_name, email, phone_e164) VALUES ($1,$2,$3) RETURNING *',
         [leader.fullName, leader.email, leader.phone]
       );
       adminUser = userInsert.rows[0];
     }
 
-    const roleResult = await client.query(`SELECT id FROM roles WHERE code = 'org_admin'`);
+    const roleResult = await client.query("SELECT id FROM roles WHERE code = 'org_admin'");
+    if (!roleResult.rows[0]) {
+      const err = new Error("Role 'org_admin' introuvable en base. Verifiez la migration 001.");
+      err.code = 'ROLE_NOT_FOUND'; err.httpStatus = 500; throw err;
+    }
+    // UPSERT : si membership existe déjà, s'assurer qu'il est actif avec le bon rôle
     await client.query(
-      `INSERT INTO memberships (user_id, organization_id, role_id, status) VALUES ($1,$2,$3,'active')
-       ON CONFLICT (user_id, organization_id) DO NOTHING`,
+      `INSERT INTO memberships (user_id, organization_id, role_id, status)
+       VALUES ($1,$2,$3,'active')
+       ON CONFLICT (user_id, organization_id)
+       DO UPDATE SET role_id = EXCLUDED.role_id, status = 'active'`,
       [adminUser.id, organization.id, roleResult.rows[0].id]
     );
 
@@ -458,8 +484,8 @@ async function approveRequest(id, reviewerId) {
     const invitationCode = generateInvitationCode();
     await client.query(
       `INSERT INTO org_admin_invitations (organization_id, user_id, code_hash, expires_at)
-       VALUES ($1,$2,$3, now() + interval '${INVITATION_TTL_HOURS} hours')`,
-      [organization.id, adminUser.id, hashInvitationCode(invitationCode)]
+       VALUES ($1, $2, $3, now() + ($4 * interval '1 hour'))`,
+      [organization.id, adminUser.id, hashInvitationCode(invitationCode), INVITATION_TTL_HOURS]
     );
 
     await client.query(
@@ -547,31 +573,27 @@ async function activateInvitation({ organizationId, code }) {
   const invitation = rows[0];
   if (!invitation) {
     const err = new Error('Invitation introuvable ou deja utilisee.');
-    err.code = 'INVITATION_NOT_FOUND';
-    err.httpStatus = 404;
-    throw err;
-  }
-  if (new Date(invitation.expires_at) < new Date()) {
-    const err = new Error('Ce code d\'activation a expire.');
-    err.code = 'INVITATION_EXPIRED';
-    err.httpStatus = 410;
-    throw err;
-  }
-  if (hashInvitationCode(code) !== invitation.code_hash) {
-    const err = new Error('Code d\'activation incorrect.');
-    err.code = 'INVITATION_INVALID';
-    err.httpStatus = 401;
-    throw err;
+    err.code = 'INVITATION_NOT_FOUND'; err.httpStatus = 404; throw err;
   }
 
-  // NE PAS consommer l'invitation ici — elle sera consommée quand le moyen
-  // de connexion aura été vérifié avec succès dans linkActivationMethod.
-  // Cela évite qu'un attaquant valide le code mais n'aille pas au bout.
+  // Vérifier le code AVANT l'expiration pour éviter l'énumération d'invitations actives
+  if (hashInvitationCode(code) !== invitation.code_hash) {
+    await pool.query('UPDATE org_admin_invitations SET attempts = attempts + 1 WHERE id = $1', [invitation.id]);
+    const err = new Error('Code d\'activation incorrect.');
+    err.code = 'INVITATION_INVALID'; err.httpStatus = 401; throw err;
+  }
+  if (new Date(invitation.expires_at) < new Date()) {
+    const err = new Error('Ce code d\'activation a expire. Demandez un nouveau code.');
+    err.code = 'INVITATION_EXPIRED'; err.httpStatus = 410; throw err;
+  }
+  if ((invitation.attempts || 0) >= (invitation.max_attempts || 10)) {
+    const err = new Error('Trop de tentatives. Demandez un nouveau code.');
+    err.code = 'INVITATION_LOCKED'; err.httpStatus = 429; throw err;
+  }
 
   const jwt = require('jsonwebtoken');
   const secret = process.env.SUPER_ADMIN_STEP_SECRET || `${process.env.JWT_ACCESS_SECRET}_activation`;
 
-  // Masquer téléphone et email (afficher uniquement les 2 derniers chiffres/caractères)
   const phone = invitation.phone_e164 || '';
   const email = invitation.email || '';
   const phoneMask = phone.length > 2 ? `${'*'.repeat(phone.length - 2)}${phone.slice(-2)}` : '**';
@@ -581,121 +603,116 @@ async function activateInvitation({ organizationId, code }) {
     : '';
 
   const activationToken = jwt.sign(
-    {
-      purpose:        'org_admin_activation',
-      invitationId:   invitation.id,
-      userId:         invitation.user_id,
-      organizationId,
-    },
+    { purpose: 'org_admin_activation', invitationId: invitation.id, userId: invitation.user_id, organizationId },
     secret,
     { expiresIn: '10m' }
   );
 
-  return {
-    activationToken,
-    organizationId,
-    phoneHint:  phoneMask,
-    emailHint:  emailMask,
-    hasPhone:   !!phone,
-    hasEmail:   !!email,
-    fullName:   invitation.full_name,
-  };
+  return { activationToken, organizationId, phoneHint: phoneMask, emailHint: emailMask, hasPhone: !!phone, hasEmail: !!email, fullName: invitation.full_name };
 }
 
-/**
- * Étape 2 de l'activation : vérifie le moyen de connexion choisi par
- * l'administrateur (téléphone OTP, email OTP, ou Google Firebase).
- *
- * Règle de sécurité : le moyen doit correspondre aux données du dossier
- * (même numéro de téléphone ou même email).
- *
- * Si valide : consomme l'invitation et ouvre la session.
- */
 async function linkActivationMethod({ activationToken, method, credential, device }) {
   const jwt = require('jsonwebtoken');
   const secret = process.env.SUPER_ADMIN_STEP_SECRET || `${process.env.JWT_ACCESS_SECRET}_activation`;
 
   let payload;
-  try {
-    payload = jwt.verify(activationToken, secret);
-  } catch {
-    const err = new Error('Token d\'activation invalide ou expire. Recommencez.');
-    err.code = 'ACTIVATION_TOKEN_INVALID';
-    err.httpStatus = 401;
-    throw err;
+  try { payload = jwt.verify(activationToken, secret); }
+  catch {
+    const err = new Error('Token d\'activation invalide ou expire. Recommencez depuis le debut.');
+    err.code = 'ACTIVATION_TOKEN_INVALID'; err.httpStatus = 401; throw err;
   }
   if (payload.purpose !== 'org_admin_activation') {
-    const err = new Error('Token invalide.');
-    err.code = 'ACTIVATION_TOKEN_INVALID';
-    err.httpStatus = 401;
-    throw err;
+    const err = new Error('Token invalide.'); err.code = 'ACTIVATION_TOKEN_INVALID'; err.httpStatus = 401; throw err;
   }
 
-  // Vérifier que l'invitation n'a pas été consommée entre-temps
   const { rows: invRows } = await pool.query(
-    'SELECT * FROM org_admin_invitations WHERE id = $1 AND consumed_at IS NULL',
-    [payload.invitationId]
+    'SELECT * FROM org_admin_invitations WHERE id = $1 AND consumed_at IS NULL', [payload.invitationId]
   );
   if (!invRows[0]) {
     const err = new Error('Invitation deja utilisee ou expiree.');
-    err.code = 'INVITATION_NOT_FOUND';
-    err.httpStatus = 404;
-    throw err;
+    err.code = 'INVITATION_NOT_FOUND'; err.httpStatus = 404; throw err;
   }
 
   const { rows: userRows } = await pool.query('SELECT * FROM users WHERE id = $1', [payload.userId]);
   const user = userRows[0];
   if (!user) {
-    const err = new Error('Utilisateur introuvable.');
-    err.code = 'USER_NOT_FOUND';
-    err.httpStatus = 404;
-    throw err;
+    const err = new Error('Utilisateur introuvable.'); err.code = 'USER_NOT_FOUND'; err.httpStatus = 404; throw err;
   }
 
   if (method === 'phone') {
-    // Vérifier que le numéro correspond au compte
+    if (!user.phone_e164) {
+      const err = new Error('Aucun telephone associe a ce compte.'); err.code = 'NO_PHONE'; err.httpStatus = 400; throw err;
+    }
     const otpService = require('../auth/otp.service');
     await otpService.verifyOtp(user.phone_e164, 'login', credential.code);
-    if (credential.phone && credential.phone !== user.phone_e164) {
-      const err = new Error('Ce numero ne correspond pas au numero enregistre pour ce compte.');
-      err.code = 'PHONE_MISMATCH';
-      err.httpStatus = 401;
-      throw err;
-    }
 
   } else if (method === 'email') {
+    if (!user.email) {
+      const err = new Error('Aucun email associe a ce compte.'); err.code = 'NO_EMAIL'; err.httpStatus = 400; throw err;
+    }
     const emailService = require('../auth/email.service');
     await emailService.verifyCode(user.email, 'link', credential.code);
 
   } else if (method === 'google') {
     const { verifyFirebaseIdToken } = require('../../config/firebase');
     const identity = await verifyFirebaseIdToken(credential.idToken);
-    if (identity.email.toLowerCase() !== (user.email || '').toLowerCase()) {
-      const err = new Error('Ce compte Google ne correspond pas a l\'email enregistre pour cette organisation.');
-      err.code = 'EMAIL_MISMATCH';
-      err.httpStatus = 401;
-      throw err;
+
+    if (!identity.email) {
+      const err = new Error('Ce compte Google n\'a pas d\'adresse e-mail publique.');
+      err.code = 'GOOGLE_NO_EMAIL'; err.httpStatus = 400; throw err;
     }
-    // Lier le compte Google s'il ne l'est pas encore
-    await pool.query(
-      `INSERT INTO oauth_accounts (user_id, provider, provider_uid, provider_email)
-       VALUES ($1,'google',$2,$3) ON CONFLICT (provider, provider_uid) DO NOTHING`,
-      [user.id, identity.providerUid, identity.email]
+    const googleEmail = identity.email.toLowerCase();
+    const userEmail   = (user.email || '').toLowerCase();
+    if (googleEmail !== userEmail) {
+      const maskedUser = userEmail.replace(/(.{2})([^@]*)(@.*)/, '$1***$3');
+      const err = new Error(`Ce compte Google (${googleEmail}) ne correspond pas a l'email du compte organisation (${maskedUser}).`);
+      err.code = 'EMAIL_MISMATCH'; err.httpStatus = 401; throw err;
+    }
+
+    // Vérifier conflit avec un autre user avant d'insérer
+    const conflict = await pool.query(
+      'SELECT user_id FROM oauth_accounts WHERE provider = $1 AND provider_uid = $2',
+      ['google', identity.providerUid]
     );
+    if (conflict.rows[0] && conflict.rows[0].user_id !== user.id) {
+      // Réaffecter le lien Google vers ce compte (le bon)
+      await pool.query(
+        'UPDATE oauth_accounts SET user_id = $1, provider_email = $2 WHERE provider = $3 AND provider_uid = $4',
+        [user.id, identity.email, 'google', identity.providerUid]
+      );
+    } else if (!conflict.rows[0]) {
+      await pool.query(
+        'INSERT INTO oauth_accounts (user_id, provider, provider_uid, provider_email) VALUES ($1,$2,$3,$4)',
+        [user.id, 'google', identity.providerUid, identity.email]
+      );
+    }
+    // Si déjà lié correctement à ce user : rien à faire
+
+    // Marquer l'email vérifié
+    await pool.query('UPDATE users SET email_verified = true WHERE id = $1', [user.id]);
 
   } else {
-    const err = new Error('Methode d\'activation non supportee.');
-    err.code = 'INVALID_METHOD';
-    err.httpStatus = 400;
-    throw err;
+    const err = new Error('Methode non supportee. Utilisez phone, email ou google.');
+    err.code = 'INVALID_METHOD'; err.httpStatus = 400; throw err;
   }
 
-  // Tout est validé — consommer l'invitation
-  await pool.query('UPDATE org_admin_invitations SET consumed_at = now() WHERE id = $1', [payload.invitationId]);
+  // Marquer l'email comme vérifié pour email/google
+  if (method === 'email') {
+    await pool.query('UPDATE users SET email_verified = true WHERE id = $1', [user.id]);
+  }
+
+  // Consommer TOUTES les invitations non-consommées de cette organisation
+  await pool.query(
+    'UPDATE org_admin_invitations SET consumed_at = now() WHERE organization_id = $1 AND consumed_at IS NULL',
+    [payload.organizationId]
+  );
 
   const deviceService = require('../auth/device.service');
   const deviceRow = await deviceService.getOrCreateDevice(device);
-  return { user, deviceRow };
+
+  // Recharger l'utilisateur avec email_verified mis à jour
+  const { rows: freshUser } = await pool.query('SELECT * FROM users WHERE id = $1', [user.id]);
+  return { user: freshUser[0], deviceRow };
 }
 
 module.exports = {
