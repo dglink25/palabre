@@ -1,67 +1,134 @@
-import { useState } from 'react';
-import { Alert } from '../../components/ui';
+import { useEffect, useState, useCallback } from 'react';
+import { api } from '../../lib/apiClient';
+import { Alert, Spinner } from '../../components/ui';
 import { useAuth } from '../../context/AuthContext';
+import { friendlyMessage } from '../../lib/errorMessages';
 
 export default function OrgVpnPage() {
   const { user } = useAuth();
-  const [status, setStatus] = useState('unknown'); // unknown | active | offline
+  const [vpnData, setVpnData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState('');
+
+  const load = useCallback(async () => {
+    if (!user?.orgId) return;
+    setLoading(true);
+    try {
+      const data = await api.get(`/org/tenants/${user.orgId}/status`);
+      setVpnData(data);
+      setError('');
+    } catch (e) {
+      setError(friendlyMessage(e));
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.orgId]);
+
+  useEffect(() => {
+    load();
+    // Rafraîchir toutes les 30s pour suivre les heartbeats en temps réel
+    const interval = setInterval(load, 30_000);
+    return () => clearInterval(interval);
+  }, [load]);
+
+  const vpnStatus  = vpnData?.vpnStatus  || 'unknown';
+  const orgStatus  = vpnData?.orgStatus  || 'unknown';
+  const secondsAgo = vpnData?.secondsAgo;
+
+  function statusLabel() {
+    if (vpnStatus === 'active')   return { variant: 'success', text: 'Tunnel actif' };
+    if (vpnStatus === 'degraded') return { variant: 'warning', text: 'Signal faible - dernier heartbeat il y a plus de 2 min' };
+    if (vpnStatus === 'offline')  return { variant: 'danger',  text: 'Tunnel hors ligne - aucun heartbeat depuis plus de 5 min' };
+    return { variant: 'warning', text: 'Statut inconnu - le serveur local n\'a pas encore envoye de heartbeat' };
+  }
+
+  function lastSeenLabel() {
+    if (secondsAgo === null || secondsAgo === undefined) return 'Jamais';
+    if (secondsAgo < 60)   return `Il y a ${secondsAgo}s`;
+    if (secondsAgo < 3600) return `Il y a ${Math.floor(secondsAgo / 60)} min`;
+    return `Il y a ${Math.floor(secondsAgo / 3600)} h`;
+  }
+
+  const status = statusLabel();
 
   return (
     <div>
-      <h1>Tunnel VPN WireGuard</h1>
-      <p className="text-secondary">
-        Etape 9 : Configuration du tunnel entre votre serveur local et le service central Palabre.
-      </p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <h1 style={{ margin: 0 }}>Tunnel VPN WireGuard</h1>
+        <button className="btn btn-sm btn-secondary" onClick={load} disabled={loading}>
+          {loading ? <Spinner /> : 'Actualiser'}
+        </button>
+      </div>
 
-      {status === 'unknown' && (
-        <Alert variant="warning">
-          Statut VPN inconnu. Le serveur local n'a pas encore envoye de heartbeat.
-        </Alert>
-      )}
-      {status === 'active' && (
-        <Alert variant="success">Tunnel VPN actif. Dernier heartbeat recu il y a moins d'une minute.</Alert>
-      )}
-      {status === 'offline' && (
-        <Alert variant="danger">Tunnel VPN hors ligne. Verifiez votre serveur local.</Alert>
+      {error && <Alert variant="danger">{error}</Alert>}
+
+      {/* Statut en temps réel */}
+      <Alert variant={status.variant}>{status.text}</Alert>
+
+      {/* Tableau de bord rapide */}
+      {vpnData && (
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 20 }}>
+          {[
+            { label: 'Statut VPN',         value: vpnStatus,           color: vpnStatus === 'active' ? 'var(--color-success-green)' : 'var(--color-alert-red)' },
+            { label: 'Statut organisation', value: orgStatus,           color: 'var(--color-text-secondary)' },
+            { label: 'Dernier heartbeat',   value: lastSeenLabel(),     color: 'var(--color-text-secondary)' },
+          ].map((s) => (
+            <div key={s.label} style={{
+              flex: 1, minWidth: 160,
+              background: 'var(--color-white)',
+              border: '1px solid var(--color-border)',
+              borderTop: `3px solid ${s.color}`,
+              padding: '16px 20px',
+            }}>
+              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>{s.label}</div>
+              <div style={{ fontWeight: 700, fontSize: 18, color: s.color }}>{s.value}</div>
+            </div>
+          ))}
+        </div>
       )}
 
+      {/* Instructions */}
       <div className="card" style={{ borderTop: '4px solid var(--color-primary-blue)' }}>
-        <h2>Instructions de configuration</h2>
+        <h2>Configuration du tunnel</h2>
         <ol style={{ lineHeight: 2.2, paddingLeft: 20, fontSize: 15 }}>
           <li>
-            Recuperez le <strong>code QR</strong> transmis par le super-administrateur lors de l'approbation
-            de votre dossier (recu par e-mail et WhatsApp).
+            Recuperez le <strong>code QR</strong> transmis lors de l'approbation de votre dossier
+            (recu par e-mail et WhatsApp depuis le super-administrateur).
           </li>
-          <li>
-            Sur votre serveur local, ouvrez l'interface d'administration Palabre tenant.
+          <li>Sur votre serveur local, lancez l'agent tenant Palabre.</li>
+          <li>Scannez le QR code depuis l'application mobile ou collez le payload JSON sur
+            la <a href="/org/link">page de liaison</a>.
           </li>
-          <li>
-            Allez dans <strong>Parametres &gt; VPN &gt; Configurer le tunnel</strong>.
-          </li>
-          <li>
-            Scannez le QR code ou copiez-collez le contenu JSON du payload.
-          </li>
-          <li>
-            Le tunnel WireGuard s'etablit automatiquement. Le statut ci-dessus
-            passe a <strong>Actif</strong> des le premier heartbeat confirme.
-          </li>
+          <li>L'agent etablit le tunnel WireGuard automatiquement et commence a envoyer des heartbeats.</li>
+          <li>Le statut ci-dessus passe a <strong>Actif</strong> des que le premier heartbeat est recu.</li>
         </ol>
       </div>
 
+      {/* Informations techniques */}
       <div className="card">
-        <h2>Contenu du QR code</h2>
-        <p className="text-secondary">
-          Le QR code encode les informations suivantes. Ces secrets ne sont jamais re-affichables
-          apres la premiere connexion — contactez le super-administrateur si vous les avez perdus.
-        </p>
-        <table>
+        <h2>Informations techniques</h2>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <tbody>
-            <tr><td style={{ width: 200, color: 'var(--color-text-secondary)', padding: '8px 0' }}>Identifiant tenant</td><td><code>{user?.orgId || '-'}</code></td></tr>
-            <tr><td style={{ color: 'var(--color-text-secondary)', padding: '8px 0' }}>Cle VPN (privee)</td><td><code>***** (confidentiel)</code></td></tr>
-            <tr><td style={{ color: 'var(--color-text-secondary)', padding: '8px 0' }}>Jeton de controle</td><td><code>***** (confidentiel)</code></td></tr>
-            <tr><td style={{ color: 'var(--color-text-secondary)', padding: '8px 0' }}>URL heartbeat</td><td><code>{window.location.origin}/api/v1/tenants/heartbeat</code></td></tr>
+            <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
+              <td style={{ padding: '10px 0', color: 'var(--color-text-secondary)', width: 200 }}>Identifiant tenant</td>
+              <td style={{ padding: '10px 0', fontFamily: 'monospace', fontSize: 13 }}>{user?.orgId || '-'}</td>
+            </tr>
+            <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
+              <td style={{ padding: '10px 0', color: 'var(--color-text-secondary)' }}>Cle VPN (privee)</td>
+              <td style={{ padding: '10px 0', fontSize: 13, color: 'var(--color-text-secondary)' }}>Confidentielle - stockee sur votre appareil lors de la liaison</td>
+            </tr>
+            <tr>
+              <td style={{ padding: '10px 0', color: 'var(--color-text-secondary)' }}>URL heartbeat</td>
+              <td style={{ padding: '10px 0', fontSize: 13, fontFamily: 'monospace' }}>
+                {window.location.origin}/api/v1/org/tenants/heartbeat
+              </td>
+            </tr>
           </tbody>
         </table>
+        <p className="text-secondary" style={{ marginTop: 12, fontSize: 13 }}>
+          Si vous avez perdu le QR code avant de configurer le tunnel, contactez le
+          super-administrateur pour regenerer un nouveau code QR depuis la page de la demande.
+        </p>
       </div>
     </div>
   );

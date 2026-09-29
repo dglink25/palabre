@@ -41,6 +41,101 @@ const STATUS_LABEL   = { draft: 'Brouillon', submitted: 'Soumise', rejected: 'Re
 
 const GENDER = { male: 'Masculin', female: 'Feminin' };
 
+// ── Composant régénération QR (demande déjà approuvée) ───────────────────────
+
+function RegenQrSection({ orgId, requestId }) {
+  const [busy,      setBusy]      = useState(false);
+  const [error,     setError]     = useState('');
+  const [newQrData, setNewQrData] = useState('');
+  const [confirmed, setConfirmed] = useState(false);
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    if (newQrData && canvasRef.current) {
+      QRCode.toCanvas(canvasRef.current, newQrData, { width: 240, margin: 2 });
+    }
+  }, [newQrData]);
+
+  async function regenerate() {
+    setError(''); setBusy(true);
+    try {
+      const result = await api.post(`/org/tenants/${orgId}/regenerate-qr`);
+      setNewQrData(JSON.stringify(result.qrPayload));
+      setConfirmed(false);
+    } catch (e) { setError(friendlyMessage(e)); }
+    finally { setBusy(false); }
+  }
+
+  function downloadQr() {
+    if (!canvasRef.current) return;
+    const link = document.createElement('a');
+    link.download = `palabre-qr-regen-${orgId}.png`;
+    link.href = canvasRef.current.toDataURL('image/png');
+    link.click();
+  }
+
+  return (
+    <div style={{ marginTop: 20, borderTop: '1px solid var(--color-border)', paddingTop: 16 }}>
+      <h3 style={{ marginBottom: 8 }}>Code QR perdu ?</h3>
+      <p className="text-secondary" style={{ fontSize: 14, marginBottom: 12 }}>
+        Si l'administrateur a perdu le QR avant de configurer le tunnel, vous pouvez en
+        regenerer un nouveau. L'ancien token sera revoque.
+      </p>
+
+      {error && <Alert variant="danger">{error}</Alert>}
+
+      {!newQrData && (
+        <>
+          {!confirmed ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button
+                className="btn btn-sm btn-secondary"
+                onClick={() => setConfirmed(true)}
+              >
+                Regenerer un nouveau QR code
+              </button>
+            </div>
+          ) : (
+            <div>
+              <Alert variant="warning">
+                Cette action revoque l'ancien token VPN. Si le tunnel etait configure, il devra etre reconfigure.
+              </Alert>
+              <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+                <button className="btn btn-danger" onClick={regenerate} disabled={busy}>
+                  {busy ? <Spinner /> : 'Confirmer la regeneration'}
+                </button>
+                <button className="btn btn-secondary" onClick={() => setConfirmed(false)}>
+                  Annuler
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {newQrData && (
+        <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start', marginTop: 12 }}>
+          <div>
+            <canvas ref={canvasRef} style={{ display: 'block', border: '1px solid var(--color-border)' }} />
+            <button className="btn btn-secondary btn-block" style={{ marginTop: 8 }} onClick={downloadQr}>
+              Telecharger le nouveau QR
+            </button>
+          </div>
+          <div style={{ flex: 1 }}>
+            <Alert variant="success">
+              Nouveau QR code genere. Transmettez-le a l'administrateur maintenant.
+              Il ne sera plus accessible apres avoir quitte cette page.
+            </Alert>
+            <Alert variant="warning">
+              L'ancien token VPN est revoque. Si le tunnel etait actif, l'agent tenant devra etre reconfigure.
+            </Alert>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Composant QR code canvas ──────────────────────────────────────────────────
 
 function QrCanvas({ data, canvasRef }) {
@@ -311,10 +406,13 @@ export default function RequestDetailPage() {
           <h2>Organisation approuvee</h2>
           <p className="text-secondary">
             Cette demande a ete approuvee le {new Date(request.reviewed_at).toLocaleString('fr-FR')}.
-            Le code QR a deja ete transmis a l'administrateur. Il n'est plus accessible ici.
+            Le code QR a deja ete transmis a l'administrateur.
           </p>
           {request.organization_id && (
-            <p><strong>ID organisation :</strong> {request.organization_id}</p>
+            <>
+              <p><strong>ID organisation :</strong> {request.organization_id}</p>
+              <RegenQrSection orgId={request.organization_id} requestId={id} />
+            </>
           )}
         </div>
       )}

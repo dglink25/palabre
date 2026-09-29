@@ -24,6 +24,7 @@
 
 const express = require('express');
 const crypto  = require('crypto');
+const rateLimit = require('express-rate-limit');
 const { pool } = require('../../config/db');
 const { requireAuth } = require('../../middleware/authMiddleware');
 const authService = require('../auth/auth.service');
@@ -138,16 +139,17 @@ router.post('/join', requireAuth, async (req, res, next) => {
       });
     }
 
-    // Vérifier le code d'invitation
-    // Le join_code est stocké haché dans organizations.join_code_hash
-    // Si la colonne n'existe pas encore, on utilise une vérification basique
-    if (org.join_code_hash) {
-      const codeHash = crypto.createHash('sha256').update(joinCode).digest('hex');
-      if (codeHash !== org.join_code_hash) {
-        return res.status(401).json({
-          error: { code: 'INVALID_JOIN_CODE', message: 'Code incorrect.' },
-        });
-      }
+    // Vérifier le code d'invitation — OBLIGATOIRE, jamais contournable
+    if (!org.join_code_hash) {
+      return res.status(403).json({
+        error: { code: 'JOIN_CODE_NOT_SET', message: 'Cette organisation n\'a pas encore genere de code d\'invitation. Demandez a votre administrateur de generer un code depuis son tableau de bord.' },
+      });
+    }
+    const codeHash = crypto.createHash('sha256').update(joinCode).digest('hex');
+    if (codeHash !== org.join_code_hash) {
+      return res.status(401).json({
+        error: { code: 'INVALID_JOIN_CODE', message: 'Code incorrect. Verifiez le code fourni par votre administrateur.' },
+      });
     }
 
     // Attribuer le rôle member
@@ -250,6 +252,180 @@ router.post('/join-code/generate', requireAuth, async (req, res, next) => {
     );
 
     res.json({ joinCode, orgId });
+  } catch (e) { next(e); }
+});
+
+module.exports = router;
+
+// ── Heartbeat tenant ─────────────────────────────────────────────────────────
+// Appelé régulièrement par l'instance locale du tenant pour confirmer sa
+// présence et recevoir son statut officiel (actif / suspendu / archivé).
+// Ce mécanisme est la brique de contrôle centrale décrite en section 10.2
+// du cahier des charges — il fonctionne même quand l'org est suspendue.
+
+const tenantLimiter = rateLimit({ windowMs: 60 * 1000, max: 60, standardHeaders: true, legacyHeaders: false });
+
+router.post('/tenants/heartbeat', tenantLimiter, async (req, res, next) => {
+  try {
+    const { tenantId, controlToken } = req.body;
+    if (!tenantId || !controlToken) {
+      return res.status(400).json({ error: { code: 'MISSING_FIELDS', message: 'tenantId et controlToken requis.' } });
+    }
+
+    const tokenHash = crypto.createHash('sha256').update(controlToken).digest('hex');
+    const { rows } = await pool.query(
+      `SELECT t.*, o.status as org_status, o.name as org_name
+       FROM tenant_control_tokens t
+       JOIN organizations o ON o.id = t.organization_id
+       WHERE t.organization_id = $1 AND t.token_hash = $2 AND t.revoked_at IS NULL`,
+      [tenantId, tokenHash]
+    );
+
+    if (!rows[0]) {
+      return res.status(401).json({ error: { code: 'INVALID_TOKEN', message: 'Token de controle invalide.' } });
+    }
+
+    const org = rows[0];
+
+    // Enregistrer le heartbeat
+    await pool.query(
+      `INSERT INTO heartbeat_logs (organization_id, status_reported, received_at)
+       VALUES ($1, $2, now())`,
+      [tenantId, org.org_status]
+    );
+
+    // Retourner le statut officiel — l'agent tenant applique ce statut localement
+    res.json({
+      tenantId,
+      status:     org.org_status,   // 'active' | 'suspended' | 'archived'
+      orgName:    org.org_name,
+      receivedAt: new Date().toISOString(),
+      // Directives optionnelles à appliquer côté tenant
+      directives: {
+        allowConnections: org.org_status === 'active',
+        allowOutboundCalls: org.org_status === 'active',
+        messagingMode: org.org_status === 'active' ? 'full' : 'readonly',
+      },
+    });
+  } catch (e) { next(e); }
+});
+
+// ── Statut VPN en temps réel (pour l'interface admin org) ────────────────────
+// Retourne le dernier heartbeat reçu pour afficher le statut dans OrgVpnPage.
+
+router.get('/tenants/:orgId/status', requireAuth, async (req, res, next) => {
+  try {
+    const { orgId } = req.params;
+
+    // Vérifier que l'utilisateur appartient à cette organisation
+    const orgIdFromUser = req.user.org_id;
+    if (orgId !== orgIdFromUser && !req.user.is_super_admin) {
+      return res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Acces refuse.' } });
+    }
+
+    const { rows: orgRows } = await pool.query('SELECT status FROM organizations WHERE id = $1', [orgId]);
+    if (!orgRows[0]) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Organisation introuvable.' } });
+
+    const { rows: heartbeatRows } = await pool.query(
+      `SELECT received_at, status_reported FROM heartbeat_logs
+       WHERE organization_id = $1
+       ORDER BY received_at DESC LIMIT 1`,
+      [orgId]
+    );
+
+    const lastHeartbeat = heartbeatRows[0];
+    const now = Date.now();
+    const lastSeen = lastHeartbeat ? new Date(lastHeartbeat.received_at).getTime() : null;
+    const secondsAgo = lastSeen ? Math.floor((now - lastSeen) / 1000) : null;
+
+    // Détermine le statut VPN :
+    // - active   : heartbeat reçu il y a moins de 120s
+    // - degraded : heartbeat reçu il y a 120s-300s
+    // - offline  : pas de heartbeat depuis plus de 300s ou jamais reçu
+    let vpnStatus = 'unknown';
+    if (secondsAgo !== null) {
+      if (secondsAgo < 120)       vpnStatus = 'active';
+      else if (secondsAgo < 300)  vpnStatus = 'degraded';
+      else                        vpnStatus = 'offline';
+    }
+
+    res.json({
+      orgStatus:      orgRows[0].status,
+      vpnStatus,
+      lastHeartbeat:  lastHeartbeat?.received_at || null,
+      secondsAgo,
+    });
+  } catch (e) { next(e); }
+});
+
+// ── Régénération du QR code / controlToken ────────────────────────────────────
+// Si l'admin a perdu le QR avant de configurer son tunnel, le super-admin
+// peut régénérer un nouveau token de contrôle + paire VPN.
+// L'ancien token est révoqué, les secrets sont renvoyés UNE SEULE FOIS.
+
+router.post('/tenants/:orgId/regenerate-qr', requireAuth, async (req, res, next) => {
+  try {
+    if (!req.user.is_super_admin) {
+      return res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Seul le super-administrateur peut regenerer le QR.' } });
+    }
+
+    const { orgId } = req.params;
+
+    const { rows: orgRows } = await pool.query('SELECT * FROM organizations WHERE id = $1', [orgId]);
+    if (!orgRows[0]) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Organisation introuvable.' } });
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // Révoquer l'ancien token de contrôle
+      await client.query(
+        'UPDATE tenant_control_tokens SET revoked_at = now() WHERE organization_id = $1 AND revoked_at IS NULL',
+        [orgId]
+      );
+
+      // Générer un nouveau token de contrôle
+      const rawControlToken = crypto.randomBytes(32).toString('base64url');
+      await client.query(
+        `INSERT INTO tenant_control_tokens (organization_id, token_hash, qr_issued_at)
+         VALUES ($1, $2, now())`,
+        [orgId, crypto.createHash('sha256').update(rawControlToken).digest('hex')]
+      );
+
+      // Générer une nouvelle paire VPN WireGuard x25519
+      const { privateKey: wgPriv, publicKey: wgPub } = crypto.generateKeyPairSync('x25519', {
+        publicKeyEncoding:  { type: 'spki',  format: 'der' },
+        privateKeyEncoding: { type: 'pkcs8', format: 'der' },
+      });
+      const wgPrivateKeyB64 = wgPriv.subarray(16).toString('base64');
+      const wgPublicKeyB64  = wgPub.subarray(12).toString('base64');
+
+      // Mettre à jour la clé publique stockée
+      await client.query(
+        `UPDATE vpn_peers SET public_key = $1, status = 'pending', connected_at = NULL
+         WHERE organization_id = $2`,
+        [wgPublicKeyB64, orgId]
+      );
+
+      await client.query('COMMIT');
+
+      // Retourner le nouveau payload QR (une seule fois, non stocké)
+      res.json({
+        ok: true,
+        qrPayload: {
+          tenantId:      orgId,
+          controlToken:  rawControlToken,
+          vpnPrivateKey: wgPrivateKeyB64,
+          vpnPublicKey:  wgPublicKeyB64,
+          heartbeatUrl:  `${process.env.APP_BASE_URL || ''}/api/v1/org/tenants/heartbeat`,
+        },
+      });
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
   } catch (e) { next(e); }
 });
 

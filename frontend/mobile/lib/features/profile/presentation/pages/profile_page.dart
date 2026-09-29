@@ -108,11 +108,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   const SizedBox(height: 8),
 
                   // Sécurité
-                  _Section(title: 'Sécurité', items: [
-                    _Item(icon: Icons.devices_outlined, label: 'Appareils connectés',
-                        onTap: () => context.push('/settings')),
-                    _Item(icon: Icons.security_outlined, label: 'Clés de chiffrement',
-                        onTap: () {}),
+                  _Section(title: 'Securite', items: [
+                    _Item(icon: Icons.security_outlined,    label: 'Securite et connexion',
+                        onTap: () => context.push('/security')),
+                    _Item(icon: Icons.devices_outlined,     label: 'Sessions et appareils',
+                        onTap: () => context.push('/sessions')),
                   ]),
                   const SizedBox(height: 8),
 

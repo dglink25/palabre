@@ -12,8 +12,11 @@ import '../../features/calls/presentation/pages/call_screen.dart';
 import '../../features/contacts/presentation/pages/contacts_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/security/presentation/pages/security_page.dart';
+import '../../features/sessions/presentation/pages/sessions_page.dart';
 import '../../features/org/presentation/pages/org_join_page.dart';
 import '../../features/org/presentation/pages/org_link_page.dart';
+import '../../features/home/presentation/pages/home_page.dart';
 import '../providers/auth_provider.dart';
 import 'shell_page.dart';
 
@@ -21,7 +24,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
 
   return GoRouter(
-    initialLocation: '/conversations',
+    initialLocation: '/home',
     debugLogDiagnostics: false,
     redirect: (context, state) {
       final isLoggedIn = authState.valueOrNull?.isAuthenticated ?? false;
@@ -50,19 +53,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ShellRoute(
         builder: (context, state, child) => ShellPage(child: child),
         routes: [
+          GoRoute(path: '/home',         builder: (_, __) => const HomePage()),
           GoRoute(
             path: '/conversations',
             builder: (_, __) => const ConversationsPage(),
             routes: [
-              GoRoute(
-                path: ':id',
-                builder: (_, s) => ChatPage(conversationId: s.pathParameters['id']!),
-              ),
+              GoRoute(path: ':id', builder: (_, s) => ChatPage(conversationId: s.pathParameters['id']!)),
+              GoRoute(path: 'new', builder: (_, __) => const ContactsPage()),
             ],
           ),
-          GoRoute(path: '/calls',    builder: (_, __) => const CallsPage()),
+          GoRoute(path: '/calls',    builder: (_, __) => const CallsPage(),
+            routes: [GoRoute(path: 'new', builder: (_, __) => const ContactsPage())]),
           GoRoute(path: '/contacts', builder: (_, __) => const ContactsPage()),
           GoRoute(path: '/profile',  builder: (_, __) => const ProfilePage()),
+          GoRoute(path: '/security', builder: (_, __) => const SecurityPage()),
+          GoRoute(path: '/sessions', builder: (_, __) => const SessionsPage()),
           GoRoute(path: '/settings', builder: (_, __) => const SettingsPage()),
         ],
       ),
