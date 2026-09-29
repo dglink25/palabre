@@ -31,6 +31,65 @@ const authService = require('../auth/auth.service');
 
 const router = express.Router();
 
+// ── GET /org/me — infos complètes de l'organisation de l'admin connecté ──────
+
+router.get('/me', requireAuth, async (req, res, next) => {
+  try {
+    const orgId = req.user.org_id;
+    if (!orgId) {
+      return res.status(404).json({ error: { code: 'NO_ORG', message: 'Aucune organisation liee a ce compte.' } });
+    }
+
+    // Infos org + statut VPN + demande d'origine
+    const orgResult = await pool.query(
+      `SELECT o.*,
+              v.status as vpn_status,
+              v.public_key as vpn_public_key,
+              (SELECT MAX(hl.received_at) FROM heartbeat_logs hl WHERE hl.organization_id = o.id) as last_heartbeat,
+              r.id as request_id, r.step3_documents
+       FROM organizations o
+       LEFT JOIN vpn_peers v ON v.organization_id = o.id
+       LEFT JOIN organization_requests r ON r.organization_id = o.id AND r.status = 'approved'
+       WHERE o.id = $1 LIMIT 1`,
+      [orgId]
+    );
+    const org = orgResult.rows[0];
+    if (!org) return res.status(404).json({ error: { code: 'ORG_NOT_FOUND', message: 'Organisation introuvable.' } });
+
+    const secondsAgo = org.last_heartbeat
+      ? Math.floor((Date.now() - new Date(org.last_heartbeat).getTime()) / 1000)
+      : null;
+
+    let vpnStatus = 'unknown';
+    if (secondsAgo !== null) {
+      if (secondsAgo < 120)      vpnStatus = 'active';
+      else if (secondsAgo < 300) vpnStatus = 'degraded';
+      else                       vpnStatus = 'offline';
+    }
+
+    res.json({
+      id:            org.id,
+      name:          org.name,
+      headquarters:  org.headquarters,
+      country:       org.country,
+      city:          org.city,
+      address:       org.address,
+      sector:        org.sector,
+      ifuNumber:     org.ifu_number,
+      logoUrl:       org.logo_url,
+      status:        org.status,
+      requestId:     org.request_id,
+      vpn: {
+        status:      vpnStatus,
+        publicKey:   org.vpn_public_key,
+        lastHeartbeat: org.last_heartbeat,
+        secondsAgo,
+      },
+      createdAt:     org.created_at,
+    });
+  } catch (err) { next(err); }
+});
+
 // ── A. Liaison admin via QR code du tenant ────────────────────────────────────
 
 router.post('/link/admin', requireAuth, async (req, res, next) => {

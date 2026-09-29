@@ -271,8 +271,23 @@ async function linkFederatedProvider(userId, idToken) {
  */
 async function issueSessionForUser({ user, deviceRow, ip, userAgent }) {
   const twoFactorPassed = !user.two_factor_enabled; // pas de 2FA => déjà "validé"
+
+  // Résoudre le rôle de membership si pas encore chargé (login téléphone/fédéré
+  // ne fait pas le JOIN roles contrairement à authMiddleware)
+  let enrichedUser = user;
+  if (!user.member_role) {
+    const roleRow = await pool.query(
+      `SELECT r.code as member_role
+       FROM memberships m JOIN roles r ON r.id = m.role_id
+       WHERE m.user_id = $1 AND m.status = 'active'
+       ORDER BY m.created_at ASC LIMIT 1`,
+      [user.id]
+    );
+    enrichedUser = { ...user, member_role: roleRow.rows[0]?.member_role || null };
+  }
+
   const { session, accessToken, refreshToken } = await sessionService.createSession({
-    user,
+    user: enrichedUser,
     deviceId: deviceRow.id,
     ip,
     userAgent,
@@ -280,19 +295,15 @@ async function issueSessionForUser({ user, deviceRow, ip, userAgent }) {
   });
 
   // La session Postgres existe désormais ; on marque l'appareil "en ligne"
-  // côté Redis immédiatement - le client devra ensuite envoyer un
-  // heartbeat régulier (POST /sessions/heartbeat) pour le rester.
-  await presenceService.setOnline(user.id, deviceRow.id);
+  await presenceService.setOnline(enrichedUser.id, deviceRow.id);
 
-  // Le super-administrateur a, en plus, une fenêtre d'inactivité stricte de
-  // 15 minutes, indépendante du heartbeat : on l'amorce dès la connexion.
-  if (user.is_super_admin) {
+  if (enrichedUser.is_super_admin) {
     await armSuperAdminIdleTimeout(session.id);
   }
 
   return {
-    user: sanitizeUser(user),
-    requiresTwoFactor: user.two_factor_enabled,
+    user: sanitizeUser(enrichedUser),
+    requiresTwoFactor: enrichedUser.two_factor_enabled,
     session: { id: session.id },
     accessToken,
     refreshToken,
@@ -300,7 +311,7 @@ async function issueSessionForUser({ user, deviceRow, ip, userAgent }) {
 }
 
 function sanitizeUser(user) {
-  const { id, full_name, email, email_verified, phone_e164, photo_url, sector, locale, timezone, two_factor_enabled, preferences, is_super_admin, org_id } = user;
+  const { id, full_name, email, email_verified, phone_e164, photo_url, sector, locale, timezone, two_factor_enabled, preferences, is_super_admin, org_id, member_role } = user;
   return {
     id,
     fullName:         full_name,
@@ -314,9 +325,9 @@ function sanitizeUser(user) {
     twoFactorEnabled: two_factor_enabled,
     preferences:      preferences || {},
     isSuperAdmin:     !!is_super_admin,
-    // org_id est injecté par authMiddleware via JOIN memberships
-    // ou par le claim 'org' du JWT — jamais null pour un admin d'organisation
     orgId:            org_id || null,
+    // role de membership : 'org_admin', 'org_member', etc. — null si pas de membership
+    role:             member_role || null,
   };
 }
 

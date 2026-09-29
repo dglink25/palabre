@@ -34,7 +34,7 @@ export default function OrgApkPage() {
       {error  && <Alert variant="danger">{error}</Alert>}
       {notice && <Alert variant="success">{notice}</Alert>}
 
-      <div className="card" style={{ borderTop: '4px solid var(--color-warning-amber)' }}>
+      <div className="card">
         <h2>Generer l'APK</h2>
         <p className="text-secondary">
           L'application sera preconfiguree avec l'identite visuelle et les parametres de votre

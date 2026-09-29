@@ -21,6 +21,8 @@ const COLORS = {
   textPrimary: '#202124',   // Anthracite Sombre - texte principal
 };
 
+const FONT_STACK = "-apple-system, 'Segoe UI', Roboto, Arial, Helvetica, sans-serif";
+
 // Logo Palabre encodé en base64 inline — aucune requête externe requise.
 // Les clients mail (Gmail, Outlook, Apple Mail) bloquent souvent les images
 // hébergées sur des domaines inconnus, mais affichent toujours les data URI.

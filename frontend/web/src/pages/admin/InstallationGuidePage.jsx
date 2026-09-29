@@ -91,7 +91,7 @@ export default function InstallationGuidePage() {
           </div>
 
           {/* Etape 7 — Guide */}
-          <div className="card" style={{ borderTop: '4px solid var(--color-primary-blue)' }}>
+          <div className="card">
             <h2>Etape 7 : Guide d'installation (a transmettre a l'administrateur)</h2>
             <ol style={{ lineHeight: 2, paddingLeft: 20 }}>
               <li>
@@ -123,7 +123,7 @@ sudo usermod -aG docker $USER`}
           </div>
 
           {/* Etape 9 — VPN */}
-          <div className="card" style={{ borderTop: '4px solid var(--color-success-green)' }}>
+          <div className="card">
             <h2>Etape 9 : Configuration du tunnel VPN WireGuard</h2>
             <p className="text-secondary">
               Le code QR a ete genere lors de l'approbation du dossier et transmis par e-mail.
@@ -149,7 +149,7 @@ sudo usermod -aG docker $USER`}
           </div>
 
           {/* Etape 10 — APK */}
-          <div className="card" style={{ borderTop: '4px solid var(--color-warning-amber)' }}>
+          <div className="card">
             <h2>Etape 10 : Generation de l'APK</h2>
             <p className="text-secondary">
               L'administrateur de l'organisation genere l'APK depuis son tableau de bord.

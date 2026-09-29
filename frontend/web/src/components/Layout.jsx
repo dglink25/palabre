@@ -63,8 +63,9 @@ export default function Layout() {
   useEffect(() => { setOpen(false); }, [location.pathname]);
 
   const isSuperAdmin = !!user?.isSuperAdmin;
-  const isOrgAdmin   = !isSuperAdmin && !!user?.orgId && user?.role === 'org_admin';
-  const isMember     = !isSuperAdmin && !!user?.orgId && user?.role !== 'org_admin';
+  // org_admin : a un orgId, pas super-admin, et role = 'org_admin' (ou role null = legacy)
+  const isOrgAdmin   = !isSuperAdmin && !!user?.orgId && (user?.role === 'org_admin' || user?.role === null);
+  const isMember     = !isSuperAdmin && !!user?.orgId && user?.role !== 'org_admin' && user?.role !== null;
 
   const superItems = [
     { to: '/admin',              key: 'dashboard', label: 'Tableau de bord', end: true },

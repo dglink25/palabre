@@ -1,98 +1,215 @@
 # Palabre Mobile
 
-Application Flutter multiplateforme (Android + iOS) pour la communication souveraine d'organisations.
+Application Flutter multiplateforme (Android + iOS). Communication sécurisée E2E pour les membres d'une organisation.
+
+L'app est **universelle** — un seul APK/IPA pour tous. L'utilisateur lie son organisation au premier lancement (QR code ou identifiant + code d'invitation).
 
 ## Prérequis
 
-- Flutter 3.22+ (`flutter --version`)
-- Dart 3.3+
-- Android Studio / Xcode selon la cible
-- JDK 17 (Android)
-- CocoaPods (iOS) : `sudo gem install cocoapods`
+| Outil | Version | Vérification |
+|-------|---------|--------------|
+| Flutter | 3.22+ | `flutter --version` |
+| Dart | 3.3+ | inclus dans Flutter |
+| Android Studio | Hedgehog+ | pour Android |
+| Xcode | 15+ | pour iOS (Mac uniquement) |
+| JDK | 17 | pour Android |
+| CocoaPods | quelconque | iOS : `sudo gem install cocoapods` |
+
+Vérification de l'environnement :
+```bash
+flutter doctor
+```
 
 ## Démarrage rapide
 
 ```bash
-# Installer les dépendances
+cd frontend/mobile
+
+# 1. Installer les dépendances
 flutter pub get
 
-# Générer les fichiers Drift (base de données locale)
+# 2. Générer les fichiers Drift (base de données locale SQLite)
 dart run build_runner build --delete-conflicting-outputs
-
-# Lancer sur émulateur Android (développement)
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:4001/api/v1 \
-            --dart-define=MESSAGE_ROUTER_URL=ws://10.0.2.2:4020/socket/websocket \
-            --dart-define=CALL_SIGNAL_URL=ws://10.0.2.2:4040/signal/websocket \
-            --dart-define=FILE_SERVER_URL=http://10.0.2.2:4030
-
-# Lancer sur simulateur iOS
-flutter run -d iPhone --dart-define=API_BASE_URL=http://localhost:4001/api/v1 \
-                       --dart-define=MESSAGE_ROUTER_URL=ws://localhost:4020/socket/websocket \
-                       --dart-define=CALL_SIGNAL_URL=ws://localhost:4040/signal/websocket \
-                       --dart-define=FILE_SERVER_URL=http://localhost:4030
 ```
 
-## Build APK de production (app universelle)
+### Lancer sur émulateur Android
+
+```bash
+flutter run \
+  --dart-define=API_BASE_URL=http://10.0.2.2:4001/api/v1 \
+  --dart-define=MESSAGE_ROUTER_URL=ws://10.0.2.2:4020/socket/websocket \
+  --dart-define=CALL_SIGNAL_URL=ws://10.0.2.2:4040/signal/websocket \
+  --dart-define=FILE_SERVER_URL=http://10.0.2.2:4030
+```
+
+> `10.0.2.2` est l'adresse de la machine hôte vue depuis l'émulateur Android (équivalent de `localhost`).
+
+### Lancer sur simulateur iOS
+
+```bash
+flutter run -d iPhone \
+  --dart-define=API_BASE_URL=http://localhost:4001/api/v1 \
+  --dart-define=MESSAGE_ROUTER_URL=ws://localhost:4020/socket/websocket \
+  --dart-define=CALL_SIGNAL_URL=ws://localhost:4040/signal/websocket \
+  --dart-define=FILE_SERVER_URL=http://localhost:4030
+```
+
+### Lancer sur appareil physique Android (même réseau WiFi)
+
+```bash
+# Remplacez 192.168.1.x par l'IP de votre machine sur le réseau local
+flutter run \
+  --dart-define=API_BASE_URL=http://192.168.1.x:4001/api/v1 \
+  --dart-define=MESSAGE_ROUTER_URL=ws://192.168.1.x:4020/socket/websocket \
+  --dart-define=CALL_SIGNAL_URL=ws://192.168.1.x:4040/signal/websocket \
+  --dart-define=FILE_SERVER_URL=http://192.168.1.x:4030
+```
+
+## Configuration manuelle requise — Firebase
+
+**Action manuelle obligatoire** avant le premier build.
+
+### Android
+
+1. Allez sur https://console.firebase.google.com
+2. Sélectionnez votre projet → Ajouter une application → Android
+3. Nom du package : `com.palabre.app` (ou votre package configuré dans `android/app/build.gradle`)
+4. Téléchargez `google-services.json`
+5. **Placez-le dans** `android/app/google-services.json`
+
+### iOS
+
+1. Même projet Firebase → Ajouter une application → iOS
+2. Bundle ID : `com.palabre.app` (ou votre bundle dans Xcode)
+3. Téléchargez `GoogleService-Info.plist`
+4. **Placez-le dans** `ios/Runner/GoogleService-Info.plist`
+5. Dans Xcode, vérifiez que le fichier est bien inclus dans la cible `Runner`
+
+### Mettre à jour firebase_options.dart
+
+```bash
+# Si vous avez flutterfire_cli installé
+dart pub global activate flutterfire_cli
+flutterfire configure
+
+# Sinon, éditez manuellement lib/firebase_options.dart
+# avec les valeurs de la console Firebase (Paramètres → Vos applications)
+```
+
+## Build de production
+
+### APK Android universel
 
 ```bash
 flutter build apk --release \
-  --dart-define=API_BASE_URL=https://api.palabre.app/api/v1 \
-  --dart-define=MESSAGE_ROUTER_URL=wss://ws.palabre.app/socket/websocket \
-  --dart-define=CALL_SIGNAL_URL=wss://calls.palabre.app/signal/websocket \
-  --dart-define=FILE_SERVER_URL=https://files.palabre.app
+  --dart-define=API_BASE_URL=https://api.votre-domaine.com/api/v1 \
+  --dart-define=MESSAGE_ROUTER_URL=wss://votre-domaine.com:4020/socket/websocket \
+  --dart-define=CALL_SIGNAL_URL=wss://votre-domaine.com:4040/signal/websocket \
+  --dart-define=FILE_SERVER_URL=https://files.votre-domaine.com
 ```
 
-L'APK est universel — il n'est plus préconfigurée par organisation.
-L'utilisateur choisit son organisation au premier lancement en scannant un QR code
-ou en saisissant un identifiant + code d'invitation.
+L'APK se trouve dans `build/app/outputs/flutter-apk/app-release.apk`.
 
-## Firebase
+### App Bundle Android (Play Store)
 
-1. Créer un projet Firebase sur https://console.firebase.google.com
-2. Ajouter les apps Android et iOS
-3. Télécharger `google-services.json` → `android/app/`
-4. Télécharger `GoogleService-Info.plist` → `ios/Runner/`
-5. Mettre à jour `lib/firebase_options.dart` avec vos valeurs
+```bash
+flutter build appbundle --release \
+  --dart-define=API_BASE_URL=https://api.votre-domaine.com/api/v1 \
+  # ... mêmes --dart-define que ci-dessus
+```
+
+### iOS (App Store / TestFlight)
+
+```bash
+flutter build ios --release \
+  --dart-define=API_BASE_URL=https://api.votre-domaine.com/api/v1 \
+  # ... mêmes --dart-define
+# Puis archiver depuis Xcode → Product → Archive
+```
 
 ## Architecture
 
 ```
 lib/
-├── main.dart                    # Point d'entrée
-├── firebase_options.dart        # Config Firebase
+├── main.dart                         Point d'entrée
+├── firebase_options.dart             Config Firebase (à configurer — voir ci-dessus)
 └── core/
-│   ├── config/app_config.dart   # URLs (injectées au build)
-│   ├── theme/app_theme.dart     # Charte graphique Palabre
-│   ├── router/                  # Navigation GoRouter
+│   ├── config/app_config.dart        URLs injectées au build via --dart-define
+│   ├── theme/app_theme.dart          Charte graphique (couleurs Palabre)
+│   ├── router/                       Navigation GoRouter (5 onglets)
 │   ├── services/
-│   │   ├── socket_service.dart  # WebSocket Phoenix (connexion permanente)
-│   │   └── notification_service.dart  # FCM + notifications locales
+│   │   ├── socket_service.dart       WebSocket Phoenix (connexion permanente)
+│   │   └── notification_service.dart FCM (Android) + APNs (iOS)
 │   ├── storage/
-│   │   ├── secure_storage.dart  # Keystore/Keychain (tokens, clés Signal)
-│   │   └── local_database.dart  # SQLite via Drift (messages, contacts)
-│   ├── crypto/e2e_crypto.dart   # AES-256 médias + Signal Protocol
-│   ├── network/api_client.dart  # HTTP Dio + refresh JWT auto
-│   └── providers/auth_provider.dart
+│   │   ├── secure_storage.dart       Keystore/Keychain (tokens JWT, clés Signal)
+│   │   └── local_database.dart       SQLite via Drift (messages hors-ligne)
+│   ├── crypto/e2e_crypto.dart        AES-256-GCM médias + Signal Protocol
+│   ├── network/api_client.dart       HTTP Dio + refresh JWT automatique
+│   └── providers/auth_provider.dart  State management Riverpod
 └── features/
-    ├── auth/         # Login OTP, activation organisation, QR scan
-    ├── conversations/# Liste conversations + chat E2E + accusés
-    ├── calls/        # Historique + écran appel WebRTC (audio/vidéo)
-    ├── contacts/     # Annuaire organisation + présence temps réel
-    ├── profile/      # Profil utilisateur
-    └── settings/     # Paramètres app
+    ├── auth/                         Connexion OTP, activation, scan QR org
+    ├── org/                          Liaison organisation (admin + membre)
+    ├── conversations/                Liste + chat E2E + accusés de réception
+    ├── calls/                        Historique + appel audio/vidéo WebRTC
+    ├── contacts/                     Annuaire org + présence temps réel
+    ├── profile/                      Profil utilisateur
+    └── settings/                     Paramètres application
 ```
+
+## Navigation — 5 onglets
+
+| Onglet | Route | Description |
+|--------|-------|-------------|
+| Accueil | `/` | Dashboard selon le rôle |
+| Discussions | `/conversations` | Conversations E2E |
+| + | `/conversations/new` | Nouvelle conversation |
+| Appels | `/calls` | Historique + appel WebRTC |
+| Profil | `/profile` | Profil et paramètres |
 
 ## Chiffrement E2E
 
-- **Messages** : Signal Protocol (Double Ratchet + X3DH) — `libsignal_protocol_dart`
-- **Médias** : AES-256-CBC côté client — le serveur stocke uniquement le blob chiffré
-- **Clés** : stockées dans Keystore Android / Keychain iOS via `flutter_secure_storage`
-- **Transport** : DTLS-SRTP natif WebRTC pour les appels
+| Couche | Algorithme | Bibliothèque |
+|--------|------------|--------------|
+| Messages | Signal Protocol (Double Ratchet + X3DH) | `libsignal_protocol_dart` |
+| Médias | AES-256-GCM (chiffrement client avant upload) | `pointycastle` |
+| Clés locales | Keystore Android / Keychain iOS | `flutter_secure_storage` |
+| Appels | DTLS-SRTP (natif WebRTC) | WebRTC natif |
 
-## Connexion permanente
+## Connexion WebSocket permanente
 
-Le WebSocket Phoenix reste connecté tant que l'OS le permet :
 - Heartbeat automatique toutes les 30 secondes
-- Reconnexion avec backoff exponentiel : 1s → 2s → 5s → 10s → 30s
-- Messages en attente livrés dès la reconnexion (file Redis côté serveur)
-- Notifications FCM/APNs uniquement si l'app est fermée
+- Reconnexion avec backoff exponentiel : 1s → 2s → 5s → 10s → 30s (max)
+- Messages en attente livrés automatiquement à la reconnexion
+- Notifications FCM/APNs uniquement quand l'app est fermée ou en arrière-plan
+
+## Liaison organisation — premier lancement
+
+### Pour un administrateur d'organisation
+
+1. Ouvrir l'app → "Lier mon organisation"
+2. Scanner le QR code affiché sur le dashboard web de l'organisation
+3. La liaison s'établit automatiquement
+
+### Pour un membre standard
+
+1. Ouvrir l'app → "Rejoindre mon organisation"
+2. Soit scanner le QR code d'invitation fourni par l'admin
+3. Soit saisir l'identifiant org + code d'invitation
+4. Confirmé → accès aux communications
+
+## Notifications push — configuration
+
+### Android (FCM)
+
+Le fichier `google-services.json` suffit. Firebase Messaging est configuré automatiquement.
+
+### iOS (APNs)
+
+**Action manuelle requise** :
+
+1. Apple Developer Portal → Certificates, Identifiers & Profiles
+2. Créez un certificat APNs pour votre App ID
+3. Dans la console Firebase → Paramètres du projet → Cloud Messaging
+4. Importez le certificat `.p8` ou `.p12` APNs
+
+Sans cette configuration, les notifications ne fonctionnent pas sur iOS.

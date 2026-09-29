@@ -31,9 +31,10 @@ async function requireAuth(req, res, next) {
   }
 
   const { rows } = await pool.query(
-    `SELECT u.*, m.organization_id as org_id
+    `SELECT u.*, m.organization_id as org_id, r.code as member_role
      FROM users u
      LEFT JOIN memberships m ON m.user_id = u.id AND m.status = 'active'
+     LEFT JOIN roles r ON r.id = m.role_id
      WHERE u.id = $1
      ORDER BY m.created_at ASC LIMIT 1`,
     [payload.sub]
@@ -60,7 +61,7 @@ async function requireAuth(req, res, next) {
     await redis.set(idleKey, '1', 'EX', SUPER_ADMIN_IDLE_TIMEOUT_SECONDS);
   }
 
-  req.user = { ...user, org_id: user.org_id || payload.org || null };
+  req.user = { ...user, org_id: user.org_id || payload.org || null, member_role: user.member_role || null };
   req.sessionId = payload.sid;
   req.deviceId = payload.did;
   req.twoFactorPassed = payload.twoFa;

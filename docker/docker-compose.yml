@@ -39,18 +39,23 @@ services:
       DATABASE_URL: postgres://palabre:palabre@postgres:5432/palabre
       REDIS_URL: redis://redis:6379
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
     ports:
       - "4001:4000"
     volumes:
       - ../backend/src:/app/src
       - ../backend/migrations:/app/migrations
       - palabre_uploads:/app/uploads
-      # Clé de service Firebase (et tout autre secret fichier) : déposez-la
-      # dans backend/secrets/ (ignoré par git), elle apparaît en lecture
-      # seule dans /run/secrets du conteneur.
       - ../backend/secrets:/run/secrets:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4000/health || curl -sf http://localhost:4000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+    restart: unless-stopped
 
   frontend-web:
     build:
@@ -115,7 +120,7 @@ services:
       context: ../coturn
       dockerfile: Dockerfile
     container_name: palabre-coturn
-    profiles: ["coturn", "realtime", "all"]
+    profiles: ["coturn", "realtime", "core", "all"]
     network_mode: host
     environment:
       TURN_REALM:        ${TURN_REALM:-palabre.app}
@@ -133,7 +138,7 @@ services:
       context: ../services/presence
       dockerfile: Dockerfile
     container_name: palabre-presence
-    profiles: ["presence", "realtime", "all"]
+    profiles: ["presence", "realtime", "core", "all"]
     environment:
       PRESENCE_HTTP_PORT: "4010"
       INTERNAL_SERVICES_SECRET: ${INTERNAL_SERVICES_SECRET:-dev_internal_secret}
@@ -147,13 +152,14 @@ services:
       retries: 5
     volumes:
       - palabre_mnesia_data:/app/data
+    restart: unless-stopped
 
   message-router:
     build:
       context: ../services/message-router
       dockerfile: Dockerfile
     container_name: palabre-message-router
-    profiles: ["message-router", "realtime", "all"]
+    profiles: ["message-router", "realtime", "core", "all"]
     environment:
       DATABASE_URL: postgres://palabre:palabre@postgres:5432/palabre
       REDIS_URL: redis://redis:6379
@@ -178,13 +184,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   file-server:
     build:
       context: ../services/file-server
       dockerfile: Dockerfile
     container_name: palabre-file-server
-    profiles: ["file-server", "realtime", "all"]
+    profiles: ["file-server", "realtime", "core", "all"]
     environment:
       FILE_SERVER_PORT: "4030"
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change_me_access_secret}
@@ -199,13 +206,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   call-signal:
     build:
       context: ../services/call-signal
       dockerfile: Dockerfile
     container_name: palabre-call-signal
-    profiles: ["call-signal", "realtime", "all"]
+    profiles: ["call-signal", "realtime", "core", "all"]
     environment:
       CALL_SIGNAL_PORT: "4040"
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change_me_access_secret}
@@ -220,13 +228,12 @@ services:
     depends_on:
       message-router:
         condition: service_healthy
-      mediasoup:
-        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:4040/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
 volumes:
   palabre_postgres_data:

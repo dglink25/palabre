@@ -50,11 +50,14 @@ export default function LoginPage() {
     } else if (session.user?.isSuperAdmin) {
       navigate('/admin');
     } else if (session.user?.orgId) {
-      // org_admin → /org/dashboard, membre standard → /app
+      // org_admin → /org/dashboard, membre → /app, role null = legacy org_admin
       const role = session.user?.role;
-      navigate(role === 'org_admin' ? '/org/dashboard' : '/app');
+      if (role === 'org_admin' || role === null) {
+        navigate('/org/dashboard');
+      } else {
+        navigate('/app');
+      }
     } else {
-      // Pas d'org : inviter à rejoindre
       navigate('/org/join');
     }
   }

@@ -21,8 +21,9 @@ export function OrgAdminRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="centered-page"><Spinner /></div>;
   if (!user) return <Navigate to="/login" replace />;
-  // Les org admins ont un orgId défini et ne sont pas super-admin
+  // org_admin : a un orgId, pas super-admin, rôle org_admin
   if (!user.orgId || user.isSuperAdmin) return <Navigate to="/profile" replace />;
+  if (user.role && user.role !== 'org_admin') return <Navigate to="/app" replace />;
   return children;
 }
 
@@ -35,8 +36,8 @@ export function MemberRoute({ children }) {
   if (loading) return <div className="centered-page"><Spinner /></div>;
   if (!user) return <Navigate to="/login" replace />;
   if (user.isSuperAdmin) return <Navigate to="/admin" replace />;
-  // org-admin a son propre espace
-  if (user.orgId && user.role === 'org_admin') return <Navigate to="/org/dashboard" replace />;
   if (!user.orgId) return <Navigate to="/org/join" replace />;
+  // org_admin a son propre espace
+  if (user.role === 'org_admin') return <Navigate to="/org/dashboard" replace />;
   return children;
 }

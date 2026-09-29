@@ -243,8 +243,13 @@ export default function RequestDetailPage() {
 
       {/* ── Etape 8 : QR code affiché après approbation ── */}
       {approval && (
-        <div className="card" style={{ borderTop: '4px solid var(--color-success-green)' }}>
-          <h2>Code QR de provisioning</h2>
+        <div className="card">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-success-green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/>
+            </svg>
+            <h2 style={{ margin: 0 }}>Code QR de provisioning</h2>
+          </div>
           <p className="text-secondary">
             Ce QR code ne sera plus jamais affiche apres avoir quitte cette page.
             Transmettez-le a l'administrateur de l'organisation maintenant.

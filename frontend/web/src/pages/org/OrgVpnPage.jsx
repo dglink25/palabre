@@ -67,28 +67,35 @@ export default function OrgVpnPage() {
 
       {/* Tableau de bord rapide */}
       {vpnData && (
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 20 }}>
+        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 20 }}>
           {[
-            { label: 'Statut VPN',         value: vpnStatus,           color: vpnStatus === 'active' ? 'var(--color-success-green)' : 'var(--color-alert-red)' },
-            { label: 'Statut organisation', value: orgStatus,           color: 'var(--color-text-secondary)' },
-            { label: 'Dernier heartbeat',   value: lastSeenLabel(),     color: 'var(--color-text-secondary)' },
+            { label: 'Statut VPN',         value: vpnStatus,       accentColor: vpnStatus === 'active' ? 'var(--color-success-green)' : 'var(--color-alert-red)' },
+            { label: 'Statut organisation', value: orgStatus,       accentColor: 'var(--color-text-secondary)' },
+            { label: 'Dernier heartbeat',   value: lastSeenLabel(), accentColor: 'var(--color-text-secondary)' },
           ].map((s) => (
             <div key={s.label} style={{
               flex: 1, minWidth: 160,
-              background: 'var(--color-white)',
+              background: '#fff',
               border: '1px solid var(--color-border)',
-              borderTop: `3px solid ${s.color}`,
-              padding: '16px 20px',
+              borderRadius: 8,
+              padding: '16px 18px',
+              display: 'flex', alignItems: 'center', gap: 12,
             }}>
-              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>{s.label}</div>
-              <div style={{ fontWeight: 700, fontSize: 18, color: s.color }}>{s.value}</div>
+              <div style={{
+                width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+                background: s.accentColor,
+              }} />
+              <div>
+                <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 3 }}>{s.label}</div>
+                <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-text-primary)' }}>{s.value}</div>
+              </div>
             </div>
           ))}
         </div>
       )}
 
       {/* Instructions */}
-      <div className="card" style={{ borderTop: '4px solid var(--color-primary-blue)' }}>
+      <div className="card">
         <h2>Configuration du tunnel</h2>
         <ol style={{ lineHeight: 2.2, paddingLeft: 20, fontSize: 15 }}>
           <li>
