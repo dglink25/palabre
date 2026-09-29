@@ -27,6 +27,9 @@ const ICONS = {
   menu:      ['M4 6h16', 'M4 12h16', 'M4 18h16'],
   close:     ['M18 6L6 18', 'M6 6l12 12'],
   chevron:   ['M9 18l6-6-6-6'],
+  invite:    ['M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2', 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', 'M20 8v6', 'M23 11h-6'],
+  join:      ['M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4', 'M10 17l5-5-5-5', 'M15 12H3'],
+  link:      ['M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71', 'M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'],
 };
 
 // ── Lien de navigation sidebar ────────────────────────────────────────────────
@@ -64,7 +67,7 @@ export default function Layout() {
   const orgItems = [
     { to: '/org/dashboard', key: 'org',      label: 'Organisation', end: true },
     { to: '/org/vpn',       key: 'vpn',      label: 'Tunnel VPN' },
-    { to: '/org/apk',       key: 'apk',      label: 'Application mobile' },
+    { to: '/org/invite',    key: 'invite',   label: 'Invitations membres' },
   ];
   const accountItems = [
     { to: '/profile',  key: 'profile',  label: 'Mon profil', end: true },

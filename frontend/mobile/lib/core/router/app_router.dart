@@ -12,6 +12,8 @@ import '../../features/calls/presentation/pages/call_screen.dart';
 import '../../features/contacts/presentation/pages/contacts_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/org/presentation/pages/org_join_page.dart';
+import '../../features/org/presentation/pages/org_link_page.dart';
 import '../providers/auth_provider.dart';
 import 'shell_page.dart';
 
@@ -23,11 +25,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     debugLogDiagnostics: false,
     redirect: (context, state) {
       final isLoggedIn = authState.valueOrNull?.isAuthenticated ?? false;
+      final orgId      = authState.valueOrNull?.orgId;
       final isAuthRoute = state.matchedLocation.startsWith('/auth') ||
           state.matchedLocation.startsWith('/activate');
+      final isOrgRoute = state.matchedLocation.startsWith('/org/');
 
       if (!isLoggedIn && !isAuthRoute) return '/auth/login';
       if (isLoggedIn && isAuthRoute) return '/conversations';
+      // Utilisateur connecté sans organisation → page de liaison
+      if (isLoggedIn && orgId == null && !isOrgRoute) return '/org/join';
       return null;
     },
     routes: [
@@ -35,6 +41,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/auth/login',    builder: (_, __) => const LoginPage()),
       GoRoute(path: '/auth/otp',      builder: (_, s)  => OtpPage(phone: s.extra as String)),
       GoRoute(path: '/activate',      builder: (_, __) => const ActivatePage()),
+
+      // ── Liaison organisation (accessible sans org préliée) ──────────────
+      GoRoute(path: '/org/join',      builder: (_, __) => const OrgJoinPage()),
+      GoRoute(path: '/org/link',      builder: (_, __) => const OrgLinkPage()),
 
       // ── App principale (shell avec barre de navigation) ─────────────────
       ShellRoute(

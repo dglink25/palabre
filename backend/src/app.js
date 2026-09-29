@@ -14,6 +14,7 @@ const sessionRoutes = require('./modules/sessions/session.routes');
 const onboardingRoutes = require('./modules/onboarding/onboarding.routes');
 const signalRoutes = require('./modules/messaging/signal.routes');
 const turnRoutes   = require('./modules/calls/turn.routes');
+const orgRoutes    = require('./modules/org/org.routes');
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use('/api/v1/sessions', sessionRoutes);
 app.use('/api/v1/onboarding', onboardingRoutes);
 app.use('/api/v1/messaging/signal', signalRoutes);
 app.use('/api/v1/calls', turnRoutes);
+app.use('/api/v1/org', orgRoutes);
 
 // --- 404 ---
 app.use((req, res) => {

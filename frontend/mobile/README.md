@@ -32,19 +32,19 @@ flutter run -d iPhone --dart-define=API_BASE_URL=http://localhost:4001/api/v1 \
                        --dart-define=FILE_SERVER_URL=http://localhost:4030
 ```
 
-## Build APK de production (personnalisé par organisation)
+## Build APK de production (app universelle)
 
 ```bash
 flutter build apk --release \
   --dart-define=API_BASE_URL=https://api.palabre.app/api/v1 \
   --dart-define=MESSAGE_ROUTER_URL=wss://ws.palabre.app/socket/websocket \
   --dart-define=CALL_SIGNAL_URL=wss://calls.palabre.app/signal/websocket \
-  --dart-define=FILE_SERVER_URL=https://files.palabre.app \
-  --dart-define=ORG_ID=uuid-de-lorganisation \
-  --dart-define=ORG_NAME="Nom Organisation"
+  --dart-define=FILE_SERVER_URL=https://files.palabre.app
 ```
 
-L'APK généré est préconfiguré pour l'organisation — aucune configuration supplémentaire requise pour les utilisateurs.
+L'APK est universel — il n'est plus préconfigurée par organisation.
+L'utilisateur choisit son organisation au premier lancement en scannant un QR code
+ou en saisissant un identifiant + code d'invitation.
 
 ## Firebase
 

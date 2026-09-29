@@ -24,7 +24,9 @@ import DashboardPage from './pages/admin/DashboardPage';
 import InstallationGuidePage from './pages/admin/InstallationGuidePage';
 import OrgDashboardPage from './pages/org/OrgDashboardPage';
 import OrgVpnPage from './pages/org/OrgVpnPage';
-import OrgApkPage from './pages/org/OrgApkPage';
+import OrgInvitePage from './pages/org/OrgInvitePage';
+import OrgLinkPage from './pages/org/OrgLinkPage';
+import OrgJoinPage from './pages/org/OrgJoinPage';
 
 export default function App() {
   return (
@@ -66,7 +68,13 @@ export default function App() {
           <Route element={<OrgAdminRoute><Layout /></OrgAdminRoute>}>
             <Route path="/org/dashboard" element={<OrgDashboardPage />} />
             <Route path="/org/vpn"       element={<OrgVpnPage />} />
-            <Route path="/org/apk"       element={<OrgApkPage />} />
+            <Route path="/org/invite"    element={<OrgInvitePage />} />
+            <Route path="/org/link"      element={<OrgLinkPage />} />
+          </Route>
+
+          {/* Rejoindre une organisation — tout utilisateur connecté */}
+          <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+            <Route path="/org/join" element={<OrgJoinPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

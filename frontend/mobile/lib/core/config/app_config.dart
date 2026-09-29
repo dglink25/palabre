@@ -28,10 +28,6 @@ class AppConfig {
     defaultValue: 'http://10.0.2.2:4030',
   );
 
-  // ── Organisation (pour les APK personnalisés) ────────────────────────────
-  static const String orgId = String.fromEnvironment('ORG_ID', defaultValue: '');
-  static const String orgName = String.fromEnvironment('ORG_NAME', defaultValue: 'Palabre');
-
   // ── WebSocket ────────────────────────────────────────────────────────────
   // Intervalle heartbeat en ms
   static const int heartbeatIntervalMs = 30000;

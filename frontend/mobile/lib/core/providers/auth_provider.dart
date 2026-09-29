@@ -90,17 +90,29 @@ class AuthActions {
       access:  data['accessToken'],
       refresh: data['refreshToken'],
     );
+    final orgId = data['user']?['orgId'] as String?
+        ?? data['user']?['org'] as String?
+        ?? data['organization']?['id'] as String?
+        ?? '';
     await storage.saveSession(
       userId: data['user']['id'],
-      orgId:  data['user']['org'] ?? '',
+      orgId:  orgId,
     );
 
     // Connecter le WebSocket
     final token  = data['accessToken'] as String;
     final userId = data['user']['id'] as String;
-    final orgId  = data['user']['org'] as String? ?? '';
     await _ref.read(socketServiceProvider).connect(userId, orgId, token);
 
+    _ref.invalidate(authStateProvider);
+  }
+
+  /// Appelé après une liaison organisation réussie (join ou link/admin)
+  /// pour mettre à jour l'orgId dans le storage sans re-login complet.
+  Future<void> updateOrgId(String orgId) async {
+    final storage = _ref.read(secureStorageProvider);
+    final userId  = await storage.getUserId() ?? '';
+    await storage.saveSession(userId: userId, orgId: orgId);
     _ref.invalidate(authStateProvider);
   }
 
