@@ -23,10 +23,10 @@ export default function OrgInvitePage() {
       const result = await api.post('/org/join-code/generate');
       setJoinCode(result.joinCode);
       setNotice('Nouveau code genere. Partagez-le a vos membres.');
-      // Générer le QR code avec orgId + joinCode
+      // Générer le QR code avec orgId + joinCode — format JSON lu par le scanner web ET mobile
       if (canvasRef.current) {
-        const payload = JSON.stringify({ orgId: result.orgId, joinCode: result.joinCode });
-        QRCode.toCanvas(canvasRef.current, payload, { width: 200, margin: 2 });
+        const payload = JSON.stringify({ orgId: result.orgId || user?.orgId, joinCode: result.joinCode });
+        QRCode.toCanvas(canvasRef.current, payload, { width: 240, margin: 2, errorCorrectionLevel: 'M' });
       }
     } catch (e) {
       setError(friendlyMessage(e));

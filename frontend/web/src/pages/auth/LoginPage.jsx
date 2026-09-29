@@ -50,9 +50,12 @@ export default function LoginPage() {
     } else if (session.user?.isSuperAdmin) {
       navigate('/admin');
     } else if (session.user?.orgId) {
-      navigate('/org/dashboard');
+      // org_admin → /org/dashboard, membre standard → /app
+      const role = session.user?.role;
+      navigate(role === 'org_admin' ? '/org/dashboard' : '/app');
     } else {
-      navigate('/profile');
+      // Pas d'org : inviter à rejoindre
+      navigate('/org/join');
     }
   }
 
@@ -244,14 +247,22 @@ export default function LoginPage() {
 
       <div className="spacer" />
       <p className="text-secondary">
-        Vous représentez une organisation ? <Link to="/onboarding/new">Demandez son inscription</Link>.
+        Vous representez une organisation ? <Link to="/onboarding/new">Demandez son inscription</Link>.
       </p>
       <p className="text-secondary">
-        Vous venez d'être approuvé ? <Link to="/activate">Activez votre compte administrateur</Link>.
+        Vous venez d'etre approuve ? <Link to="/activate">Activez votre compte administrateur</Link>.
       </p>
       <p className="text-secondary">
-        Mode de connexion oublié ? <Link to="/recovery">Récupérer l'accès à mon compte</Link>.
+        Mode de connexion oublie ? <Link to="/recovery">Recuperer l'acces a mon compte</Link>.
       </p>
+      <div style={{ marginTop: 16, padding: '14px 16px', background: 'rgba(26,115,232,0.06)', border: '1px solid rgba(26,115,232,0.2)', borderRadius: 8, textAlign: 'center' }}>
+        <div style={{ fontSize: 15, color: 'var(--color-text-secondary)', marginBottom: 8 }}>
+          Membre d'une organisation Palabre ?
+        </div>
+        <Link to="/org/join" className="btn btn-block" style={{ display: 'inline-block', padding: '10px 20px', textDecoration: 'none', fontSize: 16 }}>
+          Rejoindre mon organisation
+        </Link>
+      </div>
     </AuthLayout>
   );
 }

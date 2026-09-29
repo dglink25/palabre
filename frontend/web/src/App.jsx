@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Layout from './components/Layout';
 import PublicLayout from './components/PublicLayout';
-import { ProtectedRoute, SuperAdminRoute, OrgAdminRoute } from './components/RouteGuards';
+import { ProtectedRoute, SuperAdminRoute, OrgAdminRoute, MemberRoute } from './components/RouteGuards';
 import StepUpConfirmModal from './components/StepUpConfirmModal';
 import CookieBanner from './components/CookieBanner';
 
@@ -27,6 +27,13 @@ import OrgVpnPage from './pages/org/OrgVpnPage';
 import OrgInvitePage from './pages/org/OrgInvitePage';
 import OrgLinkPage from './pages/org/OrgLinkPage';
 import OrgJoinPage from './pages/org/OrgJoinPage';
+
+// Espace membre (utilisateur standard avec org)
+import UserDashboardPage from './pages/app/UserDashboardPage';
+import { ConversationsListPage, ChatPage } from './pages/app/ConversationsPage';
+import NewConversationPage from './pages/app/NewConversationPage';
+import CallsPage from './pages/app/CallsPage';
+import ContactsPage from './pages/app/ContactsPage';
 
 export default function App() {
   return (
@@ -75,6 +82,16 @@ export default function App() {
           {/* Rejoindre une organisation — tout utilisateur connecté */}
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="/org/join" element={<OrgJoinPage />} />
+          </Route>
+
+          {/* ── Espace membre (utilisateur standard lié à une org) ── */}
+          <Route element={<MemberRoute><Layout /></MemberRoute>}>
+            <Route path="/app"                            element={<UserDashboardPage />} />
+            <Route path="/app/conversations"              element={<ConversationsListPage />} />
+            <Route path="/app/conversations/new"          element={<NewConversationPage />} />
+            <Route path="/app/conversations/:id"         element={<ChatPage />} />
+            <Route path="/app/calls"                      element={<CallsPage />} />
+            <Route path="/app/contacts"                   element={<ContactsPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -30,6 +30,12 @@ const ICONS = {
   invite:    ['M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2', 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', 'M20 8v6', 'M23 11h-6'],
   join:      ['M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4', 'M10 17l5-5-5-5', 'M15 12H3'],
   link:      ['M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71', 'M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'],
+  // Communication (membres)
+  home:      ['M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z', 'M9 21V12h6v9'],
+  messages:  ['M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'],
+  calls:     ['M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 11.9 19.79 19.79 0 0 1 1.61 3.27 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z'],
+  contacts:  ['M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2', 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', 'M23 21v-2a4 4 0 0 0-3-3.87', 'M16 3.13a4 4 0 0 1 0 7.75'],
+  newconv:   ['M12 5v14', 'M5 12h14'],
 };
 
 // ── Lien de navigation sidebar ────────────────────────────────────────────────
@@ -57,7 +63,8 @@ export default function Layout() {
   useEffect(() => { setOpen(false); }, [location.pathname]);
 
   const isSuperAdmin = !!user?.isSuperAdmin;
-  const isOrgAdmin   = !isSuperAdmin && !!user?.orgId;
+  const isOrgAdmin   = !isSuperAdmin && !!user?.orgId && user?.role === 'org_admin';
+  const isMember     = !isSuperAdmin && !!user?.orgId && user?.role !== 'org_admin';
 
   const superItems = [
     { to: '/admin',              key: 'dashboard', label: 'Tableau de bord', end: true },
@@ -68,6 +75,13 @@ export default function Layout() {
     { to: '/org/dashboard', key: 'org',      label: 'Organisation', end: true },
     { to: '/org/vpn',       key: 'vpn',      label: 'Tunnel VPN' },
     { to: '/org/invite',    key: 'invite',   label: 'Invitations membres' },
+  ];
+  const memberItems = [
+    { to: '/app',                   key: 'home',     label: 'Accueil', end: true },
+    { to: '/app/conversations',     key: 'messages', label: 'Discussions' },
+    { to: '/app/conversations/new', key: 'newconv',  label: 'Nouvelle conversation' },
+    { to: '/app/calls',             key: 'calls',    label: 'Appels' },
+    { to: '/app/contacts',          key: 'contacts', label: 'Contacts' },
   ];
   const accountItems = [
     { to: '/profile',  key: 'profile',  label: 'Mon profil', end: true },
@@ -89,6 +103,12 @@ export default function Layout() {
           {orgItems.map(i => <SideNavItem key={i.to} to={i.to} iconKey={i.key} label={i.label} end={i.end} />)}
         </>
       )}
+      {isMember && (
+        <>
+          <SideSection label="Communication" />
+          {memberItems.map(i => <SideNavItem key={i.to} to={i.to} iconKey={i.key} label={i.label} end={i.end} />)}
+        </>
+      )}
       <SideSection label="Mon compte" />
       {accountItems.map(i => <SideNavItem key={i.to} to={i.to} iconKey={i.key} label={i.label} end={i.end} />)}
     </>
@@ -96,7 +116,7 @@ export default function Layout() {
 
   const userName = user?.fullName || user?.phone || user?.email || 'Utilisateur';
   const userInitial = userName.charAt(0).toUpperCase();
-  const roleLabel = isSuperAdmin ? 'Super-administrateur' : isOrgAdmin ? 'Admin organisation' : 'Utilisateur';
+  const roleLabel = isSuperAdmin ? 'Super-administrateur' : isOrgAdmin ? 'Admin organisation' : isMember ? 'Membre' : 'Utilisateur';
 
   return (
     <div className="shell">
