@@ -20,10 +20,10 @@ defmodule MessageRouter.MixProject do
 
   defp deps do
     [
-      # Phoenix pour WebSocket + Cowboy
+      # Phoenix pour WebSocket + Bandit (HTTP pur Elixir, sans cowboy/cowlib)
       {:phoenix, "~> 1.7"},
       {:phoenix_pubsub, "~> 2.1"},
-      {:plug_cowboy, "~> 2.7"},
+      {:bandit, "~> 1.5"},
       {:jason, "~> 1.4"},
       # Client HTTP pour appeler le service de présence
       {:req, "~> 0.4"},

@@ -1,9 +1,10 @@
 import Config
 
 config :call_signal, CallSignal.Endpoint,
-  url:    [host: System.get_env("PUBLIC_HOST", "localhost")],
-  http:   [port: String.to_integer(System.get_env("CALL_SIGNAL_PORT", "4040"))],
-  server: true,
+  url:     [host: System.get_env("PUBLIC_HOST", "localhost")],
+  http:    [port: String.to_integer(System.get_env("CALL_SIGNAL_PORT", "4040"))],
+  adapter: Bandit.PhoenixAdapter,
+  server:  true,
   secret_key_base: System.get_env("PHOENIX_SECRET_KEY_BASE",
     "palabre_dev_secret_key_base_change_in_prod_must_be_64_chars_minimum_xxxxx")
 

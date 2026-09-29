@@ -20,8 +20,8 @@ defmodule Presence.MixProject do
 
   defp deps do
     [
-      # HTTP + WebSocket (utilisé uniquement pour l'API interne inter-services)
-      {:plug_cowboy, "~> 2.7"},
+      # HTTP server pur Elixir — pas de cowboy/cowlib (incompatibles Alpine/rebar3)
+      {:bandit, "~> 1.5"},
       {:jason, "~> 1.4"},
       # Distribution Erlang entre noeuds
       {:libcluster, "~> 3.3"},

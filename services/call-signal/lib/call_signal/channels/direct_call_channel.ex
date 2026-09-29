@@ -45,7 +45,6 @@ defmodule CallSignal.Channels.DirectCallChannel do
   """
 
   alias CallSignal.{CallRegistry, PubSubHelper}
-  alias CallSignal.CallRegistry.{__struct__ => Call}
 
   # Timeout sonnerie : 45 secondes sans réponse = appel manqué
   @ring_timeout_ms 45_000

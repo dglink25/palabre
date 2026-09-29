@@ -19,6 +19,7 @@ defmodule Presence.Mnesia.Setup do
   use GenServer
 
   require Logger
+  require Record
 
   @table :presence_records
 

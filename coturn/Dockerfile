@@ -10,8 +10,8 @@ FROM coturn/coturn:4.6.2
 #
 # Configuration : injectée via variables d'environnement au démarrage.
 
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# --chmod=755 évite le RUN chmod qui échoue sur les images rootless
+COPY --chmod=755 entrypoint.sh /entrypoint.sh
 
 EXPOSE 3478/tcp 3478/udp
 EXPOSE 5349/tcp 5349/udp

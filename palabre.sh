@@ -35,6 +35,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMPOSE_FILE="${SCRIPT_DIR}/docker/docker-compose.yml"
 COMPOSE="docker compose -f ${COMPOSE_FILE}"
 
+# Augmenter le timeout BuildKit pour les services avec téléchargement réseau long
+export DOCKER_BUILDKIT=1
+export BUILDKIT_PROGRESS=plain
+
 # ── Couleurs terminal ─────────────────────────────────────────────────────────
 BOLD='\033[1m'
 GREEN='\033[0;32m'

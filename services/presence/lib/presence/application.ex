@@ -16,7 +16,7 @@ defmodule Presence.Application do
             ├── Presence.Registry           — GenServer maître du registre
             ├── Presence.PubSub             — diffusion interne des events
             ├── Presence.Heartbeat.Sweeper  — supprime les connexions zombies
-            └── Presence.HTTP.Server        — API interne Cowboy
+            └── Presence.HTTP.Server        — API interne Bandit
   """
   use Application
 
@@ -30,10 +30,10 @@ defmodule Presence.Application do
       Presence.PubSub,
       Presence.Registry,
       Presence.Heartbeat.Sweeper,
-      {Plug.Cowboy,
+      {Bandit,
        scheme: :http,
        plug: Presence.HTTP.Router,
-       options: [port: Application.get_env(:presence, :http_port, 4010)]}
+       port: Application.get_env(:presence, :http_port, 4010)}
     ]
 
     opts = [strategy: :one_for_one, name: Presence.Supervisor]

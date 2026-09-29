@@ -46,13 +46,4 @@ defmodule MessageRouter.UserSocket do
 
   @impl true
   def id(socket), do: "user_socket:#{socket.assigns.user_id}:#{socket.assigns.device_id}"
-
-  @impl true
-  def handle_close(socket) do
-    # Appelé automatiquement quand la connexion se ferme (proprement ou non)
-    MessageRouter.PresenceClient.set_offline(
-      socket.assigns.user_id,
-      socket.assigns.device_id
-    )
-  end
 end
