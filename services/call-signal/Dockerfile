@@ -3,9 +3,10 @@ FROM elixir:1.16-alpine AS builder
 RUN apk add --no-cache build-base git
 
 WORKDIR /app
-COPY mix.exs mix.lock* ./
+COPY mix.exs mix.lock ./
 RUN mix local.hex --force && mix local.rebar --force
-RUN mix deps.get --only prod
+RUN MIX_ENV=prod mix deps.get --only prod
+RUN MIX_ENV=prod mix deps.compile
 COPY config config
 COPY lib lib
 RUN MIX_ENV=prod mix compile
