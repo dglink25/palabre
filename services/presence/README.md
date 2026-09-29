@@ -2,45 +2,48 @@
 
 Service de présence temps réel. Répond à la question : "Cet utilisateur est-il en ligne en ce moment ?".
 
-Technologie : **Erlang/OTP** avec stockage en mémoire ETS (lecture microseconde) et persistance légère Mnesia.
+Technologie : **Erlang/OTP** — stockage en mémoire ETS (lecture microseconde) + persistance Mnesia.
 
 ## Responsabilités
 
 - Enregistrer les connexions et déconnexions des utilisateurs/appareils
-- Répondre aux requêtes de présence en temps réel (utilisé par message-router et call-signal)
+- Répondre aux requêtes de présence (utilisé par message-router et call-signal)
 - Notifier les abonnés lors d'un changement de statut (online / offline / away)
-- Maintenir la liste des instances backend actives (multi-instance)
 
 ## Port
 
-- HTTP interne : **4010** (non exposé à l'extérieur, uniquement inter-services)
+- HTTP interne : **4010** (non exposé à l'extérieur — uniquement inter-services)
 
-## Configuration — variables d'environnement
+## Configuration du .env
 
-### Toutes obligatoires
-
-| Variable | Description | Valeur par défaut |
-|----------|-------------|-------------------|
-| `PRESENCE_HTTP_PORT` | Port d'écoute HTTP | `4010` |
-| `INTERNAL_SERVICES_SECRET` | Secret partagé pour authentifier les appels inter-services | — |
-| `RELEASE_COOKIE` | Cookie Erlang (même valeur sur tous les noeuds BEAM du cluster) | — |
-
-### Génération des secrets
+Toutes les variables de ce service sont déjà dans `backend/.env`. Ne pas les saisir manuellement — utilisez le script :
 
 ```bash
-# INTERNAL_SERVICES_SECRET — même valeur que dans backend/.env et docker/.env
-openssl rand -hex 32
-
-# RELEASE_COOKIE (ERLANG_COOKIE dans les autres services)
-openssl rand -hex 32
+# Depuis la racine du projet
+./scripts/setup-env.sh presence
+# ou pour tous les services d'un coup :
+./scripts/setup-env.sh
 ```
 
-Ces variables sont lues depuis `docker/.env` via le docker-compose. Aucune configuration manuelle séparée n'est nécessaire si vous avez configuré `docker/.env`.
+Le script génère `services/presence/.env` automatiquement. Si le fichier existe déjà et n'est pas vide, il crée `.env.new` sans écraser.
+
+### Variables générées automatiquement (copiées de backend/.env)
+
+| Variable | Source dans backend/.env | Description |
+|----------|--------------------------|-------------|
+| `INTERNAL_SERVICES_SECRET` | `INTERNAL_SERVICES_SECRET` | Secret partagé inter-services |
+| `RELEASE_COOKIE` | `ERLANG_COOKIE` | Cookie Erlang du cluster BEAM |
+
+### Variables fixes (pas à modifier)
+
+| Variable | Valeur | Description |
+|----------|--------|-------------|
+| `PRESENCE_HTTP_PORT` | `4010` | Port HTTP interne |
 
 ## Démarrage
 
 ```bash
-# Via Docker (recommandé)
+# Via Docker (inclus dans le profil core — recommandé)
 ./palabre.sh start core
 
 # Logs en direct
@@ -58,4 +61,3 @@ curl http://localhost:4010/health
 | `POST /presence/online` | Marquer un appareil en ligne |
 | `POST /presence/offline` | Marquer un appareil hors ligne |
 | `GET /presence/:userId` | Statut de présence d'un utilisateur |
-| `GET /presence/bulk` | Statut de plusieurs utilisateurs à la fois |

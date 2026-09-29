@@ -63,6 +63,8 @@ usage() {
   echo "  ./palabre.sh logs   <service>     Logs en direct"
   echo "  ./palabre.sh status               État des conteneurs"
   echo "  ./palabre.sh migrate              Lancer les migrations SQL"
+  echo "  ./palabre.sh setup-env            Générer les .env des services depuis backend/.env"
+  echo "  ./palabre.sh setup-env presence   Générer uniquement presence/.env"
   echo "  ./palabre.sh shell  backend       Shell dans un conteneur"
   echo ""
   exit 0
@@ -205,6 +207,11 @@ case "$ACTION" in
     ;;
   shell)
     cmd_shell "$TARGET"
+    ;;
+  setup-env)
+    check_env
+    log "Configuration des .env des services depuis backend/.env..."
+    bash "${SCRIPT_DIR}/scripts/setup-env.sh" "${TARGET:-all}"
     ;;
   help|--help|-h)
     usage

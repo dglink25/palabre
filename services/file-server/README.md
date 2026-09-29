@@ -15,43 +15,51 @@ Technologie : **Node.js** (Express + multer).
 
 - HTTP : **4030**
 
-## Configuration — variables d'environnement
+## Configuration du .env
 
-### Obligatoire — Secret JWT
+La majorité des variables de ce service sont déjà dans `backend/.env`. Utilisez le script :
 
-**Même valeur que dans `backend/.env`.** Permet de vérifier que les requêtes viennent d'utilisateurs authentifiés.
-
-```env
-JWT_ACCESS_SECRET=<même valeur que backend>
+```bash
+# Depuis la racine du projet
+./scripts/setup-env.sh file-server
+# ou pour tous les services d'un coup :
+./scripts/setup-env.sh
 ```
 
-Pas de génération séparée — copiez depuis `backend/.env`.
+Le script génère `services/file-server/.env` automatiquement. Si le fichier existe déjà et n'est pas vide, il crée `.env.new` sans écraser.
 
-### Obligatoire — URL publique
+### Variables générées automatiquement (copiées de backend/.env)
 
+| Variable | Source dans backend/.env | Description |
+|----------|--------------------------|-------------|
+| `JWT_ACCESS_SECRET` | `JWT_ACCESS_SECRET` | Vérification des JWT des requêtes upload |
+| `FILE_SERVER_PUBLIC_URL` | `FILE_SERVER_PUBLIC_URL` | URL communiquée aux clients dans les messages |
+
+### Variable à configurer manuellement après génération
+
+| Variable | Exemple | Description |
+|----------|---------|-------------|
+| `ALLOWED_ORIGINS` | `http://localhost:3000` | Origines CORS autorisées pour les uploads |
+
+Editez `services/file-server/.env` et ajustez `ALLOWED_ORIGINS` :
 ```env
-FILE_SERVER_PUBLIC_URL=http://localhost:4030
-```
-
-En production :
-```env
-FILE_SERVER_PUBLIC_URL=https://files.votre-domaine.com
-```
-
-Cette URL est incluse dans les messages pour que les destinataires puissent télécharger les fichiers. Elle est aussi exposée au frontend via `VITE_FILE_SERVER_URL` dans `docker/.env`.
-
-### Optionnel
-
-```env
-FILE_SERVER_PORT=4030
+# Développement local
 ALLOWED_ORIGINS=http://localhost:3000,http://localhost:4020
-# Séparées par virgule. * pour tout autoriser (déconseillé en production)
+
+# Production
+ALLOWED_ORIGINS=https://palabre.votre-domaine.com
 ```
+
+### Variables fixes
+
+| Variable | Valeur | Description |
+|----------|--------|-------------|
+| `FILE_SERVER_PORT` | `4030` | Port HTTP |
 
 ## Démarrage
 
 ```bash
-# Via Docker
+# Via Docker (inclus dans core)
 ./palabre.sh start core
 
 # Logs
@@ -61,12 +69,11 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:4020
 curl http://localhost:4030/health
 ```
 
-## Principe de chiffrement
+## Principe de chiffrement côté client
 
-Le client (web ou mobile) :
-1. Génère une clé AES-256-GCM aléatoire
-2. Chiffre le fichier localement avant l'upload
-3. Envoie le fichier chiffré au file-server
-4. Envoie la clé chiffrée (avec la clé Signal du destinataire) dans le message
+1. Le client génère une clé AES-256-GCM aléatoire
+2. Chiffre le fichier **localement** avant l'upload
+3. Envoie le blob chiffré au file-server
+4. Envoie la clé chiffrée (avec la clé Signal du destinataire) dans le message Signal
 
-Le serveur stocke uniquement des octets opaques. Seul le destinataire peut déchiffrer avec sa clé privée Signal.
+Le serveur stocke uniquement des octets opaques. Seul le destinataire peut déchiffrer.

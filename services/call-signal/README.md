@@ -1,64 +1,56 @@
 # Service Call Signal — Palabre
 
-Serveur de signaling WebRTC pour les appels audio et vidéo (1:1 et groupe). Échange les offres SDP et candidats ICE entre les pairs — ne traite jamais le flux média lui-même.
+Serveur de signaling WebRTC pour les appels audio et vidéo (1:1 et groupe). Échange les offres SDP et candidats ICE entre les pairs — ne traite jamais le flux média.
 
-Technologie : **Elixir/Phoenix Channels** (WebSocket).
+Technologie : **Elixir/Phoenix Channels**.
 
 ## Responsabilités
 
 - Gérer les rooms d'appel (créer, rejoindre, quitter)
 - Relayer les offres SDP (Session Description Protocol) entre pairs
-- Relayer les candidats ICE (Interactive Connectivity Establishment)
+- Relayer les candidats ICE pour la traversée NAT
 - Notifier les utilisateurs d'un appel entrant
-- Coordonner avec le message-router pour les notifications push
-- Gérer la fin d'appel et le nettoyage des rooms
+- Coordonner la fin d'appel et le nettoyage des rooms
 
 ## Port
 
 - WebSocket/HTTP : **4040**
 
-## Configuration — variables d'environnement
+## Configuration du .env
 
-### Obligatoire — Secret JWT
-
-**Même valeur que dans `backend/.env`.**
-
-```env
-JWT_ACCESS_SECRET=<même valeur que backend>
-```
-
-### Obligatoire — Secrets Elixir/Erlang
-
-**Mêmes valeurs que message-router, presence et backend.**
+Toutes les variables de ce service sont déjà dans `backend/.env`. Utilisez le script :
 
 ```bash
-# Si pas encore générés :
-openssl rand -hex 32   # → INTERNAL_SERVICES_SECRET
-openssl rand -hex 32   # → ERLANG_COOKIE (RELEASE_COOKIE)
-openssl rand -hex 64   # → PHOENIX_SECRET_KEY_BASE
+# Depuis la racine du projet
+./scripts/setup-env.sh call-signal
+# ou pour tous les services d'un coup :
+./scripts/setup-env.sh
 ```
 
-```env
-INTERNAL_SERVICES_SECRET=<valeur partagée>
-RELEASE_COOKIE=<erlang_cookie partagé>
-PHOENIX_SECRET_KEY_BASE=<valeur partagée min 64 chars>
-```
+Le script génère `services/call-signal/.env` automatiquement. Si le fichier existe déjà et n'est pas vide, il crée `.env.new` sans écraser.
 
-> Ces valeurs doivent être identiques sur tous les services BEAM du cluster (message-router, call-signal, presence). Si elles diffèrent, les noeuds Erlang ne pourront pas se reconnaître.
+### Variables générées automatiquement (copiées de backend/.env)
 
-### Optionnel
+| Variable | Source dans backend/.env | Description |
+|----------|--------------------------|-------------|
+| `JWT_ACCESS_SECRET` | `JWT_ACCESS_SECRET` | Vérification des JWT WebSocket |
+| `INTERNAL_SERVICES_SECRET` | `INTERNAL_SERVICES_SECRET` | Secret inter-services |
+| `RELEASE_COOKIE` | `ERLANG_COOKIE` | Cookie Erlang du cluster BEAM |
+| `PHOENIX_SECRET_KEY_BASE` | `PHOENIX_SECRET_KEY_BASE` | Clé secrète Phoenix (min 64 chars) |
+| `PUBLIC_HOST` | `PUBLIC_HOST` | Hôte public pour les URLs WebSocket |
 
-```env
-CALL_SIGNAL_PORT=4040
-PUBLIC_HOST=localhost
-MEDIASOUP_URL=http://mediasoup:3478    # Connecté au SFU pour les appels de groupe
-MESSAGE_ROUTER_URL=http://message-router:4020
-```
+### Variables fixes (pas à modifier en dev Docker)
+
+| Variable | Valeur | Description |
+|----------|--------|-------------|
+| `CALL_SIGNAL_PORT` | `4040` | Port WebSocket/HTTP |
+| `MESSAGE_ROUTER_URL` | `http://message-router:4020` | URL interne du message-router |
+| `MEDIASOUP_URL` | `http://mediasoup:3478` | URL interne du SFU (appels groupe) |
 
 ## Démarrage
 
 ```bash
-# Via Docker (dépend de message-router)
+# Via Docker (inclus dans core — dépend de message-router)
 ./palabre.sh start core
 
 # Logs
@@ -71,20 +63,18 @@ curl http://localhost:4040/health
 ## Flux d'appel WebRTC simplifié
 
 ```
-Appelant                  call-signal              Appelé
-    |                         |                       |
-    |-- join_room(roomId) --> |                       |
-    |                         |-- notify_incoming --> |
-    |                         | <-- join_room --------|
-    |-- send_offer(sdp) ----> |                       |
-    |                         |-- forward_offer ----> |
-    |                         | <-- send_answer -------|
-    |<-- forward_answer ------ |                       |
-    |-- send_ice -----------> |                       |
-    |                         |-- forward_ice -------> |
-    | <--- ICE exchange -----  | <--- ICE exchange --- |
-    |                         |                       |
-    |====== Connexion P2P directe (via Coturn si NAT) ======|
+Appelant              call-signal             Appelé
+    |                     |                     |
+    |-- join_room() ----> |                     |
+    |                     |-- notify_ring ----> |
+    |                     | <-- join_room ----- |
+    |-- send_offer() ---> |                     |
+    |                     |-- forward_offer --> |
+    |                     | <-- send_answer --- |
+    | <-- forward_answer  |                     |
+    |  ← ICE exchange →   |   ← ICE exchange → |
+    |                     |                     |
+    |======= Connexion P2P directe (via Coturn si NAT) =======|
 ```
 
-Les flux RTP/RTCP (audio/vidéo) passent directement entre les pairs via Coturn si une connexion P2P directe n'est pas possible (NAT symétrique). Le call-signal ne voit que les métadonnées de signaling, jamais le contenu média.
+Le call-signal ne voit que les métadonnées de signaling, jamais le contenu audio/vidéo. Les flux RTP passent directement entre les pairs (ou via Coturn si NAT symétrique).
