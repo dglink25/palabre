@@ -3,8 +3,60 @@ import { api } from '../../lib/apiClient';
 import { useAuth } from '../../context/AuthContext';
 import { Alert, Badge } from '../../components/ui';
 import { friendlyMessage } from '../../lib/errorMessages';
-import { Camera, Mail, Bell, User, Globe, Clock, Shield, Check, X, Loader2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+
+// SVG icons (inline, no external deps)
+const UserIcon = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+  </svg>
+);
+const MailIcon = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+  </svg>
+);
+const BellIcon = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
+  </svg>
+);
+const CameraIcon = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+    <circle cx="12" cy="13" r="4"/>
+  </svg>
+);
+const CheckIcon = ({ size = 14 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>
+);
+const GlobeIcon = ({ size = 14 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+    <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+  </svg>
+);
+const ClockIcon = ({ size = 14 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+  </svg>
+);
+const SpinnerIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 0.7s linear infinite' }}>
+    <path d="M21 12a9 9 0 11-6.219-8.56"/>
+  </svg>
+);
+
+// Section card header
+function CardHeader({ icon, color, children }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, paddingBottom: 14, borderBottom: '1px solid #F0F0F0' }}>
+      <span style={{ color, display: 'inline-flex', alignItems: 'center' }}>{icon}</span>
+      <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#202124' }}>{children}</h2>
+    </div>
+  );
+}
 
 export default function ProfilePage() {
   const { user, refreshProfile } = useAuth();
@@ -19,7 +71,7 @@ export default function ProfilePage() {
 
   const [emailInput, setEmailInput] = useState(user?.email || '');
   const [emailCode, setEmailCode] = useState('');
-  const [emailStep, setEmailStep] = useState('idle'); // idle | code_sent
+  const [emailStep, setEmailStep] = useState('idle');
 
   const [notifEmail, setNotifEmail] = useState(!!user?.preferences?.notifications?.email);
   const [notifPush, setNotifPush] = useState(!!user?.preferences?.notifications?.push);
@@ -88,308 +140,258 @@ export default function ProfilePage() {
     finally { setLoadingKey('prefs', false); }
   }
 
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { duration: 0.4, ease: "easeOut" } }
-  };
-
-  const cardVariants = {
-    hidden: { scale: 0.98, opacity: 0, y: 20 },
-    visible: { scale: 1, opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
-  };
-
-  const buttonHover = { scale: 1.02 };
-  const buttonTap = { scale: 0.98 };
-
-  const Spinner = () => <Loader2 className="animate-spin" size={16} />;
+  // Get initials for avatar
+  const initials = (user?.fullName || user?.email || '?').slice(0, 2).toUpperCase();
 
   return (
-    <motion.div
-      className="profile-container"
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-      style={{ maxWidth: 800, margin: '0 auto', padding: '24px 16px' }}
-    >
-      {/* Header avec avatar et badge */}
-      <motion.div variants={itemVariants} style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
-        <div style={{ position: 'relative' }}>
+    <div style={{ maxWidth: 760, margin: '0 auto', animation: 'slideUp 0.3s ease' }}>
+      {/* Profile header */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 18,
+        marginBottom: 28,
+        padding: '20px 24px',
+        background: '#fff',
+        border: '1px solid #E0E0E0',
+        borderRadius: 10,
+      }}>
+        <div style={{ position: 'relative', flexShrink: 0 }}>
           {user?.photoUrl ? (
-            <motion.img
+            <img
               src={user.photoUrl}
               alt="Photo de profil"
-              style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', border: '3px solid white', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: 'spring', stiffness: 300 }}
+              style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', border: '3px solid #fff', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}
             />
           ) : (
-            <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid white', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-              <User size={32} color="#94a3b8" />
+            <div style={{
+              width: 72, height: 72, borderRadius: '50%',
+              background: '#1A73E8',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: '3px solid #fff', boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+            }}>
+              <span style={{ fontSize: 22, fontWeight: 800, color: '#fff' }}>{initials}</span>
             </div>
           )}
           {loading.photo && (
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.7)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Spinner />
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: 'rgba(255,255,255,0.75)',
+              borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <SpinnerIcon />
             </div>
           )}
         </div>
-        <div>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 600 }}>Profil</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-            <span style={{ color: '#64748b', fontSize: 14 }}>{user?.email || 'Aucun e-mail'}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h1 style={{ margin: '0 0 4px 0', fontSize: 22, fontWeight: 800, color: '#202124' }}>
+            {user?.fullName || 'Profil'}
+          </h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <span style={{ color: '#5F6368', fontSize: 14 }}>{user?.email || 'Aucun e-mail'}</span>
             {user?.isSuperAdmin && <Badge variant="danger">Super-administrateur</Badge>}
           </div>
         </div>
-      </motion.div>
+      </div>
 
-      {/* Alertes */}
-      <AnimatePresence>
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Alert variant="danger">{error}</Alert>
-          </motion.div>
-        )}
-        {notice && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Alert variant="success">{notice}</Alert>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Alerts */}
+      {error && <Alert variant="danger">{error}</Alert>}
+      {notice && <Alert variant="success">{notice}</Alert>}
 
-      {/* Carte Informations personnelles */}
-      <motion.div className="card" variants={cardVariants} style={{ marginBottom: 20, padding: 24, borderRadius: 16, boxShadow: '0 4px 20px rgba(0,0,0,0.06)', background: 'white' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-          <User size={20} color="#3b82f6" />
-          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>Informations personnelles</h2>
-        </div>
+      {/* Personal info card */}
+      <div className="card" style={{ padding: '24px', marginBottom: 20 }}>
+        <CardHeader icon={<UserIcon />} color="#1A73E8">Informations personnelles</CardHeader>
 
         <form onSubmit={saveInfo}>
+          {/* Photo upload */}
           <div className="field">
             <label>Photo de profil</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <motion.label
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  border: '1px solid #e2e8f0',
-                  background: '#f8fafc',
-                  cursor: 'pointer',
-                  fontSize: 14,
-                  color: '#475569'
-                }}
-              >
-                <Camera size={16} />
-                Changer la photo
-                <input
-                  type="file"
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  onChange={(e) => e.target.files[0] && uploadPhoto(e.target.files[0])}
-                />
-              </motion.label>
-              {loading.photo && <Spinner />}
-            </div>
+            <label style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '9px 16px',
+              borderRadius: 8,
+              border: '1px solid #E0E0E0',
+              background: '#F8F9FA',
+              cursor: 'pointer',
+              fontSize: 14,
+              color: '#5F6368',
+              transition: 'border-color 0.15s, background 0.15s',
+              height: 40,
+            }}>
+              <CameraIcon />
+              Changer la photo
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={(e) => e.target.files[0] && uploadPhoto(e.target.files[0])}
+              />
+            </label>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
             <div className="field">
               <label>Nom complet</label>
-              <input value={fullName} onChange={(e) => setFullName(e.target.value)} />
+              <input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Prénom Nom" />
             </div>
             <div className="field">
               <label>Secteur d'activité</label>
-              <input value={sector} onChange={(e) => setSector(e.target.value)} />
+              <input value={sector} onChange={(e) => setSector(e.target.value)} placeholder="Ex. Finance, Santé..." />
             </div>
             <div className="field">
-              <label><Globe size={14} style={{ marginRight: 4 }} /> Langue</label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <GlobeIcon /> Langue
+              </label>
               <select value={locale} onChange={(e) => setLocale(e.target.value)}>
                 <option value="fr">Français</option>
                 <option value="en">English</option>
               </select>
             </div>
             <div className="field">
-              <label><Clock size={14} style={{ marginRight: 4 }} /> Fuseau horaire</label>
-              <input value={timezone} onChange={(e) => setTimezone(e.target.value)} />
+              <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <ClockIcon /> Fuseau horaire
+              </label>
+              <input value={timezone} onChange={(e) => setTimezone(e.target.value)} placeholder="Africa/Porto-Novo" />
             </div>
           </div>
 
-          <motion.button
+          <button
             className="btn"
             type="submit"
             disabled={loading.info}
-            whileHover={buttonHover}
-            whileTap={buttonTap}
-            style={{ marginTop: 20, display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}
+            style={{ marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}
           >
-            {loading.info ? <Spinner /> : <Check size={16} />}
+            {loading.info ? <SpinnerIcon /> : <CheckIcon />}
             Enregistrer
-          </motion.button>
+          </button>
         </form>
-      </motion.div>
+      </div>
 
-      {/* Carte Adresse e-mail */}
-      <motion.div className="card" variants={cardVariants} style={{ marginBottom: 20, padding: 24, borderRadius: 16, boxShadow: '0 4px 20px rgba(0,0,0,0.06)', background: 'white' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-          <Mail size={20} color="#8b5cf6" />
-          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>Adresse e-mail</h2>
-        </div>
+      {/* Email card */}
+      <div className="card" style={{ padding: '24px', marginBottom: 20 }}>
+        <CardHeader icon={<MailIcon />} color="#8b5cf6">Adresse e-mail</CardHeader>
 
-        <p style={{ color: '#64748b', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-          Actuelle : {user?.email || 'aucune'}
+        <p style={{ color: '#5F6368', marginBottom: 16, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          Actuelle : <strong style={{ color: '#202124' }}>{user?.email || 'aucune'}</strong>
           {user?.emailVerified ? (
-            <Badge variant="success"><Check size={12} style={{ marginRight: 4 }} /> Vérifiée</Badge>
+            <Badge variant="success">Vérifiée</Badge>
           ) : user?.email ? (
-            <Badge variant="warning"><X size={12} style={{ marginRight: 4 }} /> Non vérifiée</Badge>
+            <Badge variant="warning">Non vérifiée</Badge>
           ) : null}
         </p>
 
-        <AnimatePresence mode="wait">
-          {emailStep === 'idle' ? (
-            <motion.form
-              key="email-request"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-              onSubmit={requestEmailCode}
+        {emailStep === 'idle' ? (
+          <form onSubmit={requestEmailCode}>
+            <div className="field">
+              <label>Nouvelle adresse e-mail</label>
+              <input type="email" value={emailInput} onChange={(e) => setEmailInput(e.target.value)} placeholder="adresse@exemple.com" />
+            </div>
+            <button
+              className="btn"
+              type="submit"
+              disabled={loading.emailRequest}
+              style={{ marginTop: 4, display: 'inline-flex', alignItems: 'center', gap: 6 }}
             >
-              <div className="field">
-                <label>Nouvelle adresse e-mail</label>
-                <input value={emailInput} onChange={(e) => setEmailInput(e.target.value)} />
-              </div>
-              <motion.button
+              {loading.emailRequest ? <SpinnerIcon /> : <MailIcon size={14} />}
+              Envoyer un code de vérification
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={confirmEmail}>
+            <div className="field">
+              <label>Code reçu par e-mail</label>
+              <input
+                value={emailCode}
+                onChange={(e) => setEmailCode(e.target.value)}
+                placeholder="Code à 6 chiffres"
+                style={{ letterSpacing: 4, fontSize: 20, textAlign: 'center' }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+              <button
                 className="btn"
                 type="submit"
-                disabled={loading.emailRequest}
-                whileHover={buttonHover}
-                whileTap={buttonTap}
-                style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 8 }}
+                disabled={loading.emailConfirm}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
               >
-                {loading.emailRequest ? <Spinner /> : <Mail size={16} />}
-                Envoyer un code de vérification
-              </motion.button>
-            </motion.form>
-          ) : (
-            <motion.form
-              key="email-confirm"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-              onSubmit={confirmEmail}
+                {loading.emailConfirm ? <SpinnerIcon /> : <CheckIcon />}
+                Confirmer
+              </button>
+              <button
+                className="btn btn-secondary"
+                type="button"
+                onClick={() => { setEmailStep('idle'); setEmailCode(''); }}
+              >
+                Annuler
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+
+      {/* Notification preferences */}
+      <div className="card" style={{ padding: '24px' }}>
+        <CardHeader icon={<BellIcon />} color="#f59e0b">Préférences de notification</CardHeader>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
+          {[
+            {
+              key: 'email',
+              checked: notifEmail,
+              onChange: setNotifEmail,
+              label: 'Notifications par e-mail',
+              desc: 'Recevez un résumé et les alertes importantes par e-mail',
+            },
+            {
+              key: 'push',
+              checked: notifPush,
+              onChange: setNotifPush,
+              label: 'Notifications push',
+              desc: 'Recevez des notifications en temps réel sur votre appareil',
+            },
+          ].map(({ key, checked, onChange, label, desc }) => (
+            <label
+              key={key}
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 12,
+                padding: '12px 14px',
+                borderRadius: 8,
+                border: '1px solid #E0E0E0',
+                background: checked ? 'rgba(26,115,232,0.04)' : '#F8F9FA',
+                cursor: 'pointer',
+                transition: 'background 0.15s, border-color 0.15s',
+                borderColor: checked ? 'rgba(26,115,232,0.2)' : '#E0E0E0',
+              }}
             >
-              <div className="field">
-                <label>Code reçu par e-mail</label>
-                <input
-                  value={emailCode}
-                  onChange={(e) => setEmailCode(e.target.value)}
-                  placeholder="Saisissez le code à 6 chiffres"
-                />
+              <input
+                type="checkbox"
+                checked={checked}
+                onChange={(e) => onChange(e.target.checked)}
+                style={{ width: 18, height: 18, accentColor: '#1A73E8', marginTop: 2, cursor: 'pointer' }}
+              />
+              <div>
+                <div style={{ fontWeight: 600, fontSize: 14, color: '#202124' }}>{label}</div>
+                <div style={{ fontSize: 13, color: '#5F6368', marginTop: 2 }}>{desc}</div>
               </div>
-              <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-                <motion.button
-                  className="btn"
-                  type="submit"
-                  disabled={loading.emailConfirm}
-                  whileHover={buttonHover}
-                  whileTap={buttonTap}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8 }}
-                >
-                  {loading.emailConfirm ? <Spinner /> : <Check size={16} />}
-                  Confirmer
-                </motion.button>
-                <motion.button
-                  className="btn btn-secondary"
-                  type="button"
-                  onClick={() => { setEmailStep('idle'); setEmailCode(''); }}
-                  whileHover={buttonHover}
-                  whileTap={buttonTap}
-                >
-                  Annuler
-                </motion.button>
-              </div>
-            </motion.form>
-          )}
-        </AnimatePresence>
-      </motion.div>
-
-      {/* Carte Préférences de notification */}
-      <motion.div className="card" variants={cardVariants} style={{ padding: 24, borderRadius: 16, boxShadow: '0 4px 20px rgba(0,0,0,0.06)', background: 'white' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-          <Bell size={20} color="#f59e0b" />
-          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>Préférences de notification</h2>
+            </label>
+          ))}
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <motion.label
-            whileHover={{ scale: 1.01 }}
-            style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '8px 12px', borderRadius: 8, background: '#f8fafc' }}
-          >
-            <input
-              type="checkbox"
-              checked={notifEmail}
-              onChange={(e) => setNotifEmail(e.target.checked)}
-              style={{ width: 18, height: 18, accentColor: '#3b82f6' }}
-            />
-            <div>
-              <div style={{ fontWeight: 500 }}>Notifications par e-mail</div>
-              <div style={{ fontSize: 13, color: '#64748b' }}>Recevez un résumé et les alertes importantes par e-mail</div>
-            </div>
-          </motion.label>
-
-          <motion.label
-            whileHover={{ scale: 1.01 }}
-            style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '8px 12px', borderRadius: 8, background: '#f8fafc' }}
-          >
-            <input
-              type="checkbox"
-              checked={notifPush}
-              onChange={(e) => setNotifPush(e.target.checked)}
-              style={{ width: 18, height: 18, accentColor: '#3b82f6' }}
-            />
-            <div>
-              <div style={{ fontWeight: 500 }}>Notifications push</div>
-              <div style={{ fontSize: 13, color: '#64748b' }}>Recevez des notifications en temps réel sur votre appareil</div>
-            </div>
-          </motion.label>
-        </div>
-
-        <motion.button
+        <button
           className="btn"
           onClick={savePreferences}
           disabled={loading.prefs}
-          whileHover={buttonHover}
-          whileTap={buttonTap}
-          style={{ marginTop: 20, display: 'flex', alignItems: 'center', gap: 8 }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
         >
-          {loading.prefs ? <Spinner /> : <Shield size={16} />}
+          {loading.prefs ? <SpinnerIcon /> : <CheckIcon />}
           Enregistrer les préférences
-        </motion.button>
-      </motion.div>
-    </motion.div>
+        </button>
+      </div>
+    </div>
   );
 }

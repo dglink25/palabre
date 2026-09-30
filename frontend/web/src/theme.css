@@ -22,14 +22,16 @@ body {
   font-family: var(--font-stack);
   background-color: var(--color-offwhite);
   color: var(--color-text-primary);
-  font-size: 19px;
-  line-height: 1.7;
+  font-size: 17px;
+  line-height: 1.75;
 }
 
 a { color: var(--color-primary-blue); transition: opacity 0.15s var(--ease); }
 a:hover { opacity: 0.75; }
 
-h1, h2, h3 { color: var(--color-text-primary); margin: 0 0 12px 0; }
+h1 { font-size: 26px; font-weight: 800; color: var(--color-text-primary); margin: 0 0 12px 0; }
+h2 { font-size: 20px; font-weight: 700; color: var(--color-text-primary); margin: 0 0 12px 0; }
+h3 { font-size: 18px; font-weight: 600; color: var(--color-text-primary); margin: 0 0 12px 0; }
 
 /* ---------- Animations ---------- */
 @keyframes fadeIn {
@@ -41,7 +43,16 @@ h1, h2, h3 { color: var(--color-text-primary); margin: 0 0 12px 0; }
   from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: scale(1); }
 }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
 .fade-in { animation: fadeIn 0.35s var(--ease); }
+.slide-up { animation: slideUp 0.4s var(--ease); }
 
 /* ---------- Mise en page (espace connecté) ---------- */
 .app-shell { display: flex; min-height: 100vh; }
@@ -139,35 +150,39 @@ h1, h2, h3 { color: var(--color-text-primary); margin: 0 0 12px 0; }
 .card {
   background-color: var(--color-white);
   border: 1px solid var(--color-border);
+  border-radius: 10px;
   padding: 24px;
   margin-bottom: 20px;
   animation: fadeIn 0.3s var(--ease);
+  transition: box-shadow 0.2s var(--ease);
 }
+.card:hover { box-shadow: 0 4px 16px rgba(32,33,36,0.08); }
 
 .field { margin-bottom: 16px; }
 .field label {
   display: block;
-  font-size: 16px;
-  font-weight: bold;
+  font-size: 14px;
+  font-weight: 600;
   margin-bottom: 6px;
   color: var(--color-text-primary);
 }
 .field input, .field select, .field textarea {
   width: 100%;
-  padding: 10px 12px;
+  padding: 11px 14px;
   border: 1px solid var(--color-border);
+  border-radius: 8px;
   background-color: var(--color-white);
   font-family: var(--font-stack);
-  font-size: 17px;
+  font-size: 16px;
   color: var(--color-text-primary);
   transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
 }
 .field input:focus, .field select:focus, .field textarea:focus {
   outline: none;
   border-color: var(--color-primary-blue);
-  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.12);
 }
-.field .hint { font-size: 15px; color: var(--color-text-secondary); margin-top: 4px; }
+.field .hint { font-size: 13px; color: var(--color-text-secondary); margin-top: 5px; }
 
 /* ---------- Sélecteur de téléphone (pays + numéro) ---------- */
 .phone-input { position: relative; display: flex; border: 1px solid var(--color-border); background-color: var(--color-white); }
@@ -218,25 +233,37 @@ h1, h2, h3 { color: var(--color-text-primary); margin: 0 0 12px 0; }
 
 /* ---------- Boutons ---------- */
 .btn {
-  display: inline-block;
-  padding: 11px 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 20px;
   border: none;
   font-family: var(--font-stack);
-  font-size: 17px;
-  font-weight: bold;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
   color: var(--color-white);
   background-color: var(--color-primary-blue);
-  transition: transform 0.1s var(--ease), box-shadow 0.15s var(--ease), background-color 0.15s var(--ease);
+  border-radius: 8px;
+  transition: all 0.15s var(--ease);
+  text-decoration: none;
+  white-space: nowrap;
 }
-.btn:hover:not(:disabled) { box-shadow: 0 2px 8px rgba(32, 33, 36, 0.15); transform: translateY(-1px); }
+.btn:hover:not(:disabled) { box-shadow: 0 3px 10px rgba(26,115,232,0.3); transform: translateY(-1px); }
 .btn:active:not(:disabled) { transform: translateY(0); box-shadow: none; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-secondary { background-color: var(--color-white); color: var(--color-text-primary); border: 1px solid var(--color-border); }
+.btn-secondary:hover:not(:disabled) { box-shadow: 0 2px 8px rgba(32,33,36,0.12); }
 .btn-success { background-color: var(--color-success-green); }
+.btn-success:hover:not(:disabled) { box-shadow: 0 3px 10px rgba(52,168,83,0.3); }
 .btn-warning { background-color: var(--color-warning-amber); color: var(--color-text-primary); }
 .btn-danger { background-color: var(--color-alert-red); }
+.btn-danger:hover:not(:disabled) { box-shadow: 0 3px 10px rgba(234,67,53,0.3); }
 .btn-block { width: 100%; }
+
+/* Bouton sm */
+.btn-sm { height: 36px; padding: 0 14px; font-size: 13px; border-radius: 6px; }
 
 /* Contrôle segmenté (bascules connexion/inscription, téléphone/social...) */
 .segmented {
@@ -244,16 +271,17 @@ h1, h2, h3 { color: var(--color-text-primary); margin: 0 0 12px 0; }
   border: 1px solid var(--color-border);
   margin-bottom: 16px;
   overflow: hidden;
+  border-radius: 8px;
 }
 .segmented button {
   flex: 1;
-  padding: 10px;
+  padding: 10px 16px;
   border: none;
   background-color: var(--color-white);
   color: var(--color-text-secondary);
   font-family: var(--font-stack);
-  font-size: 16px;
-  font-weight: bold;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
   transition: background-color 0.15s var(--ease), color 0.15s var(--ease);
 }
@@ -264,19 +292,20 @@ h1, h2, h3 { color: var(--color-text-primary); margin: 0 0 12px 0; }
 .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background-color: var(--color-border); }
 
 /* ---------- Alertes & badges (couleurs contextuelles, pas seulement bleu) ---------- */
-.alert { padding: 14px 16px; border-left: 4px solid; background-color: var(--color-white); margin-bottom: 16px; font-size: 17px; animation: fadeIn 0.25s var(--ease); }
-.alert-primary { border-color: var(--color-primary-blue); }
-.alert-success { border-color: var(--color-success-green); }
-.alert-warning { border-color: var(--color-warning-amber); }
-.alert-danger { border-color: var(--color-alert-red); }
+.alert { padding: 14px 18px; border-left: 4px solid; border-radius: 8px; background-color: var(--color-white); margin-bottom: 16px; font-size: 15px; animation: fadeIn 0.25s var(--ease); }
+.alert-primary { border-color: var(--color-primary-blue); background-color: rgba(26,115,232,0.05); }
+.alert-success { border-color: var(--color-success-green); background-color: rgba(52,168,83,0.05); }
+.alert-warning { border-color: var(--color-warning-amber); background-color: rgba(251,188,5,0.05); }
+.alert-danger { border-color: var(--color-alert-red); background-color: rgba(234,67,53,0.05); }
 
 .badge {
   display: inline-block;
-  font-size: 14px;
-  font-weight: bold;
+  font-size: 12px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 3px 8px;
+  padding: 3px 10px;
+  border-radius: 4px;
   color: var(--color-white);
 }
 .badge-primary { background-color: var(--color-primary-blue); }
@@ -286,8 +315,10 @@ h1, h2, h3 { color: var(--color-text-primary); margin: 0 0 12px 0; }
 .badge-neutral { background-color: var(--color-text-secondary); }
 
 table { width: 100%; border-collapse: collapse; }
-th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--color-border); font-size: 17px; }
-th { color: var(--color-text-secondary); font-size: 15px; text-transform: uppercase; }
+th { text-align: left; padding: 10px 16px; border-bottom: 1px solid var(--color-border); font-size: 12px; font-weight: 700; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.6px; background-color: var(--color-offwhite); }
+td { text-align: left; padding: 13px 16px; border-bottom: 1px solid var(--color-border); font-size: 15px; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background-color: rgba(26,115,232,0.03); }
 
 .text-secondary { color: var(--color-text-secondary); font-size: 16px; }
 .spacer { height: 16px; }
@@ -327,7 +358,7 @@ th { color: var(--color-text-secondary); font-size: 15px; text-transform: upperc
 
 /* ---------- Spinner ---------- */
 .spinner {
-  width: 22px; height: 22px;
+  width: 28px; height: 28px;
   border: 3px solid var(--color-border);
   border-top-color: var(--color-primary-blue);
   border-radius: 50%;
@@ -1211,22 +1242,12 @@ th { color: var(--color-text-secondary); font-size: 15px; text-transform: upperc
 .shell-nav::-webkit-scrollbar { width: 4px; }
 .shell-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
 
-/* Section label */
-.snav-section {
-  padding: 16px 20px 5px 20px;
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-  color: var(--sidebar-section);
-}
-
 /* Lien nav */
 .snav-link {
   display: flex;
   align-items: center;
   gap: 11px;
-  padding: 11px 20px;
+  padding: 10px 16px;
   margin: 1px 8px;
   border-radius: 8px;
   text-decoration: none;
@@ -1255,6 +1276,16 @@ th { color: var(--color-text-secondary); font-size: 15px; text-transform: upperc
   width: 3px;
   background: #ffffff;
   border-radius: 0 2px 2px 0;
+}
+
+/* Section label */
+.snav-section {
+  padding: 16px 20px 5px 20px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--sidebar-section);
 }
 
 /* Identité utilisateur */
@@ -1391,19 +1422,19 @@ th { color: var(--color-text-secondary); font-size: 15px; text-transform: upperc
   padding: 28px 32px;
   max-width: 1100px;
   width: 100%;
-  font-size: 17px;
-  line-height: 1.7;
+  font-size: 16px;
+  line-height: 1.75;
 }
 
 /* Tailles de texte dans l'espace connecté */
-.shell-main h1 { font-size: 24px; }
-.shell-main h2 { font-size: 20px; }
-.shell-main h3 { font-size: 18px; }
+.shell-main h1 { font-size: 24px; font-weight: 800; }
+.shell-main h2 { font-size: 19px; font-weight: 700; }
+.shell-main h3 { font-size: 17px; font-weight: 600; }
 .shell-main p,
 .shell-main li,
 .shell-main td,
-.shell-main label { font-size: 16px; line-height: 1.7; }
-.shell-main .text-secondary { font-size: 15px; }
+.shell-main label { font-size: 15px; line-height: 1.75; }
+.shell-main .text-secondary { font-size: 14px; }
 
 /* ── Responsive ── */
 @media (max-width: 900px) {
