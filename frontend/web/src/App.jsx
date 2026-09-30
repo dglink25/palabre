@@ -27,6 +27,7 @@ import OrgVpnPage from './pages/org/OrgVpnPage';
 import OrgInvitePage from './pages/org/OrgInvitePage';
 import OrgLinkPage from './pages/org/OrgLinkPage';
 import OrgJoinPage from './pages/org/OrgJoinPage';
+import OrgInstallGuidePage from './pages/org/OrgInstallGuidePage';
 
 // Espace membre (utilisateur standard avec org)
 import UserDashboardPage from './pages/app/UserDashboardPage';
@@ -77,6 +78,7 @@ export default function App() {
             <Route path="/org/vpn"       element={<OrgVpnPage />} />
             <Route path="/org/invite"    element={<OrgInvitePage />} />
             <Route path="/org/link"      element={<OrgLinkPage />} />
+            <Route path="/org/guide"     element={<OrgInstallGuidePage />} />
           </Route>
 
           {/* Rejoindre une organisation — tout utilisateur connecté */}

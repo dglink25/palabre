@@ -48,7 +48,12 @@ function CopyBtn({ text }) {
 
 function VpnDot({ status }) {
   const colors = { active: 'var(--color-success-green)', degraded: 'var(--color-warning-amber)', offline: 'var(--color-alert-red)', unknown: '#bbb' };
-  const labels = { active: 'Tunnel actif', degraded: 'Signal faible', offline: 'Hors ligne', unknown: 'En attente' };
+  const labels = {
+    active:   'Connexion etablie',
+    degraded: 'Signal instable',
+    offline:  'Connexion interrompue',
+    unknown:  'En attente de connexion',
+  };
   const c = colors[status] || colors.unknown;
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
@@ -89,7 +94,7 @@ export default function OrgDashboardPage() {
     { label: 'Tunnel VPN', desc: 'Statut du serveur local', color: 'var(--color-primary-blue)', to: '/org/vpn', icon: ICO.vpn },
     { label: 'Invitations', desc: 'Generer un code membre', color: 'var(--color-success-green)', to: '/org/invite', icon: ICO.invite },
     { label: 'Lier le tenant', desc: 'Scanner le QR serveur', color: 'var(--color-warning-amber)', to: '/org/link', icon: ICO.link },
-    { label: 'Guide installation', desc: 'Documentation tenant', color: '#7B61FF', to: '/admin/installation', icon: ICO.guide },
+    { label: 'Guide installation', desc: 'Documentation tenant', color: '#7B61FF', to: '/org/guide', icon: ICO.guide },
   ];
 
   return (
@@ -224,7 +229,7 @@ export default function OrgDashboardPage() {
               </div>
             ))}
             <div style={{ padding: '12px 18px', background: 'var(--color-offwhite)', borderTop: '1px solid var(--color-border)' }}>
-              <Link to="/admin/installation" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-primary-blue)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <Link to="/org/guide" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-primary-blue)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                 Guide d'installation complet <Ico d={ICO.chevron} size={13} color="var(--color-primary-blue)" />
               </Link>
             </div>

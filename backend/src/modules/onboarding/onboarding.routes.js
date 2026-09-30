@@ -527,4 +527,71 @@ router.post('/admin/requests/:id/approve', requireAuth, requireSuperAdmin, requi
   } catch (err) { next(err); }
 });
 
+/**
+ * Envoie le guide d'installation à l'administrateur d'une organisation approuvée
+ * par e-mail et/ou WhatsApp.
+ */
+router.post('/admin/requests/:id/send-guide', requireAuth, requireSuperAdmin, async (req, res, next) => {
+  try {
+    const request = await onboardingService.getRequestForReviewer(req.params.id);
+    if (request.status !== 'approved') {
+      return res.status(409).json({ error: { code: 'INVALID_STATUS', message: 'La demande doit etre approuvee pour envoyer le guide.' } });
+    }
+
+    const orgName  = request.step1_organization?.name || 'votre organisation';
+    const email    = request.step2_leader?.email;
+    const phone    = request.step2_leader?.phone;
+    const orgId    = request.organization_id;
+
+    const { sendMail } = require('../../config/mailer');
+    const { wrapEmail, calloutBox, button } = require('../../emails/brand');
+    const { convessaSend } = require('../auth/otp.service');
+    const frontendBase = process.env.FRONTEND_BASE_URL || 'http://localhost:3000';
+
+    const guideUrl = `${frontendBase}/org/guide`;
+
+    const html = wrapEmail({
+      title: 'Guide d\'installation du tenant Palabre',
+      preheader: `${orgName} - guide d\'installation`,
+      accent: 'primary',
+      bodyHtml: `
+        <p style="margin:0 0 16px 0;">Bonjour,</p>
+        <p style="margin:0 0 16px 0;">Voici le guide d\'installation pour deployer le serveur tenant Palabre de <strong>${orgName}</strong>.</p>
+        ${calloutBox({ label: 'Identifiant de votre organisation', value: orgId, accent: 'primary' })}
+        <p style="margin:0 0 8px 0; font-weight:bold;">Etapes d\'installation :</p>
+        <ol style="margin:0 0 16px 0; padding-left:20px; line-height:2; color:#202124;">
+          <li>Preparez un serveur Ubuntu 22.04+ ou Debian 12 (4 vCPU, 8 Go RAM minimum)</li>
+          <li>Installez Docker : <code>curl -fsSL https://get.docker.com | sh</code></li>
+          <li>Telechargez le paquet tenant Palabre fourni dans votre espace</li>
+          <li>Scannez le QR code de provisioning depuis votre application mobile ou votre navigateur</li>
+          <li>Verifiez le statut du tunnel dans votre tableau de bord</li>
+        </ol>
+        ${button({ url: guideUrl, label: 'Consulter le guide complet', accent: 'primary' })}
+      `,
+    });
+
+    let emailSent = false;
+    let whatsappSent = false;
+
+    if (email) {
+      await sendMail({
+        to: email,
+        subject: 'Palabre - Guide d\'installation du tenant',
+        text: `Guide installation ${orgName}. Identifiant : ${orgId}. Guide complet : ${guideUrl}`,
+        html,
+      }).then(() => { emailSent = true; })
+        .catch((e) => console.error('[send-guide] echec email', e.message));
+    }
+
+    if (phone) {
+      const msg = `Palabre - Guide d'installation\n\nOrganisation : ${orgName}\nIdentifiant : ${orgId}\n\nConsultez le guide complet depuis votre tableau de bord administrateur : ${guideUrl}`;
+      await convessaSend(phone, msg)
+        .then(() => { whatsappSent = true; })
+        .catch((e) => console.error('[send-guide] echec whatsapp', e.message));
+    }
+
+    res.json({ ok: true, emailSent, whatsappSent });
+  } catch (err) { next(err); }
+});
+
 module.exports = router;

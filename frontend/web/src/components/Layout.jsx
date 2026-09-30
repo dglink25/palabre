@@ -70,12 +70,12 @@ export default function Layout() {
   const superItems = [
     { to: '/admin',              key: 'dashboard', label: 'Tableau de bord', end: true },
     { to: '/admin/onboarding',   key: 'requests',  label: 'Dossiers' },
-    { to: '/admin/installation', key: 'guide',     label: 'Guide installation' },
   ];
   const orgItems = [
     { to: '/org/dashboard', key: 'org',      label: 'Organisation', end: true },
     { to: '/org/vpn',       key: 'vpn',      label: 'Tunnel VPN' },
     { to: '/org/invite',    key: 'invite',   label: 'Invitations membres' },
+    { to: '/org/guide',     key: 'guide',    label: 'Guide installation' },
   ];
   const memberItems = [
     { to: '/app',                   key: 'home',     label: 'Accueil', end: true },

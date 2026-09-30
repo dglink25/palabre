@@ -261,7 +261,7 @@ async function listRequests({ status, page = 1, pageSize = 20 }) {
 
   const paginationParams = [...filterParams, pageSize, (page - 1) * pageSize];
   const { rows } = await pool.query(
-    `SELECT id, status, step1_organization, step2_leader, submitted_at, reviewed_at, created_at
+    `SELECT id, status, step1_organization, step2_leader, submitted_at, reviewed_at, created_at, organization_id
      FROM organization_requests ${where}
      ORDER BY created_at DESC LIMIT $${filterParams.length + 1} OFFSET $${filterParams.length + 2}`,
     paginationParams

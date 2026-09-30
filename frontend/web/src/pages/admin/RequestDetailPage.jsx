@@ -41,6 +41,55 @@ const STATUS_LABEL   = { draft: 'Brouillon', submitted: 'Soumise', rejected: 'Re
 
 const GENDER = { male: 'Masculin', female: 'Feminin' };
 
+// ── Composant : envoyer le guide d'installation par email/WhatsApp ───────────
+
+function SendGuideButton({ request }) {
+  const [busy,    setBusy]    = useState(false);
+  const [sent,    setSent]    = useState(false);
+  const [error,   setError]   = useState('');
+
+  const email = request?.step2_leader?.email;
+  const phone = request?.step2_leader?.phone;
+  const orgName = request?.step1_organization?.name || 'l\'organisation';
+
+  async function send() {
+    setBusy(true); setError(''); setSent(false);
+    try {
+      await api.post(`/onboarding/admin/requests/${request.id}/send-guide`);
+      setSent(true);
+    } catch (e) {
+      setError(friendlyMessage(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div style={{
+      background: 'rgba(26,115,232,0.04)', border: '1px solid rgba(26,115,232,0.2)',
+      borderRadius: 8, padding: '16px 18px', marginBottom: 16,
+    }}>
+      <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 6 }}>
+        Guide d'installation
+      </div>
+      <p style={{ margin: '0 0 12px 0', fontSize: 13, color: 'var(--color-text-secondary)' }}>
+        Envoyez le guide d'installation a l'administrateur de {orgName}.
+        {email && <span> E-mail : <strong>{email}</strong></span>}
+        {phone && <span> · WhatsApp : <strong>{phone}</strong></span>}
+      </p>
+      {error  && <Alert variant="danger">{error}</Alert>}
+      {sent   && <Alert variant="success">Guide envoye avec succes par e-mail{phone ? ' et WhatsApp' : ''}.</Alert>}
+      <button className="btn btn-sm" onClick={send} disabled={busy || sent}
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/>
+        </svg>
+        {sent ? 'Guide envoye' : busy ? 'Envoi...' : 'Envoyer le guide d\'installation'}
+      </button>
+    </div>
+  );
+}
+
 // ── Composant régénération QR (demande déjà approuvée) ───────────────────────
 
 function RegenQrSection({ orgId, requestId }) {
@@ -411,11 +460,15 @@ export default function RequestDetailPage() {
           <h2>Organisation approuvee</h2>
           <p className="text-secondary">
             Cette demande a ete approuvee le {new Date(request.reviewed_at).toLocaleString('fr-FR')}.
-            Le code QR a deja ete transmis a l'administrateur.
+            Le code QR a deja ete transmis a l'administrateur lors de l'approbation.
           </p>
           {request.organization_id && (
             <>
-              <p><strong>ID organisation :</strong> {request.organization_id}</p>
+              <p style={{ marginBottom: 16 }}><strong>ID organisation :</strong> <code>{request.organization_id}</code></p>
+
+              {/* Bouton envoyer le guide par email */}
+              <SendGuideButton request={request} />
+
               <RegenQrSection orgId={request.organization_id} requestId={id} />
             </>
           )}

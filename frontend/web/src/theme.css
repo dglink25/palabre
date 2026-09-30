@@ -1391,7 +1391,19 @@ th { color: var(--color-text-secondary); font-size: 15px; text-transform: upperc
   padding: 28px 32px;
   max-width: 1100px;
   width: 100%;
+  font-size: 17px;
+  line-height: 1.7;
 }
+
+/* Tailles de texte dans l'espace connecté */
+.shell-main h1 { font-size: 24px; }
+.shell-main h2 { font-size: 20px; }
+.shell-main h3 { font-size: 18px; }
+.shell-main p,
+.shell-main li,
+.shell-main td,
+.shell-main label { font-size: 16px; line-height: 1.7; }
+.shell-main .text-secondary { font-size: 15px; }
 
 /* ── Responsive ── */
 @media (max-width: 900px) {

@@ -35,11 +35,25 @@ export default function OrgVpnPage() {
   const orgStatus  = vpnData?.orgStatus  || 'unknown';
   const secondsAgo = vpnData?.secondsAgo;
 
+  // Labels professionnels en français
+  const VPN_STATUS_LABELS = {
+    active:   'Connexion etablie',
+    degraded: 'Signal instable',
+    offline:  'Connexion interrompue',
+    unknown:  'En attente de connexion',
+  };
+  const ORG_STATUS_LABELS = {
+    active:   'Active',
+    pending:  'En cours d\'activation',
+    suspended:'Suspendue',
+    unknown:  'Inconnue',
+  };
+
   function statusLabel() {
-    if (vpnStatus === 'active')   return { variant: 'success', text: 'Tunnel actif' };
-    if (vpnStatus === 'degraded') return { variant: 'warning', text: 'Signal faible - dernier heartbeat il y a plus de 2 min' };
-    if (vpnStatus === 'offline')  return { variant: 'danger',  text: 'Tunnel hors ligne - aucun heartbeat depuis plus de 5 min' };
-    return { variant: 'warning', text: 'Statut inconnu - le serveur local n\'a pas encore envoye de heartbeat' };
+    if (vpnStatus === 'active')   return { variant: 'success', text: 'Connexion etablie — le serveur local est joignable' };
+    if (vpnStatus === 'degraded') return { variant: 'warning', text: 'Signal instable — dernier contact il y a plus de 2 minutes' };
+    if (vpnStatus === 'offline')  return { variant: 'danger',  text: 'Connexion interrompue — aucun contact depuis plus de 5 minutes' };
+    return { variant: 'warning', text: 'En attente de connexion — le serveur local n\'a pas encore envoye de signal' };
   }
 
   function lastSeenLabel() {
@@ -69,9 +83,9 @@ export default function OrgVpnPage() {
       {vpnData && (
         <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 20 }}>
           {[
-            { label: 'Statut VPN',         value: vpnStatus,       accentColor: vpnStatus === 'active' ? 'var(--color-success-green)' : 'var(--color-alert-red)' },
-            { label: 'Statut organisation', value: orgStatus,       accentColor: 'var(--color-text-secondary)' },
-            { label: 'Dernier heartbeat',   value: lastSeenLabel(), accentColor: 'var(--color-text-secondary)' },
+            { label: 'Statut VPN',         value: VPN_STATUS_LABELS[vpnStatus] || vpnStatus, accentColor: vpnStatus === 'active' ? 'var(--color-success-green)' : vpnStatus === 'degraded' ? 'var(--color-warning-amber)' : 'var(--color-alert-red)' },
+            { label: 'Statut organisation', value: ORG_STATUS_LABELS[orgStatus] || orgStatus, accentColor: orgStatus === 'active' ? 'var(--color-success-green)' : 'var(--color-text-secondary)' },
+            { label: 'Dernier contact',     value: lastSeenLabel(), accentColor: 'var(--color-text-secondary)' },
           ].map((s) => (
             <div key={s.label} style={{
               flex: 1, minWidth: 160,
