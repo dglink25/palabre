@@ -102,6 +102,8 @@ export default function Layout() {
         <>
           <SideSection label="Organisation" />
           {orgItems.map(i => <SideNavItem key={i.to} to={i.to} iconKey={i.key} label={i.label} end={i.end} />)}
+          <SideSection label="Communication" />
+          {memberItems.map(i => <SideNavItem key={i.to} to={i.to} iconKey={i.key} label={i.label} end={i.end} />)}
         </>
       )}
       {isMember && (

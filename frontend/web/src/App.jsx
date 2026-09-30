@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Layout from './components/Layout';
 import PublicLayout from './components/PublicLayout';
-import { ProtectedRoute, SuperAdminRoute, OrgAdminRoute, MemberRoute } from './components/RouteGuards';
+import { ProtectedRoute, SuperAdminRoute, OrgAdminRoute, MemberRoute, OrgMemberOrAdminRoute } from './components/RouteGuards';
 import StepUpConfirmModal from './components/StepUpConfirmModal';
 import CookieBanner from './components/CookieBanner';
 
@@ -72,7 +72,7 @@ export default function App() {
             <Route path="/admin/installation"       element={<InstallationGuidePage />} />
           </Route>
 
-          {/* Administrateur d'organisation */}
+          {/* Administrateur d'organisation — gestion org uniquement */}
           <Route element={<OrgAdminRoute><Layout /></OrgAdminRoute>}>
             <Route path="/org/dashboard" element={<OrgDashboardPage />} />
             <Route path="/org/vpn"       element={<OrgVpnPage />} />
@@ -86,8 +86,8 @@ export default function App() {
             <Route path="/org/join" element={<OrgJoinPage />} />
           </Route>
 
-          {/* ── Espace membre (utilisateur standard lié à une org) ── */}
-          <Route element={<MemberRoute><Layout /></MemberRoute>}>
+          {/* ── Espace communication (membres ET org_admins) ── */}
+          <Route element={<OrgMemberOrAdminRoute><Layout /></OrgMemberOrAdminRoute>}>
             <Route path="/app"                            element={<UserDashboardPage />} />
             <Route path="/app/conversations"              element={<ConversationsListPage />} />
             <Route path="/app/conversations/new"          element={<NewConversationPage />} />

@@ -118,7 +118,7 @@ export default function AdminActivationPage() {
       }, { auth: false });
       applySession(session);
       if (session.user?.isSuperAdmin) navigate('/admin');
-      else if (session.user?.orgId) navigate('/org/dashboard');
+      else if (session.user?.orgId && (session.user?.role === 'org_admin' || session.user?.role === null)) navigate('/org/dashboard'); else if (session.user?.orgId) navigate('/app');
       else navigate('/profile');
     } catch (e) { setError(friendlyMessage(e)); setBusy(false); }
   }
@@ -137,7 +137,7 @@ export default function AdminActivationPage() {
       }, { auth: false });
       applySession(session);
       if (session.user?.isSuperAdmin) navigate('/admin');
-      else if (session.user?.orgId) navigate('/org/dashboard');
+      else if (session.user?.orgId && (session.user?.role === 'org_admin' || session.user?.role === null)) navigate('/org/dashboard'); else if (session.user?.orgId) navigate('/app');
       else navigate('/profile');
     } catch (e) { setError(friendlyMessage(e)); } finally { setBusy(false); }
   }

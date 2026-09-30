@@ -562,8 +562,8 @@ router.post('/admin/requests/:id/send-guide', requireAuth, requireSuperAdmin, as
         <ol style="margin:0 0 16px 0; padding-left:20px; line-height:2; color:#202124;">
           <li>Preparez un serveur Ubuntu 22.04+ ou Debian 12 (4 vCPU, 8 Go RAM minimum)</li>
           <li>Installez Docker : <code>curl -fsSL https://get.docker.com | sh</code></li>
-          <li>Telechargez le paquet tenant Palabre fourni dans votre espace</li>
-          <li>Scannez le QR code de provisioning depuis votre application mobile ou votre navigateur</li>
+          <li>Telechargez le paquet tenant : <code>git clone --filter=blob:none --sparse git@github.com:dglink25/palabre.git palabre-tenant &amp;&amp; cd palabre-tenant &amp;&amp; git sparse-checkout set tenant services coturn &amp;&amp; cd tenant</code></li>
+          <li>Lancez l'installation interactive : <code>chmod +x setup.sh &amp;&amp; ./setup.sh</code></li>
           <li>Verifiez le statut du tunnel dans votre tableau de bord</li>
         </ol>
         ${button({ url: guideUrl, label: 'Consulter le guide complet', accent: 'primary' })}

@@ -25,9 +25,11 @@ Le tenant est une stack Docker complète qui :
 ## Installation
 
 ```bash
-# Cloner ce dépôt
-git clone <url-du-tenant> palabre-tenant
+# Cloner le depot Palabre (uniquement le dossier tenant + services)
+git clone --filter=blob:none --sparse git@github.com:dglink25/palabre.git palabre-tenant
 cd palabre-tenant
+git sparse-checkout set tenant services coturn
+cd tenant
 
 # Lancer l'installation interactive
 chmod +x setup.sh

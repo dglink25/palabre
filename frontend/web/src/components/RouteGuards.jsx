@@ -37,7 +37,20 @@ export function MemberRoute({ children }) {
   if (!user) return <Navigate to="/login" replace />;
   if (user.isSuperAdmin) return <Navigate to="/admin" replace />;
   if (!user.orgId) return <Navigate to="/org/join" replace />;
-  // org_admin a son propre espace
-  if (user.role === 'org_admin') return <Navigate to="/org/dashboard" replace />;
+  // org_admin redirigé vers /app (il a aussi accès aux communications)
+  // Ne pas rediriger vers /org/dashboard depuis ici — laisser passer
+  return children;
+}
+
+/**
+ * OrgMemberOrAdminRoute — accepte tout utilisateur avec orgId
+ * (membres ET org_admins). Utilisé pour les routes /app/*.
+ */
+export function OrgMemberOrAdminRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="centered-page"><Spinner /></div>;
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.isSuperAdmin) return <Navigate to="/admin" replace />;
+  if (!user.orgId) return <Navigate to="/org/join" replace />;
   return children;
 }
