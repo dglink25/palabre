@@ -1,10 +1,10 @@
 import Config
 
+# Valeurs statiques compilées — PAS de System.get_env ici.
+# Toutes les variables d'environnement sont lues dans runtime.exs au démarrage.
+
 config :presence,
-  http_port: String.to_integer(System.get_env("PRESENCE_HTTP_PORT", "4010")),
-  internal_secret: System.get_env("INTERNAL_SERVICES_SECRET", "dev_internal_secret"),
-  # Bandit comme adaptateur HTTP (pas de cowboy/cowlib)
-  http_adapter: {Bandit, port: String.to_integer(System.get_env("PRESENCE_HTTP_PORT", "4010"))}
+  http_port: 4010
 
 config :logger,
   level: :info,

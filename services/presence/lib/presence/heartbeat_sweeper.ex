@@ -42,15 +42,15 @@ defmodule Presence.Heartbeat.Sweeper do
   defp sweep do
     threshold = DateTime.add(DateTime.utc_now(), -@zombie_threshold_seconds, :second)
 
-    # Lecture ETS directe — pas de GenServer call
+    # Lire toutes les entrées ETS et filtrer en Elixir — plus simple et portable
+    # que les match specs ETS qui ne supportent pas :map_get sur des maps Elixir
     zombies =
-      :ets.select(:presence_ets, [
-        {{{:_, :_}, :"$1"},
-         # En ligne mais pas vu depuis > threshold
-         [{:==, {:map_get, :status, :"$1"}, :online},
-          {:<, {:map_get, :last_seen_at, :"$1"}, threshold}],
-         [:"$1"]}
-      ])
+      :ets.tab2list(:presence_ets)
+      |> Enum.map(fn {_key, entry} -> entry end)
+      |> Enum.filter(fn entry ->
+        entry.status == :online and
+          DateTime.compare(entry.last_seen_at, threshold) == :lt
+      end)
 
     if length(zombies) > 0 do
       Logger.warning("[Sweeper] #{length(zombies)} connexion(s) zombie détectée(s)")

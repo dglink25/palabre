@@ -1,5 +1,7 @@
 import Config
 
+# Toutes les variables d'environnement sont lues ICI au démarrage du release.
+
 config :message_router, MessageRouter.Repo,
   url:       System.get_env("DATABASE_URL", "postgres://palabre:palabre@localhost:5432/palabre"),
   pool_size: String.to_integer(System.get_env("DB_POOL_SIZE", "10"))
@@ -7,7 +9,6 @@ config :message_router, MessageRouter.Repo,
 config :message_router, MessageRouter.Endpoint,
   url:             [host: System.get_env("PUBLIC_HOST", "localhost")],
   http:            [port: String.to_integer(System.get_env("MESSAGE_ROUTER_PORT", "4020"))],
-  server:          true,
   secret_key_base: System.get_env("PHOENIX_SECRET_KEY_BASE",
     "palabre_dev_secret_key_base_change_in_prod_must_be_64_chars_minimum_xxxxx")
 

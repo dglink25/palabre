@@ -11,7 +11,7 @@ MIN_PORT="${TURN_MIN_PORT:-49152}"
 MAX_PORT="${TURN_MAX_PORT:-65535}"
 VERBOSE="${TURN_VERBOSE:-0}"
 
-cat > /etc/coturn/turnserver.conf <<EOF
+cat > /tmp/turnserver.conf <<EOF
 # ── Réseau ──────────────────────────────────────────────────────────────────
 listening-port=3478
 tls-listening-port=5349
@@ -48,4 +48,4 @@ log-file=stdout
 EOF
 
 echo "[coturn] Démarrage du serveur TURN — realm=${TURN_REALM}, ports ${MIN_PORT}-${MAX_PORT}"
-exec turnserver -c /etc/coturn/turnserver.conf
+exec turnserver -c /tmp/turnserver.conf

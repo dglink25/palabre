@@ -16,7 +16,8 @@ defmodule MessageRouter.HTTP.Router do
       status: "ok",
       service: "message-router",
       node: node(),
-      connections: Phoenix.PubSub.list_topics(MessageRouter.PubSub) |> length()
+      connections: Registry.count(MessageRouter.PubSub)
+      
     })
   end
 

@@ -47,20 +47,17 @@ defmodule Presence.ETS.Manager do
   end
 
   def get_all_devices(user_id) do
-    # Sélection par pattern matching — O(N) sur les appareils du user uniquement
-    pattern = {{{user_id, :_}, :"$1"}}
-    results = :ets.match(@table, pattern)
-    Enum.map(results, fn [entry] -> entry end)
+    :ets.tab2list(@table)
+    |> Enum.filter(fn {{uid, _did}, _entry} -> uid == user_id end)
+    |> Enum.map(fn {_key, entry} -> entry end)
   end
 
   def get_org_online(org_id) do
-    # Tous les membres d'une organisation actuellement en ligne
-    :ets.select(@table, [
-      {{{:_, :_}, :"$1"},
-       [{:==, {:map_get, :org_id, :"$1"}, org_id},
-        {:==, {:map_get, :status, :"$1"}, :online}],
-       [:"$1"]}
-    ])
+    :ets.tab2list(@table)
+    |> Enum.filter(fn {_key, entry} ->
+      entry.org_id == org_id and entry.status == :online
+    end)
+    |> Enum.map(fn {_key, entry} -> entry end)
   end
 
   def delete(user_id, device_id) do
@@ -68,10 +65,7 @@ defmodule Presence.ETS.Manager do
   end
 
   def count_online do
-    :ets.select_count(@table, [
-      {{{:_, :_}, :"$1"},
-       [{:==, {:map_get, :status, :"$1"}, :online}],
-       [true]}
-    ])
+    :ets.tab2list(@table)
+    |> Enum.count(fn {_key, entry} -> entry.status == :online end)
   end
 end

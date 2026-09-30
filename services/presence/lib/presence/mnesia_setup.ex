@@ -47,12 +47,7 @@ defmodule Presence.Mnesia.Setup do
   Crée le schéma Mnesia et les tables si elles n'existent pas.
   """
   def ensure_schema do
-    case :mnesia.create_schema([node()]) do
-      :ok -> :ok
-      {:error, {_, {:already_exists, _}}} -> :ok
-      err -> raise "Mnesia schema creation failed: #{inspect(err)}"
-    end
-
+    # Démarrer Mnesia sans schéma disc — ram_copies suffit pour les conteneurs Docker
     :mnesia.start()
 
     case :mnesia.create_table(@table,
@@ -66,7 +61,9 @@ defmodule Presence.Mnesia.Setup do
              :last_seen_at,
              :platform
            ],
-           disc_copies: [node()],
+           # ram_copies : données en mémoire — plus simple en conteneur Docker
+           # (disc_copies nécessite un répertoire Mnesia persistant configuré au niveau du schéma)
+           ram_copies: [node()],
            # Index secondaire sur org_id pour lister tous les membres d'une org
            index: [:org_id, :status],
            type: :set

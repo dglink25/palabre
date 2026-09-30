@@ -7,6 +7,11 @@ defmodule CallSignal.MixProject do
       version: "0.1.0",
       elixir: "~> 1.16",
       start_permanent: Mix.env() == :prod,
+      releases: [
+        call_signal: [
+          validate_compile_env: false
+        ]
+      ],
       deps: deps()
     ]
   end

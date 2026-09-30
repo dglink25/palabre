@@ -18,9 +18,9 @@ RUN MIX_ENV=prod mix compile
 RUN MIX_ENV=prod mix release
 
 # ── Image finale légère ──────────────────────────────────────────────────────
-FROM alpine:3.19
+FROM alpine:3.24
 
-RUN apk add --no-cache libstdc++ openssl ncurses-libs
+RUN apk add --no-cache libstdc++ openssl ncurses-libs wget
 
 WORKDIR /app
 COPY --from=builder /app/_build/prod/rel/message_router ./
