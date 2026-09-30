@@ -173,35 +173,20 @@ docker compose version`} />
       <StepCard n={3} icon={ICO.download} color="var(--color-success-green)"
         title="Telechargez et configurez le paquet tenant Palabre"
         desc="Vous avez recu le lien de telechargement par e-mail et WhatsApp lors de l'approbation de votre dossier.">
-        <CopyBlock label="Telechargement et demarrage" code={`# Telechargez le paquet desde le lien recu par e-mail
-# Exemple avec wget :
-wget -O palabre-tenant.zip "LIEN_RECU_PAR_EMAIL"
+        <CopyBlock label="Cloner le depot tenant" code={`# Cloner le depot tenant Palabre
+git clone https://github.com/palabre/palabre-tenant.git palabre-tenant
+cd palabre-tenant`} />
+        <CopyBlock label="Lancer l'installation interactive" code={`# Rendre le script executable et lancer l'installation
+chmod +x setup.sh
+./setup.sh
 
-# Decompresser
-unzip palabre-tenant.zip
-cd palabre-tenant
-
-# Copier la configuration
-cp .env.example .env
-
-# Editer la configuration (remplacez les valeurs)
-nano .env`} />
-        <CopyBlock label="Variables .env a renseigner" code={`# Identifiant de votre organisation (copier depuis ci-dessus)
-ORG_ID=${orgId || 'VOTRE_ID_ORGANISATION'}
-
-# URL du serveur central Palabre
-PALABRE_API_URL=https://api.palabre.app
-
-# Port d'ecoute de l'agent (ne pas changer sauf conflit)
-AGENT_PORT=8080`} />
-        <CopyBlock label="Demarrage du tenant" code={`# Demarrer tous les services
-docker compose up -d
-
-# Verifier que tout est en cours d'execution
-docker compose ps
-
-# Voir les logs en direct
-docker compose logs -f`} />
+# Le script va vous demander :
+#   1. Identifiant organisation : ${orgId || 'VOTRE_ORG_ID'}
+#   2. Token de controle         : (dans le QR code recu par e-mail)
+#   3. Cle privee WireGuard      : (dans le QR code)
+#   4. Cle publique WireGuard    : (dans le QR code)
+#   5. URL du serveur central    : https://api.palabre.app (par defaut)
+# Il genere automatiquement le .env et demarre tous les services`} />
       </StepCard>
 
       <StepCard n={4} icon={ICO.qr} color="var(--color-warning-amber)"

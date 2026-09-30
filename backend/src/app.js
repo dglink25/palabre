@@ -16,6 +16,8 @@ const signalRoutes = require('./modules/messaging/signal.routes');
 const turnRoutes   = require('./modules/calls/turn.routes');
 const orgRoutes    = require('./modules/org/org.routes');
 
+const tenantRoutes = require('./modules/tenant/tenant.routes');
+
 const app = express();
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
@@ -47,6 +49,8 @@ app.use('/api/v1/onboarding', onboardingRoutes);
 app.use('/api/v1/messaging/signal', signalRoutes);
 app.use('/api/v1/calls', turnRoutes);
 app.use('/api/v1/org', orgRoutes);
+// Routes internes multi-tenant (appelées uniquement par les agents tenant)
+app.use('/api/v1/internal', tenantRoutes);
 
 // --- 404 ---
 app.use((req, res) => {

@@ -1,0 +1,19 @@
+{
+  "name": "palabre-tenant-agent",
+  "version": "1.0.0",
+  "description": "Agent de liaison Palabre — gere le tunnel WireGuard, les heartbeats et la synchronisation avec le serveur central.",
+  "main": "src/agent.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/agent.js",
+    "dev": "nodemon src/agent.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "dotenv": "^16.4.5",
+    "ws": "^8.17.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

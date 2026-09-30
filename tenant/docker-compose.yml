@@ -1,0 +1,235 @@
+name: palabre-tenant
+
+# =============================================================================
+# PALABRE TENANT — Stack complète
+#
+# Démarrage :
+#   ./setup.sh          (installation interactive avec configuration)
+#   docker compose up -d  (si déjà configuré)
+#
+# Tous les services sont identiques à ceux du serveur central mais
+# configurés pour fonctionner en mode autonome et en liaison avec le central.
+#
+# Services :
+#   postgres        — base de données locale des messages
+#   redis           — pub/sub et files de messages hors-ligne
+#   presence        — présence intra-réseau local
+#   message-router  — WebSocket E2E local (mode dégradé si tunnel down)
+#   file-server     — stockage médias chiffrés
+#   call-signal     — signaling WebRTC local
+#   coturn          — STUN/TURN local pour les appels intra-réseau
+#   agent           — liaison WireGuard + heartbeat + sync central
+# =============================================================================
+
+services:
+
+  # ── Base de données locale ─────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: palabre-tenant-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-palabre}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?'Définissez POSTGRES_PASSWORD dans .env'}
+      POSTGRES_DB: ${POSTGRES_DB:-palabre_tenant}
+    volumes:
+      - tenant_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5433:5432"     # Uniquement en local — ne pas exposer publiquement
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-palabre}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Redis ──────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: palabre-tenant-redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── Service de présence (Erlang/OTP) ──────────────────────────────────────
+  presence:
+    build:
+      context: ../services/presence
+      dockerfile: Dockerfile
+    container_name: palabre-tenant-presence
+    restart: unless-stopped
+    environment:
+      PRESENCE_HTTP_PORT: "4010"
+      INTERNAL_SERVICES_SECRET: ${INTERNAL_SERVICES_SECRET}
+      RELEASE_COOKIE: ${ERLANG_COOKIE}
+    ports:
+      - "127.0.0.1:4010:4010"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4010/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 8
+      start_period: 20s
+    volumes:
+      - tenant_mnesia_data:/app/data
+
+  # ── Message Router (Phoenix WebSocket) ────────────────────────────────────
+  # En mode dégradé (tunnel down), ce service continue à router les messages
+  # entre les utilisateurs du réseau local. Il notifie l'agent des messages
+  # sortants vers des utilisateurs externes.
+  message-router:
+    build:
+      context: ../services/message-router
+      dockerfile: Dockerfile
+    container_name: palabre-tenant-message-router
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      PRESENCE_SERVICE_URL: http://presence:4010
+      INTERNAL_SERVICES_SECRET: ${INTERNAL_SERVICES_SECRET}
+      MESSAGE_ROUTER_PORT: "4020"
+      PUBLIC_HOST: ${PUBLIC_HOST:-localhost}
+      PHOENIX_SECRET_KEY_BASE: ${PHOENIX_SECRET_KEY_BASE}
+      RELEASE_COOKIE: ${ERLANG_COOKIE}
+      # URL de l'agent pour relai des messages sortants vers utilisateurs externes
+      TENANT_AGENT_URL: http://agent:8080
+      # Mode réseau : 'local_only' si tunnel down, 'full' si tunnel up
+      INITIAL_NETWORK_MODE: "full"
+    ports:
+      - "4020:4020"               # Exposé — les clients se connectent ici
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      presence:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4020/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ── File Server ───────────────────────────────────────────────────────────
+  file-server:
+    build:
+      context: ../services/file-server
+      dockerfile: Dockerfile
+    container_name: palabre-tenant-file-server
+    restart: unless-stopped
+    environment:
+      FILE_SERVER_PORT: "4030"
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      FILE_SERVER_PUBLIC_URL: ${FILE_SERVER_PUBLIC_URL:-http://localhost:4030}
+      ALLOWED_ORIGINS: "*"
+    ports:
+      - "4030:4030"
+    volumes:
+      - tenant_media_storage:/data/storage
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4030/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  # ── Call Signal (signaling WebRTC) ────────────────────────────────────────
+  call-signal:
+    build:
+      context: ../services/call-signal
+      dockerfile: Dockerfile
+    container_name: palabre-tenant-call-signal
+    restart: unless-stopped
+    environment:
+      CALL_SIGNAL_PORT: "4040"
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      INTERNAL_SERVICES_SECRET: ${INTERNAL_SERVICES_SECRET}
+      PUBLIC_HOST: ${PUBLIC_HOST:-localhost}
+      PHOENIX_SECRET_KEY_BASE: ${PHOENIX_SECRET_KEY_BASE}
+      RELEASE_COOKIE: ${ERLANG_COOKIE}
+      MESSAGE_ROUTER_URL: http://message-router:4020
+      TENANT_AGENT_URL: http://agent:8080
+    ports:
+      - "4040:4040"
+    depends_on:
+      message-router:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4040/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  # ── Coturn STUN/TURN local ────────────────────────────────────────────────
+  coturn:
+    build:
+      context: ../coturn
+      dockerfile: Dockerfile
+    container_name: palabre-tenant-coturn
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      TURN_REALM: ${TURN_REALM:-local.palabre.app}
+      TURN_SECRET: ${TURN_SECRET}
+      TURN_EXTERNAL_IP: ${TURN_EXTERNAL_IP:-}
+      TURN_MIN_PORT: "49152"
+      TURN_MAX_PORT: "65535"
+      TURN_VERBOSE: "0"
+    volumes:
+      - tenant_coturn_data:/var/lib/coturn
+
+  # ── Agent de liaison (WireGuard + Heartbeat + Sync) ───────────────────────
+  # C'est le cœur du multi-tenant : maintient le tunnel vers le central,
+  # envoie les heartbeats, route les messages inter-organisations,
+  # et gère la file de messages hors-ligne.
+  agent:
+    build:
+      context: ./agent
+      dockerfile: Dockerfile
+    container_name: palabre-tenant-agent
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN    # Requis pour configurer WireGuard
+      - SYS_MODULE   # Requis pour charger le module WireGuard
+    sysctls:
+      - net.ipv4.ip_forward=1
+    environment:
+      ORG_ID: ${ORG_ID:?'ORG_ID obligatoire'}
+      ORG_NAME: ${ORG_NAME:-Palabre Tenant}
+      CONTROL_TOKEN: ${CONTROL_TOKEN:?'CONTROL_TOKEN obligatoire'}
+      CENTRAL_API_URL: ${CENTRAL_API_URL:-https://api.palabre.app}
+      CENTRAL_WS_URL: ${CENTRAL_WS_URL:-wss://ws.palabre.app}
+      WG_PRIVATE_KEY: ${WG_PRIVATE_KEY}
+      WG_PUBLIC_KEY: ${WG_PUBLIC_KEY}
+      INTERNAL_SERVICES_SECRET: ${INTERNAL_SERVICES_SECRET}
+      LOCAL_MESSAGE_ROUTER_URL: http://message-router:4020
+      LOCAL_CALL_SIGNAL_URL: http://call-signal:4040
+      AGENT_PORT: "8080"
+      HEARTBEAT_INTERVAL_MS: "30000"
+    ports:
+      - "127.0.0.1:8080:8080"     # API interne uniquement
+    volumes:
+      - tenant_agent_data:/data    # Persistance de la file hors-ligne
+    depends_on:
+      message-router:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+
+# ── Volumes persistants ────────────────────────────────────────────────────────
+volumes:
+  tenant_postgres_data:
+  tenant_mnesia_data:
+  tenant_media_storage:
+  tenant_coturn_data:
+  tenant_agent_data:

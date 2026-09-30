@@ -3,13 +3,23 @@ defmodule MessageRouter.Router do
   Routeur central des messages.
 
   Décide pour chaque message :
-  - Si le destinataire est en ligne → livraison directe via son Channel
-  - Si hors ligne → enqueue dans Redis
+  - Si le destinataire est dans le réseau local ET en ligne → livraison directe
+  - Si le destinataire est dans le réseau local ET hors ligne → enqueue Redis
+  - Si le destinataire est EXTERNE au réseau local → relai vers l'agent tenant
   - Gère les accusés de livraison et de lecture
-  - Pour les groupes → broadcast + enqueue pour les membres hors ligne
 
   Le contenu (ciphertext) n'est JAMAIS inspecté ici.
   Le Router ne voit que les métadonnées de routage.
+
+  ## Multi-tenant
+
+  Ce message-router tourne soit sur :
+  - Le serveur central : gère tous les utilisateurs de toutes les organisations
+  - Un tenant local   : gère les utilisateurs d'une seule organisation en local
+
+  Sur un tenant local, si le destinataire n'est pas dans l'org locale,
+  le message est relayé vers l'agent tenant qui le transmet au central.
+  Si le tunnel est down, le message est mis en file dans l'agent.
   """
 
   alias MessageRouter.{Queue, Repo, PresenceClient}
@@ -17,24 +27,33 @@ defmodule MessageRouter.Router do
 
   @pubsub MessageRouter.PubSub
 
+  # Mode tenant : ORG_ID défini = on est sur un tenant local
+  @tenant_org_id System.get_env("ORG_ID")
+  @tenant_agent_url System.get_env("TENANT_AGENT_URL", "http://agent:8080")
+  @internal_secret System.get_env("INTERNAL_SERVICES_SECRET", "dev_internal_secret")
+
   # ─── Routage d'un message direct (1:1) ───────────────────────────────────────
 
   @doc """
   Route un message vers son destinataire.
-  Retourne :delivered | :queued | {:error, reason}
+  Retourne :delivered | :queued | :relayed | {:error, reason}
   """
   def route(msg) do
-    # Persister d'abord (idempotence — si le serveur crash après persist mais
-    # avant livraison, le Queue.Worker relivrera au redémarrage)
-    with :ok <- Repo.persist_message(msg) do
-      deliver_or_queue(msg)
+    # Si on est sur un tenant local, vérifier si le destinataire est local ou externe
+    if @tenant_org_id && msg.org_id != @tenant_org_id do
+      # Destinataire dans une autre organisation → relayer via l'agent
+      relay_to_agent(msg)
+    else
+      # Routage normal (central ou même org)
+      with :ok <- Repo.persist_message(msg) do
+        deliver_or_queue(msg)
+      end
     end
   end
 
   defp deliver_or_queue(msg) do
     case PresenceClient.get_status(msg.to) do
       {:ok, :online} ->
-        # Pousser directement dans le Channel du destinataire via PubSub
         PubSub.broadcast(@pubsub, "user:#{msg.to}", {:incoming_message, msg})
         :delivered
 
@@ -43,13 +62,42 @@ defmodule MessageRouter.Router do
         :queued
 
       {:ok, :unknown} ->
-        # Utilisateur inconnu du service de présence (jamais connecté)
-        # On met quand même en file — il recevra au premier login
+        # Sur un tenant : l'utilisateur pourrait être externe
+        if @tenant_org_id do
+          relay_to_agent(msg)
+        else
+          Queue.push(msg.to, msg)
+          :queued
+        end
+
+      {:error, _} ->
+        Queue.push(msg.to, msg)
+        :queued
+    end
+  end
+
+  # ─── Relai vers l'agent tenant (pour les utilisateurs externes) ───────────────
+
+  defp relay_to_agent(msg) do
+    require Logger
+    case Req.post(
+      "#{@tenant_agent_url}/outbound/message",
+      json: msg,
+      headers: [{"x-internal-secret", @internal_secret}],
+      receive_timeout: 8_000
+    ) do
+      {:ok, %{status: s}} when s in [200, 202] ->
+        Logger.debug("[Router] Message #{msg.id} relaye vers l'agent tenant")
+        :relayed
+
+      {:ok, %{status: s, body: body}} ->
+        Logger.warning("[Router] Agent retourne #{s} pour message #{msg.id}: #{inspect(body)}")
+        # Fallback sur la file locale
         Queue.push(msg.to, msg)
         :queued
 
-      {:error, _} ->
-        # Service de présence indisponible → fallback sur la file
+      {:error, reason} ->
+        Logger.warning("[Router] Agent inaccessible (#{inspect(reason)}) — message #{msg.id} mis en file locale")
         Queue.push(msg.to, msg)
         :queued
     end

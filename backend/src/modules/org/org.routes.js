@@ -346,12 +346,29 @@ router.post('/tenants/heartbeat', tenantLimiter, async (req, res, next) => {
 
     const org = rows[0];
 
-    // Enregistrer le heartbeat
+    // Enregistrer le heartbeat + URL de l'agent si fournie
+    const agentUrl = req.body.agentUrl || null;
+    const agentVersion = req.body.agentVersion || null;
     await pool.query(
-      `INSERT INTO heartbeat_logs (organization_id, status_reported, received_at)
-       VALUES ($1, $2, now())`,
-      [tenantId, org.org_status]
+      `INSERT INTO heartbeat_logs (organization_id, status_reported, received_at, agent_url, agent_version)
+       VALUES ($1, $2, now(), $3, $4)`,
+      [tenantId, org.org_status, agentUrl, agentVersion]
     );
+
+    // Mettre à jour la table tenant_agents avec l'URL publique si fournie
+    if (agentUrl) {
+      await pool.query(
+        `INSERT INTO tenant_agents (organization_id, agent_url, agent_version, last_seen_at, status)
+         VALUES ($1, $2, $3, now(), 'active')
+         ON CONFLICT (organization_id)
+         DO UPDATE SET agent_url = EXCLUDED.agent_url,
+                       agent_version = EXCLUDED.agent_version,
+                       last_seen_at = now(),
+                       status = 'active',
+                       updated_at = now()`,
+        [tenantId, agentUrl, agentVersion]
+      );
+    }
 
     // Retourner le statut officiel — l'agent tenant applique ce statut localement
     res.json({
