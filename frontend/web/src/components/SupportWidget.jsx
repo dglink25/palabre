@@ -70,8 +70,8 @@ export default function SupportWidget() {
       title={`Service client — ${dot.title}`}
       style={{
         position: 'fixed',
-        bottom: 24,
-        right: 24,
+        bottom: 28,
+        right: 88,   // décalé à gauche du ScrollButton (28 + 48 + 12 = 88)
         zIndex: 500,
         display: 'flex',
         alignItems: 'center',
