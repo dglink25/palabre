@@ -8,9 +8,9 @@ import '../../features/support/presentation/widgets/support_widget.dart';
 
 // ── Horloge temps réel ────────────────────────────────────────────────────────
 // Format : 1ER OCTOBRE 2026  23H:40
+// Affiche l'heure locale de l'appareil (le fuseau est configuré dans le profil).
 class _RealtimeClock extends StatefulWidget {
-  const _RealtimeClock({this.timezone});
-  final String? timezone;
+  const _RealtimeClock();
 
   @override
   State<_RealtimeClock> createState() => _RealtimeClockState();
@@ -41,7 +41,7 @@ class _RealtimeClockState extends State<_RealtimeClock> {
   @override
   void didUpdateWidget(_RealtimeClock old) {
     super.didUpdateWidget(old);
-    if (old.timezone != widget.timezone) _tick();
+    _tick();
   }
 
   @override
@@ -51,15 +51,10 @@ class _RealtimeClockState extends State<_RealtimeClock> {
   }
 
   void _tick() {
-    final now = DateTime.now().toUtc();
-    // Appliquer le décalage du fuseau manuellement (Dart n'a pas de tz database)
-    // Pour une précision exacte en production, utiliser le package timezone.
-    // Ici on utilise l'heure locale de l'appareil, ce qui est correct dans la
-    // plupart des cas (l'appareil est configuré dans le bon fuseau).
     final local = DateTime.now();
-    final d = _ordinals[local.day - 1];
-    final m = _months[local.month - 1];
-    final h = local.hour.toString().padLeft(2, '0');
+    final d   = _ordinals[local.day - 1];
+    final m   = _months[local.month - 1];
+    final h   = local.hour.toString().padLeft(2, '0');
     final min = local.minute.toString().padLeft(2, '0');
     if (mounted) setState(() => _display = '$d $m ${local.year}  ${h}H:$min');
   }
