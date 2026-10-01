@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../theme/app_theme.dart';
 import '../widgets/network_mode_indicator.dart';
+import '../../features/support/presentation/widgets/support_widget.dart';
 
 /// Shell principal — barre de navigation 6 onglets.
 /// Accueil | Discussions | Vidéo | Appels | Contacts | Profil
@@ -28,6 +29,8 @@ class ShellPage extends StatelessWidget {
 
     return Scaffold(
       body: child,
+      floatingActionButton: const SupportWidget(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: _BottomBar(
         selectedIndex: selectedIndex,
         onTap: (i) {

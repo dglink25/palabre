@@ -79,6 +79,9 @@ dependencies:
   # ── Connectivité ─────────────────────────────────────────────────────────
   connectivity_plus: ^6.0.3
 
+  # ── WebSocket natif (service client support) ────────────────────────────
+  web_socket_channel: ^2.4.5
+
   # ── UUID ─────────────────────────────────────────────────────────────────
   uuid: ^4.4.0
 

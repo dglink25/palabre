@@ -8,17 +8,6 @@ import '../storage/secure_storage.dart';
 /// Modes de connexion possibles.
 enum ConnectionMode { direct, relay, unavailable }
 
-/// NetworkDetector — détection automatique et basculement LAN ↔ relais.
-///
-/// Architecture :
-///   Le Tenant_Server fait tourner un DNS local (dnsmasq) qui résout
-///   {org}.palabre.com → IP locale sur le réseau interne.
-///   Quand l'appareil est sur le LAN, la probe vers ce FQDN réussit → Direct_Mode.
-///   Hors réseau, le DNS local est inaccessible → timeout → Relay_Mode.
-///
-/// - Direct_Mode  : l'URL base pointe vers le Tenant_Server local.
-/// - Relay_Mode   : l'URL base pointe vers le serveur central Palabre.
-/// - unavailable  : ni l'un ni l'autre ne répond.
 
 final networkDetectorProvider = Provider<NetworkDetector>((ref) {
   final detector = NetworkDetector(ref.read(secureStorageProvider));

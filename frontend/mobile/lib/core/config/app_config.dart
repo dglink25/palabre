@@ -22,6 +22,12 @@ class AppConfig {
     defaultValue: 'ws://10.0.2.2:4040/signal/websocket',
   );
 
+  // ── Support WebSocket (Central_Server uniquement) ────────────────────────
+  static const String wsBaseUrl = String.fromEnvironment(
+    'WS_BASE_URL',
+    defaultValue: 'ws://10.0.2.2:4001',
+  );
+
   // ── File Server ──────────────────────────────────────────────────────────
   static const String fileServerUrl = String.fromEnvironment(
     'FILE_SERVER_URL',

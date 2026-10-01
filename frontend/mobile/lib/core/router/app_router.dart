@@ -22,6 +22,8 @@ import '../../features/org/presentation/pages/org_dashboard_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/videoconference/presentation/pages/video_conference_page.dart';
 import '../../features/videoconference/presentation/pages/video_room_page.dart';
+import '../../features/support/presentation/pages/support_page.dart';
+import '../../features/support/presentation/pages/admin_support_page.dart';
 import '../providers/auth_provider.dart';
 import 'shell_page.dart';
 
@@ -109,6 +111,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           roomId: s.pathParameters['roomId']!,
           extra: s.extra as Map<String, dynamic>?,
         ),
+      ),
+
+      // ── Service client (plein écran, hors shell) ─────────────────────────
+      GoRoute(
+        path: '/support',
+        builder: (_, __) => const SupportPage(),
+      ),
+
+      // ── Dashboard service client super-admin (hors shell) ────────────────
+      GoRoute(
+        path: '/admin/support',
+        builder: (_, __) => const AdminSupportPage(),
       ),
     ],
   );

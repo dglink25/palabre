@@ -41,6 +41,9 @@ import VideoConferencePage from './pages/app/VideoConferencePage';
 import VideoRoomPage from './pages/app/VideoRoomPage';
 import PublicVideoConferencePage from './pages/videoconference/PublicVideoConferencePage';
 import JoinByInvitationPage from './pages/videoconference/JoinByInvitationPage';
+import SupportPage from './pages/support/SupportPage';
+import AdminSupportPage from './pages/admin/AdminSupportPage';
+import SupportWidget from './components/SupportWidget';
 // ── Pont : branche la fonction notify sur le composant Alert legacy ───────────
 function NotifyBridge() {
   const { notify } = useNotification();
@@ -91,6 +94,7 @@ export default function App() {
               <Route path="/admin/onboarding"     element={<RequestsListPage />} />
               <Route path="/admin/onboarding/:id" element={<RequestDetailPage />} />
               <Route path="/admin/installation"   element={<InstallationGuidePage />} />
+              <Route path="/admin/support"        element={<AdminSupportPage />} />
             </Route>
 
             {/* Administrateur d'organisation */}
@@ -125,12 +129,14 @@ export default function App() {
               <Route path="/videoconference"              element={<PublicVideoConferencePage />} />
               <Route path="/videoconference/:roomId"      element={<VideoRoomPage />} />
               <Route path="/join/v/:token"                element={<JoinByInvitationPage />} />
+              <Route path="/support"                      element={<SupportPage />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           <CookieBanner />
           <ScrollButton />
+          <SupportWidget />
         </AuthProvider>
       </NotificationProvider>
     </BrowserRouter>

@@ -20,6 +20,7 @@ const orgRoutes    = require('./modules/org/org.routes');
 const tenantRoutes = require('./modules/tenant/tenant.routes');
 const videoconferenceRoutes = require('./modules/videoconference/videoconference.routes');
 const tenantProvisioningRoutes = require('./modules/tenant-provisioning/tenant-provisioning.routes');
+const supportRoutes = require('./modules/support/support.routes');
 
 const app = express();
 
@@ -64,6 +65,8 @@ app.use('/api/v1/internal', tenantRoutes);
 app.use('/api/v1/videoconference', videoconferenceRoutes);
 // Provisionnement tenant local (DNS + tunnel + heartbeat)
 app.use('/api/v1/tenants', tenantProvisioningRoutes);
+// Service client (support) — Central_Server uniquement
+app.use('/api/v1/support', supportRoutes);
 
 // --- 404 ---
 app.use((req, res) => {
