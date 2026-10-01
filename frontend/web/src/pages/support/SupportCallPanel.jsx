@@ -15,13 +15,15 @@ const PhoneIcon = ({ off = false } = {}) => (
 );
 
 export default function SupportCallPanel({ session, activeCall, setActiveCall, queuePosition, setQueuePosition, onSwitchToChat }) {
-  const [status, setStatus]   = useState(null); // statut du service
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState(null);
-  const audioRef              = useRef(null);   // <audio> pour musique d'attente
-  const peerConnRef           = useRef(null);   // RTCPeerConnection
+  const [status, setStatus]       = useState(null);
+  const [loading, setLoading]     = useState(false);
+  const [error, setError]         = useState(null);
+  const [unavailable, setUnavailable] = useState(false); // affiché seulement après tentative d'appel
+  const audioRef                  = useRef(null);
+  const peerConnRef               = useRef(null);
 
-  // Charger le statut du service
+  // Charger le statut du service — silencieux, sert juste à pré-afficher
+  // le délai estimé dans la file, PAS à bloquer le bouton d'appel.
   useEffect(() => {
     supportApi.getStatus().then(setStatus).catch(() => {});
   }, []);
@@ -80,6 +82,7 @@ export default function SupportCallPanel({ session, activeCall, setActiveCall, q
     if (!session) return;
     setLoading(true);
     setError(null);
+    setUnavailable(false);
     try {
       const result = await supportApi.initiateCall();
       if (result.callId) {
@@ -88,9 +91,11 @@ export default function SupportCallPanel({ session, activeCall, setActiveCall, q
         await _startWebRtc(result.callId);
       }
     } catch (e) {
-      setError(e.message);
-      if (e.code === 'ADMIN_OFFLINE') {
+      if (e.code === 'ADMIN_OFFLINE' || e.code === 'QUEUE_FULL') {
+        setUnavailable(true);
         onSwitchToChat?.();
+      } else {
+        setError(e.message);
       }
     } finally {
       setLoading(false);
@@ -177,8 +182,8 @@ export default function SupportCallPanel({ session, activeCall, setActiveCall, q
         style={{ display: 'none' }}
       />
 
-      {/* Statut du service */}
-      {!activeCall && status && !status.available && (
+      {/* Statut du service — affiché UNIQUEMENT après une tentative d'appel échouée */}
+      {!activeCall && unavailable && (
         <div style={{
           padding: '10px 16px',
           background: '#FFF8E1',
@@ -187,9 +192,21 @@ export default function SupportCallPanel({ session, activeCall, setActiveCall, q
           fontSize: 13,
           color: '#5F6368',
         }}>
-          {status.queueLength > 0
-            ? `${status.queueLength} personne(s) en attente — délai estimé : ~${status.estimatedWaitMinutes} min`
-            : 'Le service vocal est momentanément occupé.'}
+          Le service vocal est momentanément indisponible. Nous vous avons redirigé vers la messagerie.
+        </div>
+      )}
+
+      {/* Info délai estimé quand la file est chargée et que l'admin est disponible */}
+      {!activeCall && !unavailable && status?.available && status?.queueLength > 0 && (
+        <div style={{
+          padding: '8px 14px',
+          background: '#E8F0FE',
+          border: '1px solid #C5D8F8',
+          marginBottom: 20,
+          fontSize: 13,
+          color: '#1A73E8',
+        }}>
+          {status.queueLength} personne(s) en attente — délai estimé : ~{status.estimatedWaitMinutes} min
         </div>
       )}
 

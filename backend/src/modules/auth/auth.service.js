@@ -269,8 +269,10 @@ async function linkFederatedProvider(userId, idToken) {
  * two_factor_passed = false tant que l'étape biométrique n'est pas validée
  * (voir security.service.confirmTwoFactorForSession).
  */
-async function issueSessionForUser({ user, deviceRow, ip, userAgent }) {
-  const twoFactorPassed = !user.two_factor_enabled; // pas de 2FA => déjà "validé"
+async function issueSessionForUser({ user, deviceRow, ip, userAgent, twoFactorPassedOverride = false }) {
+  // Si twoFactorPassedOverride est vrai (ex: connexion par passkey), le 2FA
+  // est considéré comme accompli — le passkey lui-même est le second facteur.
+  const twoFactorPassed = twoFactorPassedOverride || !user.two_factor_enabled;
 
   // Résoudre le rôle de membership si pas encore chargé (login téléphone/fédéré
   // ne fait pas le JOIN roles contrairement à authMiddleware)
@@ -303,7 +305,7 @@ async function issueSessionForUser({ user, deviceRow, ip, userAgent }) {
 
   return {
     user: sanitizeUser(enrichedUser),
-    requiresTwoFactor: enrichedUser.two_factor_enabled,
+    requiresTwoFactor: enrichedUser.two_factor_enabled && !twoFactorPassed,
     session: { id: session.id },
     accessToken,
     refreshToken,

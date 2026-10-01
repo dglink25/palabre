@@ -37,10 +37,7 @@ async function listCredentialsForUser(userId) {
   return rows;
 }
 
-/**
- * Prépare l'enrôlement d'un nouveau passkey pour un utilisateur déjà
- * connecté (Sécurité > Ajouter un passkey).
- */
+
 async function startRegistration(user) {
   const existing = await listCredentialsForUser(user.id);
   const options = await generateRegistrationOptions({
@@ -70,6 +67,7 @@ async function finishRegistration(user, response, label) {
     expectedChallenge,
     expectedOrigin: ORIGIN,
     expectedRPID: RP_ID,
+    requireUserVerification: false,
   });
 
   if (!verification.verified || !verification.registrationInfo) {
@@ -79,16 +77,24 @@ async function finishRegistration(user, response, label) {
     throw err;
   }
 
-  const { credential, credentialDeviceType, credentialBackedUp } = verification.registrationInfo;
+  // @simplewebauthn/server v10 : les champs sont à la racine de registrationInfo
+  // (plus d'objet `credential` imbriqué comme en v8/v9)
+  const {
+    credentialID,
+    credentialPublicKey,
+    counter,
+    credentialDeviceType,
+    credentialBackedUp,
+  } = verification.registrationInfo;
 
   await pool.query(
     `INSERT INTO passkeys (user_id, credential_id, public_key, counter, device_type, backed_up, transports, label)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
     [
       user.id,
-      credential.id,
-      Buffer.from(credential.publicKey).toString('base64'),
-      credential.counter,
+      credentialID,
+      Buffer.from(credentialPublicKey).toString('base64'),
+      counter,
       credentialDeviceType,
       credentialBackedUp,
       JSON.stringify(response.response.transports || []),
@@ -141,11 +147,13 @@ async function finishDiscoverableAuthentication(requestId, response) {
     expectedChallenge,
     expectedOrigin: ORIGIN,
     expectedRPID: RP_ID,
-    credential: {
-      id: stored.credential_id,
-      publicKey: Buffer.from(stored.public_key, 'base64'),
-      counter: Number(stored.counter),
-      transports: stored.transports || [],
+    requireUserVerification: false,
+    // v10 : le paramètre s'appelle 'authenticator' avec credentialID / credentialPublicKey
+    authenticator: {
+      credentialID:        stored.credential_id,
+      credentialPublicKey: Buffer.from(stored.public_key, 'base64'),
+      counter:             Number(stored.counter),
+      transports:          stored.transports || [],
     },
   });
 
@@ -156,7 +164,8 @@ async function finishDiscoverableAuthentication(requestId, response) {
     throw err;
   }
 
-  await pool.query('UPDATE passkeys SET counter = $1, last_used_at = now() WHERE id = $2', [verification.authenticationInfo.newCounter, stored.id]);
+  await pool.query('UPDATE passkeys SET counter = $1, last_used_at = now() WHERE id = $2',
+    [verification.authenticationInfo.newCounter, stored.id]);
   await redis.del(challengeKey(requestId, 'discoverable'));
 
   const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [stored.user_id]);
@@ -206,11 +215,12 @@ async function verifyTwoFactorChallenge(user, response) {
     expectedChallenge,
     expectedOrigin: ORIGIN,
     expectedRPID: RP_ID,
-    credential: {
-      id: stored.credential_id,
-      publicKey: Buffer.from(stored.public_key, 'base64'),
-      counter: Number(stored.counter),
-      transports: stored.transports || [],
+    requireUserVerification: false,
+    authenticator: {
+      credentialID:        stored.credential_id,
+      credentialPublicKey: Buffer.from(stored.public_key, 'base64'),
+      counter:             Number(stored.counter),
+      transports:          stored.transports || [],
     },
   });
 
@@ -221,7 +231,8 @@ async function verifyTwoFactorChallenge(user, response) {
     throw err;
   }
 
-  await pool.query('UPDATE passkeys SET counter = $1, last_used_at = now() WHERE id = $2', [verification.authenticationInfo.newCounter, stored.id]);
+  await pool.query('UPDATE passkeys SET counter = $1, last_used_at = now() WHERE id = $2',
+    [verification.authenticationInfo.newCounter, stored.id]);
   await redis.del(challengeKey(user.id, 'twofactor'));
   return true;
 }

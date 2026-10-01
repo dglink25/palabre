@@ -102,7 +102,11 @@ export default function SecurityPage() {
       await refreshProfile();
       loadAll();
       setNotice('Passkey enregistré. Il pourra être utilisé pour vous connecter directement ou confirmer votre identité.');
-    } catch (e) { setError(friendlyMessage(e)); }
+    } catch (e) {
+      // Ne pas afficher d'erreur si l'utilisateur a simplement annulé
+      if (e.code === 'PASSKEY_CANCELLED') return;
+      setError(friendlyMessage(e));
+    }
   }
 
   async function removePasskey(id) {
@@ -207,7 +211,7 @@ export default function SecurityPage() {
           style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
         >
           <PlusIcon />
-          Ajouter un passkey
+          Ajouter une clé secrète
         </button>
         <p style={{ color: '#5F6368', fontSize: 13, marginTop: 12, lineHeight: 1.6 }}>
           Une fois un passkey ajouté, vous pouvez l'utiliser pour vous connecter directement depuis l'écran de connexion.

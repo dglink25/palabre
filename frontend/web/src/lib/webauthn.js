@@ -42,6 +42,11 @@ function decodeRequestOptions(options) {
 }
 
 function encodeCreationResponse(credential) {
+  if (!credential || !credential.response) {
+    const err = new Error('Aucune réponse de l\'authenticateur.');
+    err.code = 'PASSKEY_CLIENT_ERROR';
+    throw err;
+  }
   const r = credential.response;
   return {
     id: credential.id,
@@ -52,11 +57,18 @@ function encodeCreationResponse(credential) {
       clientDataJSON: bufferToBase64url(r.clientDataJSON),
       transports: r.getTransports ? r.getTransports() : [],
     },
-    clientExtensionResults: credential.getClientExtensionResults(),
+    clientExtensionResults: credential.getClientExtensionResults
+      ? credential.getClientExtensionResults()
+      : {},
   };
 }
 
 function encodeAssertionResponse(credential) {
+  if (!credential || !credential.response) {
+    const err = new Error('Aucune réponse de l\'authenticateur.');
+    err.code = 'PASSKEY_CLIENT_ERROR';
+    throw err;
+  }
   const r = credential.response;
   return {
     id: credential.id,
@@ -68,7 +80,9 @@ function encodeAssertionResponse(credential) {
       signature: bufferToBase64url(r.signature),
       userHandle: r.userHandle ? bufferToBase64url(r.userHandle) : undefined,
     },
-    clientExtensionResults: credential.getClientExtensionResults(),
+    clientExtensionResults: credential.getClientExtensionResults
+      ? credential.getClientExtensionResults()
+      : {},
   };
 }
 
@@ -102,23 +116,51 @@ function translateWebAuthnError(err) {
 /** Enrôlement d'un nouveau passkey pour le compte connecté (Sécurité). */
 export async function registerPasskey(label) {
   const options = await api.post('/security/passkeys/register/options');
+
+  // Guard : si le serveur retourne une réponse inattendue, on lève une erreur
+  // lisible plutôt qu'un crash JS opaque sur options.user.id
+  if (!options || !options.user || !options.user.id || !options.challenge) {
+    const err = new Error('Réponse invalide du serveur lors de la génération des options.');
+    err.code = 'PASSKEY_CLIENT_ERROR';
+    throw err;
+  }
+
   let credential;
   try {
     credential = await navigator.credentials.create({ publicKey: decodeCreationOptions(options) });
   } catch (err) {
     throw translateWebAuthnError(err);
   }
+
+  // Guard : l'utilisateur a annulé ou l'authenticateur n'a pas répondu
+  if (!credential) {
+    const err = new Error('Enregistrement annulé.');
+    err.code = 'PASSKEY_CANCELLED';
+    throw err;
+  }
+
   return api.post('/security/passkeys/register/verify', { response: encodeCreationResponse(credential), label });
 }
 
 /** Connexion directe par passkey, sans identifiant saisi (façon GitHub). */
 export async function loginWithDiscoverablePasskey(deviceInfo) {
-  const { options, requestId } = await api.post('/auth/passkey/login/options', undefined, { auth: false });
+  const result = await api.post('/auth/passkey/login/options', undefined, { auth: false });
+
+  if (!result || !result.options || !result.options.challenge) {
+    const err = new Error('Réponse invalide du serveur.');
+    err.code = 'PASSKEY_CLIENT_ERROR';
+    throw err;
+  }
+
+  const { options, requestId } = result;
   let credential;
   try {
     credential = await navigator.credentials.get({ publicKey: decodeRequestOptions(options) });
   } catch (err) {
     throw translateWebAuthnError(err);
+  }
+  if (!credential) {
+    const err = new Error('Connexion annulée.'); err.code = 'PASSKEY_CANCELLED'; throw err;
   }
   return api.post('/auth/passkey/login/verify', {
     requestId,
@@ -130,11 +172,21 @@ export async function loginWithDiscoverablePasskey(deviceInfo) {
 /** Second facteur par passkey après une connexion téléphone/fédérée. */
 export async function verifyPasskeyTwoFactor() {
   const options = await api.post('/security/passkeys/2fa/options');
+
+  if (!options || !options.challenge) {
+    const err = new Error('Réponse invalide du serveur.');
+    err.code = 'PASSKEY_CLIENT_ERROR';
+    throw err;
+  }
+
   let credential;
   try {
     credential = await navigator.credentials.get({ publicKey: decodeRequestOptions(options) });
   } catch (err) {
     throw translateWebAuthnError(err);
+  }
+  if (!credential) {
+    const err = new Error('Vérification annulée.'); err.code = 'PASSKEY_CANCELLED'; throw err;
   }
   return api.post('/security/passkeys/2fa/verify', { response: encodeAssertionResponse(credential) });
 }

@@ -346,7 +346,13 @@ router.post('/passkey/login/verify', loginLimiter, async (req, res, next) => {
   try {
     const user = await passkeyService.finishDiscoverableAuthentication(req.body.requestId, req.body.response);
     const deviceRow = await deviceService.getOrCreateDevice(deviceFromBody(req.body));
-    const result = await authService.issueSessionForUser({ user, deviceRow, ip: req.ip, userAgent: req.headers['user-agent'] });
+    const result = await authService.issueSessionForUser({
+      user,
+      deviceRow,
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+      twoFactorPassedOverride: true, // Le passkey lui-même constitue le second facteur
+    });
     res.json(result);
   } catch (err) { next(err); }
 });

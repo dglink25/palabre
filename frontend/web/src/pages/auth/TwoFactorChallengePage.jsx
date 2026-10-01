@@ -21,13 +21,13 @@ export default function TwoFactorChallengePage() {
   return (
     <AuthLayout>
       <h1>Vérification en deux étapes</h1>
-      <p className="text-secondary">Confirmez votre identité avec l'un de vos passkeys.</p>
+      <p className="text-secondary">Confirmez votre identité avec l'une de vos clé secrète.</p>
       <Alert variant="danger">{error}</Alert>
       {!isPasskeySupported() && (
         <Alert variant="warning">Ce navigateur ne prend pas en charge les passkeys.</Alert>
       )}
       <button className="btn btn-block" disabled={busy || !isPasskeySupported()} onClick={verify}>
-        Vérifier avec un passkey
+        Vérifier avec une clé secrète
       </button>
     </AuthLayout>
   );
