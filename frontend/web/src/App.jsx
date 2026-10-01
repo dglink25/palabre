@@ -8,6 +8,7 @@ import PublicLayout from './components/PublicLayout';
 import { ProtectedRoute, SuperAdminRoute, OrgAdminRoute, OrgMemberOrAdminRoute } from './components/RouteGuards';
 import StepUpConfirmModal from './components/StepUpConfirmModal';
 import CookieBanner from './components/CookieBanner';
+import ScrollButton from './components/ScrollButton';
 
 import HomePage from './pages/HomePage';
 import TermsPage from './pages/TermsPage';
@@ -116,6 +117,7 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           <CookieBanner />
+          <ScrollButton />
         </AuthProvider>
       </NotificationProvider>
     </BrowserRouter>

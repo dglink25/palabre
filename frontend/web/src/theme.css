@@ -444,7 +444,6 @@ tr:hover td { background-color: rgba(26,115,232,0.03); }
 .legal-page p, .legal-page li { color: var(--color-text-primary); font-size: 17px; line-height: 1.7; }
 
 .public-footer {
-  background-color: #1A73E8;
   margin-top: auto;
 }
 .public-footer-grid {
