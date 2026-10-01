@@ -4,6 +4,73 @@ import { useAuth } from '../context/AuthContext';
 import NetworkModeIndicator from './NetworkModeIndicator';
 import { networkDetector } from '../lib/networkDetector';
 
+// ── Horloge temps réel ────────────────────────────────────────────────────────
+// Format : 1ER OCTOBRE 2026  23H:40
+// Se met à jour toutes les secondes dans le fuseau de l'utilisateur.
+function RealtimeClock({ timezone }) {
+  const [display, setDisplay] = useState('');
+
+  useEffect(() => {
+    const JOURS_ORDINALS = ['1ER','2','3','4','5','6','7','8','9','10',
+      '11','12','13','14','15','16','17','18','19','20',
+      '21','22','23','24','25','26','27','28','29','30','31'];
+    const MOIS = ['JANVIER','FÉVRIER','MARS','AVRIL','MAI','JUIN',
+                  'JUILLET','AOÛT','SEPTEMBRE','OCTOBRE','NOVEMBRE','DÉCEMBRE'];
+
+    const tz = timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    const tick = () => {
+      const now   = new Date();
+      const parts = new Intl.DateTimeFormat('fr-FR', {
+        timeZone:     tz,
+        day:          'numeric',
+        month:        'numeric',
+        year:         'numeric',
+        hour:         '2-digit',
+        minute:       '2-digit',
+        hour12:       false,
+      }).formatToParts(now);
+
+      const get = (type) => parts.find(p => p.type === type)?.value || '';
+      const day   = parseInt(get('day'), 10);
+      const month = parseInt(get('month'), 10) - 1;
+      const year  = get('year');
+      const hour  = get('hour').replace(':', '');   // "23"
+      const min   = get('minute');                  // "40"
+
+      setDisplay(`${JOURS_ORDINALS[day - 1]} ${MOIS[month]} ${year}  ${hour}H:${min}`);
+    };
+
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [timezone]);
+
+  return (
+    <div style={{
+      display:     'flex',
+      alignItems:  'center',
+      gap:         6,
+      fontSize:    12,
+      fontWeight:  600,
+      fontFamily:  'Inter, monospace',
+      color:       '#5F6368',
+      letterSpacing: 0.3,
+      whiteSpace:  'nowrap',
+      userSelect:  'none',
+    }}>
+      {/* Icône horloge mini */}
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+        style={{ flexShrink: 0, color: '#9AA0A6' }}>
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      {display}
+    </div>
+  );
+}
+
 // ── Icônes SVG professionnelles ───────────────────────────────────────────────
 const Ico = ({ path, size = 18 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -197,6 +264,11 @@ export default function Layout() {
       {/* ── Zone principale ── */}
       <div className="shell-body">
 
+        {/* ── Barre supérieure desktop — horloge en haut à droite ── */}
+        <div className="shell-desktopbar">
+          <RealtimeClock timezone={user?.timezone} />
+        </div>
+
         {/* Topbar mobile */}
         <header className="shell-topbar">
           <button className="shell-hamburger" onClick={() => setOpen(v => !v)}>
@@ -206,6 +278,10 @@ export default function Layout() {
             <img src="/logo.png" alt="Palabre" width="24" height="24" />
             <span>PALABRE</span>
           </Link>
+          {/* Horloge temps réel — visible sur toutes les pages */}
+          <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', paddingRight: 8 }}>
+            <RealtimeClock timezone={user?.timezone} />
+          </div>
           <div className="shell-topbar-user">
             <div className="shell-user-avatar shell-user-avatar-sm">
               {user?.photoUrl

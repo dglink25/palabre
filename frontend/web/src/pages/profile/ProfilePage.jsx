@@ -254,7 +254,81 @@ export default function ProfilePage() {
               <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 <ClockIcon /> Fuseau horaire
               </label>
-              <input value={timezone} onChange={(e) => setTimezone(e.target.value)} placeholder="Africa/Porto-Novo" />
+              <select value={timezone} onChange={(e) => setTimezone(e.target.value)}>
+                <optgroup label="Afrique de l'Ouest">
+                  <option value="Africa/Abidjan">Abidjan (UTC+0)</option>
+                  <option value="Africa/Accra">Accra (UTC+0)</option>
+                  <option value="Africa/Bamako">Bamako (UTC+0)</option>
+                  <option value="Africa/Banjul">Banjul (UTC+0)</option>
+                  <option value="Africa/Bissau">Bissau (UTC+0)</option>
+                  <option value="Africa/Conakry">Conakry (UTC+0)</option>
+                  <option value="Africa/Dakar">Dakar (UTC+0)</option>
+                  <option value="Africa/Freetown">Freetown (UTC+0)</option>
+                  <option value="Africa/Lome">Lomé (UTC+0)</option>
+                  <option value="Africa/Monrovia">Monrovia (UTC+0)</option>
+                  <option value="Africa/Nouakchott">Nouakchott (UTC+0)</option>
+                  <option value="Africa/Ouagadougou">Ouagadougou (UTC+0)</option>
+                  <option value="Africa/Sao_Tome">São Tomé (UTC+0)</option>
+                  <option value="Africa/Lagos">Lagos (UTC+1)</option>
+                  <option value="Africa/Porto-Novo">Porto-Novo (UTC+1)</option>
+                  <option value="Africa/Niamey">Niamey (UTC+1)</option>
+                  <option value="Africa/Ndjamena">N'Djamena (UTC+1)</option>
+                  <option value="Africa/Libreville">Libreville (UTC+1)</option>
+                  <option value="Africa/Douala">Douala (UTC+1)</option>
+                  <option value="Africa/Bangui">Bangui (UTC+1)</option>
+                  <option value="Africa/Brazzaville">Brazzaville (UTC+1)</option>
+                  <option value="Africa/Malabo">Malabo (UTC+1)</option>
+                </optgroup>
+                <optgroup label="Afrique Centrale">
+                  <option value="Africa/Kinshasa">Kinshasa (UTC+1)</option>
+                  <option value="Africa/Lubumbashi">Lubumbashi (UTC+2)</option>
+                  <option value="Africa/Luanda">Luanda (UTC+1)</option>
+                  <option value="Africa/Kigali">Kigali (UTC+2)</option>
+                  <option value="Africa/Bujumbura">Bujumbura (UTC+2)</option>
+                </optgroup>
+                <optgroup label="Afrique de l'Est">
+                  <option value="Africa/Addis_Ababa">Addis-Abeba (UTC+3)</option>
+                  <option value="Africa/Asmara">Asmara (UTC+3)</option>
+                  <option value="Africa/Dar_es_Salaam">Dar es Salaam (UTC+3)</option>
+                  <option value="Africa/Djibouti">Djibouti (UTC+3)</option>
+                  <option value="Africa/Kampala">Kampala (UTC+3)</option>
+                  <option value="Africa/Mogadishu">Mogadiscio (UTC+3)</option>
+                  <option value="Africa/Nairobi">Nairobi (UTC+3)</option>
+                  <option value="Africa/Juba">Djouba (UTC+3)</option>
+                  <option value="Africa/Khartoum">Khartoum (UTC+2)</option>
+                  <option value="Africa/Maputo">Maputo (UTC+2)</option>
+                  <option value="Africa/Harare">Harare (UTC+2)</option>
+                  <option value="Africa/Lusaka">Lusaka (UTC+2)</option>
+                  <option value="Africa/Blantyre">Blantyre (UTC+2)</option>
+                  <option value="Africa/Antananarivo">Antananarivo (UTC+3)</option>
+                  <option value="Indian/Mauritius">Maurice (UTC+4)</option>
+                  <option value="Indian/Reunion">La Réunion (UTC+4)</option>
+                  <option value="Indian/Mayotte">Mayotte (UTC+3)</option>
+                </optgroup>
+                <optgroup label="Afrique du Nord">
+                  <option value="Africa/Cairo">Le Caire (UTC+2)</option>
+                  <option value="Africa/Tripoli">Tripoli (UTC+2)</option>
+                  <option value="Africa/Tunis">Tunis (UTC+1)</option>
+                  <option value="Africa/Algiers">Alger (UTC+1)</option>
+                  <option value="Africa/Casablanca">Casablanca (UTC+1)</option>
+                  <option value="Africa/Ceuta">Ceuta (UTC+1)</option>
+                  <option value="Africa/El_Aaiun">Laâyoune (UTC+1)</option>
+                </optgroup>
+                <optgroup label="Afrique Australe">
+                  <option value="Africa/Johannesburg">Johannesburg (UTC+2)</option>
+                  <option value="Africa/Windhoek">Windhoek (UTC+2)</option>
+                  <option value="Africa/Gaborone">Gaborone (UTC+2)</option>
+                  <option value="Africa/Maseru">Maseru (UTC+2)</option>
+                  <option value="Africa/Mbabane">Mbabane (UTC+2)</option>
+                  <option value="Africa/Lusaka">Lusaka (UTC+2)</option>
+                </optgroup>
+                <optgroup label="Îles Atlantique / Océan Indien">
+                  <option value="Atlantic/Cape_Verde">Cap-Vert (UTC-1)</option>
+                  <option value="Atlantic/St_Helena">Sainte-Hélène (UTC+0)</option>
+                  <option value="Indian/Comoro">Comores (UTC+3)</option>
+                  <option value="Indian/Maldives">Maldives (UTC+5)</option>
+                </optgroup>
+              </select>
             </div>
           </div>
 

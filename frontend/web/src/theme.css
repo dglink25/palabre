@@ -1415,6 +1415,17 @@ tr:hover td { background-color: rgba(26,115,232,0.03); }
   animation: fadeIn 0.2s var(--ease);
 }
 
+/* Barre desktop — horloge en haut à droite (visible uniquement > 900px) */
+.shell-desktopbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 8px 32px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-white);
+  flex-shrink: 0;
+}
+
 /* Contenu principal */
 .shell-main {
   flex: 1;
@@ -1452,6 +1463,7 @@ tr:hover td { background-color: rgba(26,115,232,0.03); }
   .shell-body { padding-top: 0; }
   .shell-topbar { display: flex; }
   .shell-main { padding: 20px 16px; }
+  .shell-desktopbar { display: none; }
 }
 @media (min-width: 901px) {
   .shell-overlay { display: none !important; }
