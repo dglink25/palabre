@@ -19,6 +19,7 @@ const orgRoutes    = require('./modules/org/org.routes');
 
 const tenantRoutes = require('./modules/tenant/tenant.routes');
 const videoconferenceRoutes = require('./modules/videoconference/videoconference.routes');
+const tenantProvisioningRoutes = require('./modules/tenant-provisioning/tenant-provisioning.routes');
 
 const app = express();
 
@@ -61,6 +62,8 @@ app.use('/api/v1/org', orgRoutes);
 app.use('/api/v1/internal', tenantRoutes);
 // Vidéoconférence (white-label Jitsi)
 app.use('/api/v1/videoconference', videoconferenceRoutes);
+// Provisionnement tenant local (DNS + tunnel + heartbeat)
+app.use('/api/v1/tenants', tenantProvisioningRoutes);
 
 // --- 404 ---
 app.use((req, res) => {

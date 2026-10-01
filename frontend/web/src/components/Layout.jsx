@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { NavLink, Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import NetworkModeIndicator from './NetworkModeIndicator';
+import { networkDetector } from '../lib/networkDetector';
 
 // ── Icônes SVG professionnelles ───────────────────────────────────────────────
 const Ico = ({ path, size = 18 }) => (
@@ -62,6 +64,36 @@ export default function Layout() {
   const location = useLocation();
 
   useEffect(() => { setOpen(false); }, [location.pathname]);
+
+  // Configurer le NetworkDetector dès que le profil utilisateur est chargé.
+  // Si l'utilisateur appartient à une organisation, on récupère le FQDN du tenant
+  // depuis le serveur central, puis on tente une connexion directe (LAN).
+  // Le FQDN (ex: acme.palabre.com) est résolu en IP locale via le DNS local
+  // du Tenant_Server quand l'appareil est sur le réseau interne.
+  useEffect(() => {
+    if (user?.orgId) {
+      const relayBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4001/api/v1';
+      const token = localStorage.getItem('palabre_access_token') || '';
+
+      // Récupérer le FQDN du tenant depuis le serveur central
+      fetch(`${relayBase}/tenants/resolve/${user.orgId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data?.tenantUrl) {
+            // tenantUrl = https://{org}.palabre.com
+            // En réseau local : ce FQDN pointe vers l'IP LAN via DNS local
+            // Hors réseau : la probe échoue → relais automatique
+            networkDetector.configure({
+              tenantUrl: data.tenantUrl,   // FQDN local
+              relayUrl:  relayBase,         // Serveur central (relais)
+            });
+          }
+        })
+        .catch(() => { /* pas de tenant configuré → mode relais */ });
+    }
+  }, [user?.orgId]);
 
   const isSuperAdmin = !!user?.isSuperAdmin;
   // org_admin : a un orgId, pas super-admin, et role = 'org_admin' (ou role null = legacy)
@@ -137,6 +169,9 @@ export default function Layout() {
 
         {/* Navigation */}
         <nav className="shell-nav">{navTree}</nav>
+
+        {/* Indicateur mode réseau (Direct / Relay) */}
+        <NetworkModeIndicator />
 
         {/* Identité + déconnexion */}
         <div className="shell-user">

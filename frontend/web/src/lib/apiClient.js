@@ -1,6 +1,18 @@
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from './tokenStore';
+import { networkDetector } from './networkDetector';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4001/api/v1';
+// API_BASE est maintenant dynamique : fourni par le NetworkDetector selon le mode
+// (Direct_Mode → Tenant_Server, Relay_Mode → Central_Server)
+// Fallback sur VITE_API_BASE_URL pour les utilisateurs sans tenant configuré.
+const STATIC_API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4001/api/v1';
+
+function getApiBase() {
+  try {
+    return networkDetector.getActiveBaseUrl();
+  } catch {
+    return STATIC_API_BASE;
+  }
+}
 
 class ApiError extends Error {
   constructor(status, code, message, extra) {
@@ -16,7 +28,8 @@ let refreshPromise = null;
 async function doRefresh() {
   const refreshToken = getRefreshToken();
   if (!refreshToken) throw new ApiError(401, 'NO_REFRESH_TOKEN', 'Session expirée.');
-  const res = await fetch(`${API_BASE}/auth/refresh`, {
+  const base = getApiBase();
+  const res = await fetch(`${base}/auth/refresh`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ refreshToken }),
@@ -62,6 +75,7 @@ async function request(path, { method = 'GET', body, form = false, auth = true, 
 
   let res;
   try {
+    const API_BASE = getApiBase();
     res = await fetch(`${API_BASE}${path}`, {
       method,
       headers: finalHeaders,
@@ -114,4 +128,4 @@ export const api = {
   upload: (path, formData, opts) => request(path, { ...opts, method: 'POST', body: formData, form: true }),
 };
 
-export { ApiError, API_BASE };
+export { ApiError, STATIC_API_BASE as API_BASE };

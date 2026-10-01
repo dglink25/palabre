@@ -1,15 +1,6 @@
 'use strict';
 
-/**
- * Routes Vidéoconférence — Palabre
- *
- * Toutes les routes sont sous /api/v1/videoconference/
- * SÉCURITÉ : aucune réponse ne contient jitsi_room_name, domaine Jitsi,
- * ni aucun identifiant révélant le moteur sous-jacent.
- *
- * Filtre anti-Jitsi : toute requête contenant 'jitsi', '8x8.vc', 'meet.jit.si'
- * est rejetée avec 400 BAD_REQUEST (R1.4).
- */
+
 
 const express    = require('express');
 const { requireAuth } = require('../../middleware/authMiddleware');

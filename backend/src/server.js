@@ -1,12 +1,26 @@
 require('dotenv').config();
-const app = require('./app');
+const http      = require('http');
+const app       = require('./app');
 const scheduler = require('./modules/videoconference/scheduler.service');
+const { attachTunnelGateway } = require('./modules/tenant-provisioning/tunnel.gateway');
+const { markInactiveTenants } = require('./modules/tenant-provisioning/tenant-provisioning.service');
 
 const PORT = process.env.PORT || 4000;
 
-app.listen(PORT, () => {
+// Créer le serveur HTTP explicitement pour pouvoir y attacher le WebSocket
+const server = http.createServer(app);
+
+// Attacher le gateway WebSocket tunnel sur /tunnel/socket
+attachTunnelGateway(server);
+
+server.listen(PORT, () => {
   console.log(`[palabre-backend] démarré sur le port ${PORT}`);
   console.log(`[palabre-backend] documentation API : http://localhost:${PORT}/docs`);
-  // Démarrer le scheduler vidéoconférence (activation automatique des rooms planifiées)
+  console.log(`[palabre-backend] tunnel WebSocket : ws://localhost:${PORT}/tunnel/socket`);
+
+  // Scheduler vidéoconférence (activation automatique des rooms planifiées)
   scheduler.start();
+
+  // Nettoyage périodique des tenants inactifs (toutes les 5 minutes)
+  setInterval(markInactiveTenants, 5 * 60_000);
 });
