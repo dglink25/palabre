@@ -13,6 +13,7 @@ const passkeyRoutes = require('./modules/security/passkey.routes');
 const sessionRoutes = require('./modules/sessions/session.routes');
 const onboardingRoutes = require('./modules/onboarding/onboarding.routes');
 const signalRoutes = require('./modules/messaging/signal.routes');
+const conversationsRoutes = require('./modules/messaging/conversations.routes');
 const turnRoutes   = require('./modules/calls/turn.routes');
 const orgRoutes    = require('./modules/org/org.routes');
 
@@ -47,6 +48,12 @@ app.use('/api/v1/security/passkeys', passkeyRoutes);
 app.use('/api/v1/sessions', sessionRoutes);
 app.use('/api/v1/onboarding', onboardingRoutes);
 app.use('/api/v1/messaging/signal', signalRoutes);
+app.use('/api/v1/conversations', conversationsRoutes);
+app.use('/api/v1/contacts', (req, res, next) => {
+  // Alias vers /conversations/contacts/list
+  req.url = '/contacts/list';
+  conversationsRoutes(req, res, next);
+});
 app.use('/api/v1/calls', turnRoutes);
 app.use('/api/v1/org', orgRoutes);
 // Routes internes multi-tenant (appelées uniquement par les agents tenant)

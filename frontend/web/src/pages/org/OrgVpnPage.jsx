@@ -227,7 +227,7 @@ export default function OrgVpnPage() {
             {[
               ['Identifiant tenant', user?.orgId || '—', false],
               ['Clé VPN (privée)', 'Confidentielle — stockée sur votre appareil lors de la liaison', false],
-              ['URL heartbeat', `${window.location.origin}/api/v1/org/tenants/heartbeat`, true],
+              ['URL heartbeat', `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:4001/api/v1'}/org/tenants/heartbeat`, true],
             ].map(([label, value, isMono]) => (
               <tr key={label}
                 onMouseEnter={e => e.currentTarget.style.background = '#F8F9FA'}

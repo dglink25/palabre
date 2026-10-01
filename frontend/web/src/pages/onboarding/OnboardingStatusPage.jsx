@@ -43,6 +43,70 @@ function getCurrentValue(request, fullPath) {
   return step[field];
 }
 
+// ── EditableField défini HORS du composant pour éviter les remontages ─────────
+function EditableField({ fullPath, request, corrections, onFieldChange, onDocUpload, orgCountryCode }) {
+  const [, field] = fullPath.split('.');
+  const label = FIELD_LABELS[fullPath] || fullPath;
+  const currentVal = getCurrentValue(request, fullPath);
+  const isDoc = fullPath.startsWith('step3_documents.');
+
+  const stepKeyMap = { step1_organization: 'step1', step2_leader: 'step2', step3_documents: 'step3', step4_certification: 'step4' };
+  const getValue = () => {
+    const [col, f] = fullPath.split('.');
+    const sk = stepKeyMap[col];
+    return (corrections[sk] || {})[f] || '';
+  };
+
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+        <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EA4335', flexShrink: 0, display: 'inline-block' }} />
+        <label style={{ fontWeight: 600, fontSize: 13, color: '#EA4335', margin: 0 }}>{label}</label>
+      </div>
+      {currentVal && !isDoc && (
+        <div style={{ fontSize: 12, color: '#5F6368', marginBottom: 6, padding: '6px 10px', background: '#fff5f5', border: '1px solid #fcd3d0', borderRadius: 6 }}>
+          Valeur actuelle : <strong style={{ color: '#EA4335' }}>
+            {field === 'gender' ? (GENDER_LABEL[currentVal] || currentVal) : String(currentVal)}
+          </strong>
+        </div>
+      )}
+      {currentVal && isDoc && (
+        <div style={{ fontSize: 12, color: '#5F6368', marginBottom: 6, padding: '6px 10px', background: '#fff5f5', border: '1px solid #fcd3d0', borderRadius: 6 }}>
+          Fichier actuel :{' '}
+          <a href={currentVal} target="_blank" rel="noreferrer" style={{ color: '#EA4335' }}>Voir le fichier existant</a>
+        </div>
+      )}
+      {isDoc ? (
+        <input type="file"
+          style={{ width: '100%', padding: '10px 12px', border: '2px solid #EA4335', borderRadius: 8, background: '#fff', fontSize: 14, cursor: 'pointer' }}
+          onChange={(e) => e.target.files[0] && onDocUpload(fullPath, e.target.files[0])}
+        />
+      ) : field === 'gender' ? (
+        <select value={getValue()} onChange={(e) => onFieldChange(fullPath, e.target.value)}
+          style={{ width: '100%', padding: '10px 12px', border: '2px solid #EA4335', borderRadius: 8, fontSize: 14, background: '#fff', color: '#202124' }}>
+          <option value="">— Choisir —</option>
+          <option value="male">Masculin</option>
+          <option value="female">Féminin</option>
+        </select>
+      ) : field === 'country' ? (
+        <div style={{ border: '2px solid #EA4335', borderRadius: 8, overflow: 'hidden' }}>
+          <CountrySelect value={getValue()} onChange={(c) => onFieldChange(fullPath, c.name)} />
+        </div>
+      ) : field === 'phone' ? (
+        <div style={{ border: '2px solid #EA4335', borderRadius: 8, overflow: 'hidden' }}>
+          <PhoneInput defaultCountryCode={orgCountryCode || 'BJ'} defaultValue={getValue()} onChange={(v) => onFieldChange(fullPath, v.e164)} />
+        </div>
+      ) : (
+        <input type={field === 'email' ? 'email' : 'text'}
+          value={getValue()} onChange={(e) => onFieldChange(fullPath, e.target.value)}
+          placeholder={label}
+          style={{ width: '100%', padding: '10px 12px', border: '2px solid #EA4335', borderRadius: 8, fontSize: 14, background: '#fff', color: '#202124', boxSizing: 'border-box' }}
+        />
+      )}
+    </div>
+  );
+}
+
 function ReadOnlyRow({ label, value }) {
   const display = value === undefined || value === null || value === ''
     ? <span style={{ color: '#bbb', fontStyle: 'italic', fontSize: 13 }}>Non renseigné</span>
@@ -195,76 +259,8 @@ export default function OnboardingStatusPage() {
   const docs = request.step3_documents || {};
   const statusColors = STATUS_COLORS[request.status] || STATUS_COLORS.draft;
 
-  function EditableField({ fullPath }) {
-    const [, field] = fullPath.split('.');
-    const label = FIELD_LABELS[fullPath] || fullPath;
-    const currentVal = getCurrentValue(request, fullPath);
-    const isDoc = fullPath.startsWith('step3_documents.');
-
-    return (
-      <div style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EA4335', flexShrink: 0, display: 'inline-block' }} />
-          <label style={{ fontWeight: 600, fontSize: 13, color: '#EA4335', margin: 0 }}>{label}</label>
-        </div>
-        {currentVal && !isDoc && (
-          <div style={{ fontSize: 12, color: '#5F6368', marginBottom: 6, padding: '6px 10px', background: '#fff5f5', border: '1px solid #fcd3d0', borderRadius: 6 }}>
-            Valeur actuelle : <strong style={{ color: '#EA4335' }}>
-              {field === 'gender' ? (GENDER_LABEL[currentVal] || currentVal) : String(currentVal)}
-            </strong>
-          </div>
-        )}
-        {currentVal && isDoc && (
-          <div style={{ fontSize: 12, color: '#5F6368', marginBottom: 6, padding: '6px 10px', background: '#fff5f5', border: '1px solid #fcd3d0', borderRadius: 6 }}>
-            Fichier actuel :{' '}
-            <a href={currentVal} target="_blank" rel="noreferrer" style={{ color: '#EA4335' }}>
-              Voir le fichier existant
-            </a>
-          </div>
-        )}
-        {isDoc ? (
-          <input
-            type="file"
-            style={{ width: '100%', padding: '10px 12px', border: '2px solid #EA4335', borderRadius: 8, background: '#fff', fontSize: 14, cursor: 'pointer' }}
-            onChange={(e) => e.target.files[0] && uploadCorrectionDoc(fullPath, e.target.files[0])}
-          />
-        ) : field === 'gender' ? (
-          <select
-            value={getCorrectionValue(fullPath)}
-            onChange={(e) => setFieldCorrection(fullPath, e.target.value)}
-            style={{ width: '100%', padding: '10px 12px', border: '2px solid #EA4335', borderRadius: 8, fontSize: 14, background: '#fff', color: '#202124' }}
-          >
-            <option value="">— Choisir —</option>
-            <option value="male">Masculin</option>
-            <option value="female">Féminin</option>
-          </select>
-        ) : field === 'country' ? (
-          <div style={{ border: '2px solid #EA4335', borderRadius: 8, overflow: 'hidden' }}>
-            <CountrySelect
-              value={getCorrectionValue(fullPath)}
-              onChange={(c) => setFieldCorrection(fullPath, c.name)}
-            />
-          </div>
-        ) : field === 'phone' ? (
-          <div style={{ border: '2px solid #EA4335', borderRadius: 8, overflow: 'hidden' }}>
-            <PhoneInput
-              defaultCountryCode={org.countryCode || 'BJ'}
-              defaultValue={getCorrectionValue(fullPath)}
-              onChange={(v) => setFieldCorrection(fullPath, v.e164)}
-            />
-          </div>
-        ) : (
-          <input
-            type={field === 'email' ? 'email' : 'text'}
-            value={getCorrectionValue(fullPath)}
-            onChange={(e) => setFieldCorrection(fullPath, e.target.value)}
-            placeholder={label}
-            style={{ width: '100%', padding: '10px 12px', border: '2px solid #EA4335', borderRadius: 8, fontSize: 14, background: '#fff', color: '#202124', boxSizing: 'border-box' }}
-          />
-        )}
-      </div>
-    );
-  }
+  // Props partagées pour EditableField
+  const efProps = { request, corrections, onFieldChange: setFieldCorrection, onDocUpload: uploadCorrectionDoc, orgCountryCode: org.countryCode };
 
   return (
     <AuthLayout cardWidth={600}>
@@ -315,13 +311,13 @@ export default function OnboardingStatusPage() {
               </svg>
               Organisation
             </h3>
-            {flaggedSet.has('step1_organization.name') ? <EditableField fullPath="step1_organization.name" /> : <ReadOnlyRow label="Nom" value={org.name} />}
-            {flaggedSet.has('step1_organization.headquarters') ? <EditableField fullPath="step1_organization.headquarters" /> : <ReadOnlyRow label="Siège" value={org.headquarters} />}
-            {flaggedSet.has('step1_organization.country') ? <EditableField fullPath="step1_organization.country" /> : <ReadOnlyRow label="Pays" value={org.country} />}
-            {flaggedSet.has('step1_organization.city') ? <EditableField fullPath="step1_organization.city" /> : <ReadOnlyRow label="Ville" value={org.city} />}
-            {flaggedSet.has('step1_organization.address') ? <EditableField fullPath="step1_organization.address" /> : <ReadOnlyRow label="Adresse complète" value={org.address} />}
-            {flaggedSet.has('step1_organization.sector') ? <EditableField fullPath="step1_organization.sector" /> : <ReadOnlyRow label="Secteur d'activité" value={org.sector} />}
-            {flaggedSet.has('step1_organization.ifuNumber') ? <EditableField fullPath="step1_organization.ifuNumber" /> : <ReadOnlyRow label="Numéro IFU" value={org.ifuNumber || '—'} />}
+            {flaggedSet.has('step1_organization.name') ? <EditableField fullPath="step1_organization.name" {...efProps} /> : <ReadOnlyRow label="Nom" value={org.name} />}
+            {flaggedSet.has('step1_organization.headquarters') ? <EditableField fullPath="step1_organization.headquarters" {...efProps} /> : <ReadOnlyRow label="Siège" value={org.headquarters} />}
+            {flaggedSet.has('step1_organization.country') ? <EditableField fullPath="step1_organization.country" {...efProps} /> : <ReadOnlyRow label="Pays" value={org.country} />}
+            {flaggedSet.has('step1_organization.city') ? <EditableField fullPath="step1_organization.city" {...efProps} /> : <ReadOnlyRow label="Ville" value={org.city} />}
+            {flaggedSet.has('step1_organization.address') ? <EditableField fullPath="step1_organization.address" {...efProps} /> : <ReadOnlyRow label="Adresse complète" value={org.address} />}
+            {flaggedSet.has('step1_organization.sector') ? <EditableField fullPath="step1_organization.sector" {...efProps} /> : <ReadOnlyRow label="Secteur d'activité" value={org.sector} />}
+            {flaggedSet.has('step1_organization.ifuNumber') ? <EditableField fullPath="step1_organization.ifuNumber" {...efProps} /> : <ReadOnlyRow label="Numéro IFU" value={org.ifuNumber || '—'} />}
           </div>
 
           <div className="card" style={{ marginBottom: 16, padding: '20px 24px' }}>
@@ -331,10 +327,10 @@ export default function OnboardingStatusPage() {
               </svg>
               Dirigeant
             </h3>
-            {flaggedSet.has('step2_leader.fullName') ? <EditableField fullPath="step2_leader.fullName" /> : <ReadOnlyRow label="Nom complet" value={leader.fullName} />}
-            {flaggedSet.has('step2_leader.gender') ? <EditableField fullPath="step2_leader.gender" /> : <ReadOnlyRow label="Sexe" value={GENDER_LABEL[leader.gender]} />}
-            {flaggedSet.has('step2_leader.email') ? <EditableField fullPath="step2_leader.email" /> : <ReadOnlyRow label="E-mail" value={leader.email} />}
-            {flaggedSet.has('step2_leader.phone') ? <EditableField fullPath="step2_leader.phone" /> : <ReadOnlyRow label="Téléphone" value={leader.phone} />}
+            {flaggedSet.has('step2_leader.fullName') ? <EditableField fullPath="step2_leader.fullName" {...efProps} /> : <ReadOnlyRow label="Nom complet" value={leader.fullName} />}
+            {flaggedSet.has('step2_leader.gender') ? <EditableField fullPath="step2_leader.gender" {...efProps} /> : <ReadOnlyRow label="Sexe" value={GENDER_LABEL[leader.gender]} />}
+            {flaggedSet.has('step2_leader.email') ? <EditableField fullPath="step2_leader.email" {...efProps} /> : <ReadOnlyRow label="E-mail" value={leader.email} />}
+            {flaggedSet.has('step2_leader.phone') ? <EditableField fullPath="step2_leader.phone" {...efProps} /> : <ReadOnlyRow label="Téléphone" value={leader.phone} />}
           </div>
 
           <div className="card" style={{ marginBottom: 20, padding: '20px 24px' }}>
@@ -344,10 +340,10 @@ export default function OnboardingStatusPage() {
               </svg>
               Documents
             </h3>
-            {flaggedSet.has('step3_documents.rccm') ? <EditableField fullPath="step3_documents.rccm" /> : <ReadOnlyDoc label="RCCM (facultatif)" value={docs.rccm} />}
-            {flaggedSet.has('step3_documents.ifuAttestation') ? <EditableField fullPath="step3_documents.ifuAttestation" /> : <ReadOnlyDoc label="Attestation IFU" value={docs.ifuAttestation} />}
-            {flaggedSet.has('step3_documents.leaderId') ? <EditableField fullPath="step3_documents.leaderId" /> : <ReadOnlyDoc label="Pièce d'identité du dirigeant" value={docs.leaderId} />}
-            {flaggedSet.has('step3_documents.logo') ? <EditableField fullPath="step3_documents.logo" /> : <ReadOnlyDoc label="Logo de l'organisation" value={docs.logo} />}
+            {flaggedSet.has('step3_documents.rccm') ? <EditableField fullPath="step3_documents.rccm" {...efProps} /> : <ReadOnlyDoc label="RCCM (facultatif)" value={docs.rccm} />}
+            {flaggedSet.has('step3_documents.ifuAttestation') ? <EditableField fullPath="step3_documents.ifuAttestation" {...efProps} /> : <ReadOnlyDoc label="Attestation IFU" value={docs.ifuAttestation} />}
+            {flaggedSet.has('step3_documents.leaderId') ? <EditableField fullPath="step3_documents.leaderId" {...efProps} /> : <ReadOnlyDoc label="Pièce d'identité du dirigeant" value={docs.leaderId} />}
+            {flaggedSet.has('step3_documents.logo') ? <EditableField fullPath="step3_documents.logo" {...efProps} /> : <ReadOnlyDoc label="Logo de l'organisation" value={docs.logo} />}
           </div>
 
           <button className="btn btn-success btn-block" onClick={submitCorrection} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>

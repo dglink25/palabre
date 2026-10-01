@@ -36,7 +36,6 @@ import { ConversationsListPage, ChatPage } from './pages/app/ConversationsPage';
 import NewConversationPage from './pages/app/NewConversationPage';
 import CallsPage from './pages/app/CallsPage';
 import ContactsPage from './pages/app/ContactsPage';
-
 // ── Pont : branche la fonction notify sur le composant Alert legacy ───────────
 function NotifyBridge() {
   const { notify } = useNotification();
@@ -110,6 +109,7 @@ export default function App() {
               <Route path="/app/conversations/new" element={<NewConversationPage />} />
               <Route path="/app/conversations/:id" element={<ChatPage />} />
               <Route path="/app/calls"             element={<CallsPage />} />
+              <Route path="/app/call"              element={<CallsPage />} />
               <Route path="/app/contacts"          element={<ContactsPage />} />
             </Route>
 
