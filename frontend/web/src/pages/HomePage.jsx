@@ -59,9 +59,16 @@ const IconKey = () => (
   </svg>
 );
 
+const IconVideo = () => (
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+  </svg>
+);
+
 const FEATURES = [
   { Icon: IconMsg,     title: 'Messagerie instantanée',     text: 'Conversations individuelles et de groupe chiffrées de bout en bout, avec historique persistant et partage de fichiers.', color: 'var(--color-primary-blue)' },
   { Icon: IconPhone,   title: 'Appels audio & vidéo',       text: 'Appels HD sur réseau VoIP souverain. Aucune donnée ne transite par des serveurs tiers.',                                  color: 'var(--color-success-green)' },
+  { Icon: IconVideo,   title: 'Vidéoconférence jusqu\'à 300 participants', text: 'Réunions instantanées ou planifiées, partage d\'écran, enregistrement et salle d\'attente. Accessible même hors réseau interne.', color: '#7c3aed' },
   { Icon: IconHeadset, title: "Centre d'appels intégré",    text: "File d'attente, SVI configurable et assistance IA pour votre support client ou opérationnel.",                             color: 'var(--color-warning-amber)' },
   { Icon: IconShield,  title: 'Sécurité de niveau entreprise', text: "Passkeys, double vérification, VPN par organisation, journal d'audit complet et contrôle total de vos données.",      color: 'var(--color-alert-red)' },
 ];
@@ -142,6 +149,10 @@ export default function HomePage() {
             <Link to="/login" className="btn">Se connecter</Link>
           )}
           <Link to="/onboarding/new" className="btn btn-secondary">Inscrire mon organisation</Link>
+          <Link to="/videoconference" className="btn btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+            <IconVideo />
+            Créer une réunion
+          </Link>
         </div>
       </section>
 

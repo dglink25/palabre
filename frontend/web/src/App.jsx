@@ -37,6 +37,10 @@ import { ConversationsListPage, ChatPage } from './pages/app/ConversationsPage';
 import NewConversationPage from './pages/app/NewConversationPage';
 import CallsPage from './pages/app/CallsPage';
 import ContactsPage from './pages/app/ContactsPage';
+import VideoConferencePage from './pages/app/VideoConferencePage';
+import VideoRoomPage from './pages/app/VideoRoomPage';
+import PublicVideoConferencePage from './pages/videoconference/PublicVideoConferencePage';
+import JoinByInvitationPage from './pages/videoconference/JoinByInvitationPage';
 // ── Pont : branche la fonction notify sur le composant Alert legacy ───────────
 function NotifyBridge() {
   const { notify } = useNotification();
@@ -112,6 +116,15 @@ export default function App() {
               <Route path="/app/calls"             element={<CallsPage />} />
               <Route path="/app/call"              element={<CallsPage />} />
               <Route path="/app/contacts"          element={<ContactsPage />} />
+              <Route path="/app/videoconference"          element={<VideoConferencePage />} />
+              <Route path="/app/videoconference/:roomId"  element={<VideoRoomPage />} />
+            </Route>
+
+            {/* Vidéoconférence publique (tout utilisateur authentifié) */}
+            <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+              <Route path="/videoconference"              element={<PublicVideoConferencePage />} />
+              <Route path="/videoconference/:roomId"      element={<VideoRoomPage />} />
+              <Route path="/join/v/:token"                element={<JoinByInvitationPage />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

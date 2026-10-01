@@ -18,6 +18,7 @@ const turnRoutes   = require('./modules/calls/turn.routes');
 const orgRoutes    = require('./modules/org/org.routes');
 
 const tenantRoutes = require('./modules/tenant/tenant.routes');
+const videoconferenceRoutes = require('./modules/videoconference/videoconference.routes');
 
 const app = express();
 
@@ -58,6 +59,8 @@ app.use('/api/v1/calls', turnRoutes);
 app.use('/api/v1/org', orgRoutes);
 // Routes internes multi-tenant (appelées uniquement par les agents tenant)
 app.use('/api/v1/internal', tenantRoutes);
+// Vidéoconférence (white-label Jitsi)
+app.use('/api/v1/videoconference', videoconferenceRoutes);
 
 // --- 404 ---
 app.use((req, res) => {
