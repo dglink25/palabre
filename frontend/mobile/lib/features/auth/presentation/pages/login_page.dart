@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/theme/app_theme.dart';
+import 'social_login_page.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -44,7 +45,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,15 +63,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   const Text('PALABRE',
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800,
                         color: AppTheme.primaryBlue, letterSpacing: 2)),
+                  const SizedBox(height: 6),
+                  const Text('Communication souveraine',
+                    style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
                 ]),
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 40),
               Text('Se connecter',
                 style: Theme.of(context).textTheme.headlineMedium),
               const SizedBox(height: 8),
               Text('Entrez votre numéro de téléphone pour recevoir un code de vérification.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary)),
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
 
               // Champ téléphone
               TextField(
@@ -95,16 +99,25 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
               ],
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _loading ? null : _submit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryBlue,
+                  minimumSize: const Size(double.infinity, 50),
+                ),
                 child: _loading
                     ? const SizedBox(width: 20, height: 20,
                         child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                     : const Text('Recevoir un code OTP'),
               ),
 
-              const Spacer(),
+              const SizedBox(height: 24),
+
+              // Connexion sociale (Google, GitHub, Facebook)
+              const SocialLoginButtons(),
+
+              const SizedBox(height: 24),
               Center(
                 child: TextButton(
                   onPressed: () => context.go('/activate'),

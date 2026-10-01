@@ -64,19 +64,37 @@ class NotificationService {
     switch (type) {
       case 'new_message':
         await _showMessageNotification(
-          title: data['sender_name'] ?? 'Nuevo mensaje',
-          body:  'Nuevo mensaje',   // Corps vide — contenu E2E
-          convId: data['conv_id'] ?? '',
+          title:   data['sender_name'] ?? 'Nouveau message',
+          body:    '1 nouveau message',   // Corps vide — contenu E2E
+          convId:  data['conv_id'] ?? '',
           payload: message.data,
         );
       case 'call:incoming':
         await _showCallNotification(
           callerName: data['caller_name'] ?? 'Appel entrant',
-          callId:     data['call_id'] ?? '',
-          callType:   data['call_type'] ?? 'audio',
+          callId:     data['call_id']     ?? '',
+          callType:   data['call_type']   ?? 'audio',
         );
+        // Naviguer immédiatement vers l'écran d'appel entrant quand l'app est ouverte
+        _navigateToIncomingCall(data);
     }
   }
+
+  void _navigateToIncomingCall(Map<String, dynamic> data) {
+    final callId   = data['call_id']     as String? ?? '';
+    final peerName = data['caller_name'] as String? ?? 'Appel entrant';
+    final callType = data['call_type']   as String? ?? 'audio';
+    if (callId.isEmpty) return;
+
+    // Utiliser le navigateur global pour naviguer hors contexte widget
+    _navigatorKey?.currentContext?.go('/incoming-call/$callId', extra: {
+      'peer_name': peerName,
+      'call_type': callType,
+    });
+  }
+
+  // Clé de navigation globale (injectée depuis main.dart si nécessaire)
+  static BuildContext? Function()? _navigatorKey;
 
   Future<void> _showMessageNotification({
     required String title,
@@ -136,12 +154,14 @@ class NotificationService {
   }
 
   void _onNotificationTap(NotificationResponse response) {
-    // La navigation est gérée par le GoRouter selon le payload
     final payload = response.payload ?? '';
     if (payload.startsWith('call:')) {
-      // Naviguer vers l'écran d'appel
+      // Naviguer vers l'écran d'appel entrant
+      final callId = payload.replaceFirst('call:', '');
+      _navigatorKey?.call()?.go('/incoming-call/$callId', extra: {'call_type': 'audio'});
     } else if (payload.isNotEmpty) {
       // Naviguer vers la conversation
+      _navigatorKey?.call()?.go('/conversations/$payload');
     }
   }
 

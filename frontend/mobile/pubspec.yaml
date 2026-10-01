@@ -48,6 +48,12 @@ dependencies:
   # ── WebRTC (appels audio/vidéo) ───────────────────────────────────────────
   flutter_webrtc: ^0.10.3
 
+  # ── WebView (vidéoconférence Jitsi white-label) ───────────────────────────
+  webview_flutter: ^4.7.0
+
+  # ── Auth sociale (Google, GitHub, Facebook via Firebase) ─────────────────
+  google_sign_in: ^6.2.1
+
   # ── Notifications push ────────────────────────────────────────────────────
   firebase_core: ^3.3.0
   firebase_messaging: ^15.0.4

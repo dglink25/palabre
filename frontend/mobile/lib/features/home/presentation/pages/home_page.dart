@@ -73,6 +73,13 @@ class HomePage extends ConsumerWidget {
                       ),
                       const SizedBox(width: 12),
                       _QuickAction(
+                        icon: Icons.videocam_outlined,
+                        label: 'Vidéo',
+                        color: const Color(0xFF7c3aed),
+                        onTap: () => context.go('/videoconference'),
+                      ),
+                      const SizedBox(width: 12),
+                      _QuickAction(
                         icon: Icons.call_outlined,
                         label: 'Appels',
                         color: AppTheme.successGreen,
@@ -84,13 +91,6 @@ class HomePage extends ConsumerWidget {
                         label: 'Contacts',
                         color: AppTheme.warningAmber,
                         onTap: () => context.go('/contacts'),
-                      ),
-                      const SizedBox(width: 12),
-                      _QuickAction(
-                        icon: Icons.person_outline,
-                        label: 'Profil',
-                        color: AppTheme.textSecondary,
-                        onTap: () => context.go('/profile'),
                       ),
                     ]),
                   ],

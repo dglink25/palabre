@@ -9,6 +9,7 @@ import '../../features/conversations/presentation/pages/conversations_page.dart'
 import '../../features/conversations/presentation/pages/chat_page.dart';
 import '../../features/calls/presentation/pages/calls_page.dart';
 import '../../features/calls/presentation/pages/call_screen.dart';
+import '../../features/calls/presentation/pages/incoming_call_screen.dart';
 import '../../features/contacts/presentation/pages/contacts_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
@@ -16,7 +17,11 @@ import '../../features/security/presentation/pages/security_page.dart';
 import '../../features/sessions/presentation/pages/sessions_page.dart';
 import '../../features/org/presentation/pages/org_join_page.dart';
 import '../../features/org/presentation/pages/org_link_page.dart';
+import '../../features/org/presentation/pages/org_invite_page.dart';
+import '../../features/org/presentation/pages/org_dashboard_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/videoconference/presentation/pages/video_conference_page.dart';
+import '../../features/videoconference/presentation/pages/video_room_page.dart';
 import '../providers/auth_provider.dart';
 import 'shell_page.dart';
 
@@ -65,10 +70,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/calls',    builder: (_, __) => const CallsPage(),
             routes: [GoRoute(path: 'new', builder: (_, __) => const ContactsPage())]),
           GoRoute(path: '/contacts', builder: (_, __) => const ContactsPage()),
+          GoRoute(
+            path: '/videoconference',
+            builder: (_, __) => const VideoConferencePage(),
+          ),
           GoRoute(path: '/profile',  builder: (_, __) => const ProfilePage()),
           GoRoute(path: '/security', builder: (_, __) => const SecurityPage()),
           GoRoute(path: '/sessions', builder: (_, __) => const SessionsPage()),
           GoRoute(path: '/settings', builder: (_, __) => const SettingsPage()),
+          // Admin org
+          GoRoute(path: '/org/dashboard', builder: (_, __) => const OrgDashboardPage()),
+          GoRoute(path: '/org/invite',    builder: (_, __) => const OrgInvitePage()),
         ],
       ),
 
@@ -77,6 +89,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/call/:callId',
         builder: (_, s) => CallScreen(
           callId: s.pathParameters['callId']!,
+          extra: s.extra as Map<String, dynamic>?,
+        ),
+      ),
+
+      // ── Appel entrant (plein écran, hors shell) ──────────────────────────
+      GoRoute(
+        path: '/incoming-call/:callId',
+        builder: (_, s) => IncomingCallScreen(
+          callId: s.pathParameters['callId']!,
+          extra: s.extra as Map<String, dynamic>?,
+        ),
+      ),
+
+      // ── Session vidéoconférence (plein écran, hors shell) ────────────────
+      GoRoute(
+        path: '/videoconference/:roomId',
+        builder: (_, s) => VideoRoomPage(
+          roomId: s.pathParameters['roomId']!,
           extra: s.extra as Map<String, dynamic>?,
         ),
       ),

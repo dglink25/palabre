@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/app_config.dart';
 import '../storage/secure_storage.dart';
+import '../network/network_detector.dart';
 
 final apiClientProvider = Provider<ApiClient>((ref) {
   return ApiClient(ref);
@@ -11,6 +12,7 @@ final apiClientProvider = Provider<ApiClient>((ref) {
 class ApiClient {
   ApiClient(this._ref) {
     _dio = Dio(BaseOptions(
+      // L'URL de base sera overridée dynamiquement par le NetworkDetector
       baseUrl:         AppConfig.apiBaseUrl,
       connectTimeout:  const Duration(seconds: 15),
       receiveTimeout:  const Duration(seconds: 30),
@@ -30,6 +32,16 @@ class ApiClient {
   // ── Interceptors ─────────────────────────────────────────────────────────
 
   Future<void> _onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+    // URL dynamique via NetworkDetector (LAN direct ou relais central)
+    try {
+      final detector = _ref.read(networkDetectorProvider);
+      final activeBase = detector.getActiveBaseUrl();
+      // Remplacer le baseUrl uniquement si le path ne contient pas déjà une URL complète
+      if (!options.path.startsWith('http')) {
+        options.baseUrl = activeBase;
+      }
+    } catch (_) { /* pas encore initialisé → utiliser l'URL statique */ }
+
     final token = await _ref.read(secureStorageProvider).getAccessToken();
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
@@ -47,8 +59,7 @@ class ApiClient {
       try {
         final refreshed = await _refreshToken();
         if (refreshed) {
-          // Relancer la requête avec le nouveau token
-          final opts = err.requestOptions;
+          final opts  = err.requestOptions;
           final token = await _ref.read(secureStorageProvider).getAccessToken();
           opts.headers['Authorization'] = 'Bearer $token';
           final response = await _dio.fetch(opts);
@@ -56,6 +67,16 @@ class ApiClient {
         }
       } catch (_) {}
     }
+
+    // Si l'erreur réseau est liée à l'URL du tenant, tenter le basculement
+    if (err.type == DioExceptionType.connectionTimeout ||
+        err.type == DioExceptionType.connectionError) {
+      try {
+        final detector = _ref.read(networkDetectorProvider);
+        await detector.probe(); // déclenchera le basculement si nécessaire
+      } catch (_) {}
+    }
+
     handler.next(err);
   }
 
@@ -64,6 +85,7 @@ class ApiClient {
     if (refreshToken == null) return false;
 
     try {
+      // Toujours utiliser le relais central pour le refresh token
       final response = await Dio().post(
         '${AppConfig.apiBaseUrl}/auth/refresh',
         data: {'refreshToken': refreshToken},

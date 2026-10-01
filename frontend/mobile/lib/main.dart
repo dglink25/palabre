@@ -6,16 +6,16 @@ import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/socket_service.dart';
+import 'core/network/network_detector.dart';
 import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Firebase pour les notifications push (FCM/APNs)
+  // Firebase pour les notifications push (FCM/APNs) et l'auth sociale
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(
-    // ProviderScope = racine de Riverpod
     const ProviderScope(child: PalabreApp()),
   );
 }
@@ -29,6 +29,8 @@ class PalabreApp extends ConsumerStatefulWidget {
 
 class _PalabreAppState extends ConsumerState<PalabreApp>
     with WidgetsBindingObserver {
+
+  DateTime? _backgroundSince;
 
   @override
   void initState() {
@@ -44,17 +46,31 @@ class _PalabreAppState extends ConsumerState<PalabreApp>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Gérer la présence selon l'état de l'app
-    final socket = ref.read(socketServiceProvider);
+    final socket   = ref.read(socketServiceProvider);
+    final detector = ref.read(networkDetectorProvider);
+
     switch (state) {
       case AppLifecycleState.resumed:
         socket.reconnectIfNeeded();
+        // Reprendre les probes réseau (suspendus en arrière-plan)
+        final awayMs = _backgroundSince != null
+            ? DateTime.now().difference(_backgroundSince!).inMilliseconds
+            : 0;
+        if (awayMs >= 30000) {
+          detector.resume(); // re-probe immédiate si ≥30s en arrière-plan
+        } else {
+          detector.resume();
+        }
+        _backgroundSince = null;
+
       case AppLifecycleState.paused:
       case AppLifecycleState.inactive:
+        _backgroundSince = DateTime.now();
+        // Suspendre les probes périodiques pour économiser la batterie
+        detector.suspend();
+        // Ne PAS déconnecter le socket — "la ligne ne raccroche jamais"
+
       case AppLifecycleState.detached:
-        // On ne déconnecte PAS — la "ligne ne raccroche jamais"
-        // Le socket reste actif en background tant que l'OS le permet
-        break;
       case AppLifecycleState.hidden:
         break;
     }
@@ -79,7 +95,6 @@ class _PalabreAppState extends ConsumerState<PalabreApp>
       routerConfig: router,
       builder: (context, child) {
         return MediaQuery(
-          // Respecter la taille de police système (accessibilité)
           data: MediaQuery.of(context).copyWith(
             textScaler: TextScaler.linear(
               MediaQuery.of(context).textScaleFactor.clamp(0.85, 1.3),
