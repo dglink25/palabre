@@ -1,12 +1,12 @@
 import { useEffect, useRef } from 'react';
 
-// ── Alert — déclenche un toast via le NotificationContext ────────────────────
+// ── Alert - déclenche un toast via le NotificationContext ────────────────────
 // Import dynamique pour éviter les dépendances circulaires
 let _notifyFn = null;
 export function __setNotifyFn(fn) { _notifyFn = fn; }
 
 /**
- * Alert — composant invisible qui déclenche un toast.
+ * Alert - composant invisible qui déclenche un toast.
  *
  * Usage : <Alert variant="danger">{errorMessage}</Alert>
  *

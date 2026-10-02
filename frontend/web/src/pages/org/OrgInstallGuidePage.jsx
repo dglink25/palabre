@@ -1,5 +1,5 @@
 /**
- * OrgInstallGuidePage — Guide d'installation du serveur tenant Palabre.
+ * OrgInstallGuidePage - Guide d'installation du serveur tenant Palabre.
  * Design institutionnel sobre : typographie forte, filets colorés discrets,
  * timeline typographique, blocs de code sobres. Palette stricte, sans dégradé.
  */
@@ -337,7 +337,7 @@ export default function OrgInstallGuidePage() {
               fontSize: 11, fontWeight: 700, letterSpacing: '0.6px',
               textTransform: 'uppercase', color: C.textMuted, marginBottom: 6,
             }}>
-              Identifiant de votre organisation — à conserver
+              Identifiant de votre organisation - à conserver
             </div>
             <code style={{
               fontSize: 15, fontWeight: 600,
@@ -399,7 +399,7 @@ export default function OrgInstallGuidePage() {
         <Callout type="danger">
           <strong>Ports à ouvrir dans votre pare-feu avant de continuer.</strong>
         </Callout>
-        <CodeBlock label="Configuration pare-feu — ufw" code={`sudo ufw allow 51820/udp    # WireGuard VPN (tunnel chiffré)
+        <CodeBlock label="Configuration pare-feu - ufw" code={`sudo ufw allow 51820/udp    # WireGuard VPN (tunnel chiffré)
 sudo ufw allow 80/tcp       # HTTP  (redirection vers HTTPS)
 sudo ufw allow 443/tcp      # HTTPS (interface web et API)
 sudo ufw allow 22/tcp       # SSH   (si pas déjà ouvert)
@@ -410,7 +410,7 @@ sudo ufw status`} />
       <Step n={2} total={TOTAL} iconName="docker" color={C.primary}
         label="Environnement d'exécution" title="Installez Docker et Docker Compose"
         desc="Docker est le seul prérequis logiciel. L'ensemble du serveur tenant Palabre s'exécute dans des conteneurs isolés, garantissant une installation propre et reproductible.">
-        <CodeBlock label="Installation Docker — Ubuntu 22.04 / Debian 12" code={`# Télécharger et exécuter le script d'installation officiel
+        <CodeBlock label="Installation Docker - Ubuntu 22.04 / Debian 12" code={`# Télécharger et exécuter le script d'installation officiel
 curl -fsSL https://get.docker.com -o install-docker.sh
 sudo sh install-docker.sh
 
@@ -431,7 +431,7 @@ docker compose version`} />
       <Step n={3} total={TOTAL} iconName="download" color={C.success}
         label="Déploiement" title="Téléchargez et installez le paquet tenant"
         desc="Le dépôt Palabre contient uniquement les fichiers nécessaires à votre tenant. L'installation interactive génère automatiquement votre configuration à partir du QR code de provisioning.">
-        <CodeBlock label="Clonage du dépôt — méthode recommandée (SSH)" code={`# Cloner le dépôt Palabre dans un dossier dédié
+        <CodeBlock label="Clonage du dépôt - méthode recommandée (SSH)" code={`# Cloner le dépôt Palabre dans un dossier dédié
 git clone --filter=blob:none --sparse \\
   git@github.com:dglink25/palabre.git ${folderName}
 cd ${folderName}
@@ -441,7 +441,7 @@ git sparse-checkout set tenant services coturn
 
 # Se placer dans le dossier tenant
 cd tenant`} />
-        <CodeBlock label="Alternative — HTTPS (sans clé SSH configurée)" code={`git clone --filter=blob:none --sparse \\
+        <CodeBlock label="Alternative - HTTPS (sans clé SSH configurée)" code={`git clone --filter=blob:none --sparse \\
   https://github.com/dglink25/palabre.git ${folderName}
 cd ${folderName}
 git sparse-checkout set tenant services coturn
@@ -515,7 +515,7 @@ cd tenant`} />
       <Step n={5} total={TOTAL} iconName="shield" color={C.primary}
         label="Vérification" title="Vérifiez la connexion du tunnel VPN"
         desc="Une fois le tunnel établi, confirmez que votre serveur communique correctement avec le serveur central Palabre. Le statut doit passer à « Connexion établie » dans votre tableau de bord.">
-        <CodeBlock label="Diagnostics — état du tunnel et logs" code={`# Afficher les logs en temps réel de l'agent de liaison
+        <CodeBlock label="Diagnostics - état du tunnel et logs" code={`# Afficher les logs en temps réel de l'agent de liaison
 docker logs palabre-agent --tail 50 -f
 
 # Vérifier l'état du tunnel WireGuard
@@ -537,7 +537,7 @@ ping -c 4 api.palabre.app`} />
                 color={ok ? C.success : C.primary} />
               <div style={{ flex: 1 }}>
                 <span style={{ fontWeight: 600, fontSize: 14, color: C.text }}>{label}</span>
-                <span style={{ color: C.textMuted, fontSize: 13, marginLeft: 8 }}>— {detail}</span>
+                <span style={{ color: C.textMuted, fontSize: 13, marginLeft: 8 }}>- {detail}</span>
               </div>
             </div>
           ))}
@@ -569,7 +569,7 @@ ping -c 4 api.palabre.app`} />
           ))}
         </div>
         <Callout type="success">
-          <strong>Bonne pratique :</strong> générez un code par collaborateur pour pouvoir révoquer individuellement les accès. Les codes peuvent être régénérés à tout moment — l'ancien est automatiquement invalidé.
+          <strong>Bonne pratique :</strong> générez un code par collaborateur pour pouvoir révoquer individuellement les accès. Les codes peuvent être régénérés à tout moment - l'ancien est automatiquement invalidé.
         </Callout>
       </Step>
 

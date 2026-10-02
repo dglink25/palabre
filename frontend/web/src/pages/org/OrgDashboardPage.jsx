@@ -79,7 +79,7 @@ const VPN = {
 
 // ── Définition des étapes d'installation ─────────────────────────────────────
 const STEPS = [
-  { n: 1, title: 'Préparation du serveur',     detail: 'Ubuntu 22.04 LTS ou Debian 12 — 4 vCPU, 8 Go RAM minimum', cmd: null },
+  { n: 1, title: 'Préparation du serveur',     detail: 'Ubuntu 22.04 LTS ou Debian 12 - 4 vCPU, 8 Go RAM minimum', cmd: null },
   { n: 2, title: 'Installation de Docker',     detail: 'Environnement d\'exécution des conteneurs Palabre',       cmd: 'curl -fsSL https://get.docker.com | sh' },
   { n: 3, title: 'Déploiement du tenant',      detail: 'Clonage du dépôt et script d\'installation interactif',   cmd: './setup.sh' },
   { n: 4, title: 'Liaison de l\'organisation', detail: 'QR code de provisioning ou payload JSON',                 cmd: null },
@@ -173,7 +173,7 @@ export default function OrgDashboardPage() {
       </header>
 
       {/* ═══════════════════════════════════════════════════════════════════
-          BLOC 1 — ÉTAT DE L'INFRASTRUCTURE
+          BLOC 1 - ÉTAT DE L'INFRASTRUCTURE
           Le message dominant. On comprend en 3 secondes où on en est.
       ═══════════════════════════════════════════════════════════════════ */}
       <section style={{
@@ -248,7 +248,7 @@ export default function OrgDashboardPage() {
           )}
         </div>
 
-        {/* QR de provisioning — sans fioriture */}
+        {/* QR de provisioning - sans fioriture */}
         <div style={{ textAlign: 'center' }}>
           <div style={{
             fontSize: 10.5, fontWeight: 700, letterSpacing: '0.8px',
@@ -271,7 +271,7 @@ export default function OrgDashboardPage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════
-          BLOC 2 — IDENTIFICATION
+          BLOC 2 - IDENTIFICATION
           Table de définition classique. Aucune carte, juste des filets.
       ═══════════════════════════════════════════════════════════════════ */}
       <section style={{ marginBottom: 40 }}>
@@ -282,7 +282,7 @@ export default function OrgDashboardPage() {
           Identification de l'organisation
         </div>
 
-        {/* Identifiant — mis en avant */}
+        {/* Identifiant - mis en avant */}
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           gap: 16, padding: '14px 0',
@@ -302,7 +302,7 @@ export default function OrgDashboardPage() {
               fontFamily: "'JetBrains Mono','Fira Code',monospace",
               wordBreak: 'break-all',
             }}>
-              {orgId || '—'}
+              {orgId || '-'}
             </code>
           </div>
           {orgId && <CopyBtn text={orgId} label="Copier l'identifiant" />}
@@ -338,7 +338,7 @@ export default function OrgDashboardPage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════
-          BLOC 3 — PROCHAINES ÉTAPES
+          BLOC 3 - PROCHAINES ÉTAPES
           Une checklist éditoriale, pas une grille de widgets.
       ═══════════════════════════════════════════════════════════════════ */}
       <section style={{ marginBottom: 40 }}>
@@ -350,7 +350,7 @@ export default function OrgDashboardPage() {
             fontSize: 11, fontWeight: 700, letterSpacing: '1px',
             textTransform: 'uppercase', color: C.muted,
           }}>
-            Installation du tenant — 5 étapes
+            Installation du tenant - 5 étapes
           </div>
           <Link to="/org/guide" style={{
             fontSize: 13, fontWeight: 600, color: C.blue,
@@ -404,7 +404,7 @@ export default function OrgDashboardPage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════
-          BLOC 4 — NAVIGATION
+          BLOC 4 - NAVIGATION
           Liste éditoriale, pas de grille de cartes colorées.
       ═══════════════════════════════════════════════════════════════════ */}
       <section style={{ marginBottom: 40 }}>
@@ -462,7 +462,7 @@ export default function OrgDashboardPage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════
-          PIED — Mention institutionnelle discrète
+          PIED - Mention institutionnelle discrète
       ═══════════════════════════════════════════════════════════════════ */}
       <footer style={{
         paddingTop: 24,
@@ -476,7 +476,7 @@ export default function OrgDashboardPage() {
         gap: 12,
       }}>
         <span>
-          Palabre — Infrastructure de communication souveraine
+          Palabre - Infrastructure de communication souveraine
         </span>
         <a href="mailto:support@palabre.app" style={{
           color: C.soft, textDecoration: 'none', fontWeight: 600,
