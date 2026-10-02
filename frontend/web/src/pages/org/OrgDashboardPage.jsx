@@ -6,77 +6,97 @@ import { Alert, Spinner } from '../../components/ui';
 import { friendlyMessage } from '../../lib/errorMessages';
 import QRCode from 'qrcode';
 
+// ── Palette institutionnelle ─────────────────────────────────────────────────
 const C = {
   blue:   '#1A73E8',
   green:  '#34A853',
   amber:  '#FBBC05',
   red:    '#EA4335',
-  purple: '#7B61FF',
-  text:   '#202124',
-  sub:    '#5F6368',
-  border: '#E0E0E0',
-  bg:     '#F8F9FA',
+  text:   '#111827',
+  soft:   '#4B5563',
+  muted:  '#9CA3AF',
+  border: '#E5E7EB',
+  rule:   '#F3F4F6',
+  bg:     '#FFFFFF',
+  bgSoft: '#FAFAFA',
 };
 
-function Ico({ d, size = 18, color = 'currentColor', stroke = 1.8 }) {
+// ── Icônes sobres ────────────────────────────────────────────────────────────
+function Ico({ d, size = 16, color = 'currentColor', stroke = 1.7 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-      stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round">
+      stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round"
+      aria-hidden="true" style={{ flexShrink: 0, display: 'block' }}>
       {Array.isArray(d) ? d.map((p, i) => <path key={i} d={p} />) : <path d={d} />}
     </svg>
   );
 }
 
 const ICO = {
-  vpn:    ['M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'],
+  vpn:    'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
   invite: ['M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2', 'M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', 'M20 8v6', 'M23 11h-6'],
   link:   ['M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71', 'M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'],
-  guide:  ['M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'],
+  guide:  'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z',
   copy:   ['M8 17.929H6c-1.105 0-2-.912-2-2.036V5.036C4 3.91 4.895 3 6 3h8c1.105 0 2 .911 2 2.036v1.866', 'M18.5 8H11c-1.105 0-2 .911-2 2.036v9.928C9 21.09 9.895 22 11 22h7.5c1.105 0 2-.911 2-2.036V10.036C20.5 8.912 19.605 8 18.5 8z'],
-  check:  ['M20 6L9 17l-5-5'],
-  right:  ['M9 18l6-6-6-6'],
+  check:  'M20 6L9 17l-5-5',
+  arrow:  'M9 18l6-6-6-6',
   info:   ['M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z', 'M12 8v4', 'M12 16h.01'],
-  msg:    ['M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'],
+  msg:    'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',
+  dots:   ['M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2z', 'M19 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2z', 'M5 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2z'],
 };
 
-function CopyBtn({ text }) {
+// ── Bouton copier discret ────────────────────────────────────────────────────
+function CopyBtn({ text, label = 'Copier' }) {
   const [copied, setCopied] = useState(false);
-  function copy() {
-    navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
-  }
+  const copy = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    });
+  };
   return (
-    <button onClick={copy} title="Copier" style={{
-      border: 'none', background: 'none', cursor: 'pointer', padding: '3px 7px',
-      color: copied ? C.green : C.sub, display: 'inline-flex', alignItems: 'center', gap: 4,
-      fontSize: 12, transition: 'color 0.15s',
+    <button onClick={copy} title={label} style={{
+      border: 'none', background: 'none', cursor: 'pointer',
+      padding: '3px 8px', display: 'inline-flex', alignItems: 'center', gap: 5,
+      fontSize: 12, fontWeight: 600,
+      color: copied ? C.green : C.soft,
+      transition: 'color .15s',
+      fontFamily: 'inherit',
     }}>
-      <Ico d={copied ? ICO.check : ICO.copy} size={13} color={copied ? C.green : C.sub} />
-      {copied ? 'Copie' : 'Copier'}
+      <Ico d={copied ? ICO.check : ICO.copy} size={12} color={copied ? C.green : C.soft} />
+      {copied ? 'Copié' : label}
     </button>
   );
 }
 
-const VPN_COLORS = { active: C.green, degraded: C.amber, offline: C.red, unknown: '#9E9E9E' };
-const VPN_LABELS = { active: 'Connexion etablie', degraded: 'Signal instable', offline: 'Hors ligne', unknown: 'En attente' };
+// ── Métadonnées VPN ──────────────────────────────────────────────────────────
+const VPN = {
+  active:   { color: C.green, label: 'Connexion établie',  hint: 'Le tunnel chiffré est opérationnel.' },
+  degraded: { color: C.amber, label: 'Signal instable',    hint: 'La liaison avec le serveur central est dégradée.' },
+  offline:  { color: C.red,   label: 'Hors ligne',         hint: 'Aucune communication avec le serveur central.' },
+  unknown:  { color: C.muted, label: 'Non configuré',      hint: 'Le tunnel VPN n\'est pas encore établi.' },
+};
 
-const ACTIONS = [
-  { label: 'Tunnel VPN',         desc: 'Etat du serveur local',   color: C.blue,   to: '/org/vpn',   icon: ICO.vpn },
-  { label: 'Invitations',        desc: 'Inviter des membres',      color: C.green,  to: '/org/invite', icon: ICO.invite },
-  { label: 'Lier le tenant',     desc: 'Scanner le QR serveur',   color: C.amber,  to: '/org/link',  icon: ICO.link },
-  { label: 'Guide installation', desc: 'Configurer le serveur',   color: C.purple, to: '/org/guide', icon: ICO.guide },
-  { label: 'Messages',           desc: 'Discuter avec vos membres',color: C.blue,   to: '/app/conversations', icon: ICO.msg },
+// ── Définition des étapes d'installation ─────────────────────────────────────
+const STEPS = [
+  { n: 1, title: 'Préparation du serveur',     detail: 'Ubuntu 22.04 LTS ou Debian 12 — 4 vCPU, 8 Go RAM minimum', cmd: null },
+  { n: 2, title: 'Installation de Docker',     detail: 'Environnement d\'exécution des conteneurs Palabre',       cmd: 'curl -fsSL https://get.docker.com | sh' },
+  { n: 3, title: 'Déploiement du tenant',      detail: 'Clonage du dépôt et script d\'installation interactif',   cmd: './setup.sh' },
+  { n: 4, title: 'Liaison de l\'organisation', detail: 'QR code de provisioning ou payload JSON',                 cmd: null },
+  { n: 5, title: 'Vérification du tunnel',     detail: 'Statut attendu : « Connexion établie »',                  cmd: null },
 ];
 
+// ═════════════════════════════════════════════════════════════════════════════
 export default function OrgDashboardPage() {
   const { user } = useAuth();
-  const [org,     setOrg]     = useState(null);
+  const [org, setOrg]         = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState('');
+  const [error, setError]     = useState('');
   const qrRef = useRef(null);
 
   useEffect(() => {
     api.get('/org/me')
-      .then(d => setOrg(d))
+      .then(setOrg)
       .catch(e => setError(friendlyMessage(e)))
       .finally(() => setLoading(false));
   }, []);
@@ -84,209 +104,387 @@ export default function OrgDashboardPage() {
   useEffect(() => {
     if (org?.id && qrRef.current) {
       QRCode.toCanvas(qrRef.current, org.id, {
-        width: 130, margin: 1,
-        color: { dark: C.text, light: '#fff' },
+        width: 116, margin: 0,
+        color: { dark: C.text, light: '#FFFFFF' },
       }).catch(() => {});
     }
   }, [org]);
 
-  const vpnColor = VPN_COLORS[org?.vpn?.status] || VPN_COLORS.unknown;
-  const vpnLabel = VPN_LABELS[org?.vpn?.status] || VPN_LABELS.unknown;
+  const vpn = VPN[org?.vpn?.status] || VPN.unknown;
+  const orgId = org?.id || user?.orgId || '';
+
+  if (loading) {
+    return (
+      <div style={{ maxWidth: 880, margin: '0 auto', padding: '80px 0', textAlign: 'center' }}>
+        <Spinner />
+      </div>
+    );
+  }
 
   return (
-    <div style={{ maxWidth: 940, margin: '0 auto' }}>
-
-      {/* ── En-tête ── */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-        marginBottom: 32, paddingBottom: 22, borderBottom: `1px solid ${C.border}`,
-        flexWrap: 'wrap', gap: 12,
-        animation: 'fadein 0.4s ease',
-      }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: C.blue, boxShadow: `0 0 0 3px ${C.blue}25` }} />
-            <span style={{ fontSize: 13, color: C.sub, fontWeight: 600 }}>Admin organisation</span>
-          </div>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: C.text, letterSpacing: '-0.3px' }}>
-            {org?.name || user?.fullName || 'Tableau de bord'}
-          </h1>
-          <p style={{ margin: '4px 0 0', fontSize: 14, color: C.sub }}>
-            Gestion de votre organisation et de votre infrastructure
-          </p>
-        </div>
-        {org?.vpn && (
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            padding: '8px 14px', borderRadius: 20,
-            background: `${vpnColor}12`, border: `1px solid ${vpnColor}30`,
-          }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: vpnColor, display: 'inline-block' }} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: vpnColor }}>{vpnLabel}</span>
-          </div>
-        )}
-      </div>
+    <div style={{ maxWidth: 880, margin: '0 auto', color: C.text }}>
 
       {error && <Alert variant="danger">{error}</Alert>}
-      {loading && <div style={{ padding: '60px 0', textAlign: 'center' }}><Spinner /></div>}
 
-      {!loading && (
-        <>
-          {/* ── Identifiant + QR ── */}
-          <div style={{
-            background: '#fff', border: `1px solid ${C.border}`, borderRadius: 10,
-            padding: '22px 24px', marginBottom: 28,
-            display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'start',
-            animation: 'fadein 0.5s ease',
-          }}>
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: C.sub, textTransform: 'uppercase', letterSpacing: '0.7px', marginBottom: 14 }}>
-                Identification
-              </div>
+      {/* ═══════════════════════════════════════════════════════════════════
+          EN-TÊTE DOCUMENTAIRE
+          Un titre, un surtitre, une méta-ligne. Pas de décoration.
+      ═══════════════════════════════════════════════════════════════════ */}
+      <header style={{ paddingBottom: 28, borderBottom: `1px solid ${C.border}`, marginBottom: 36 }}>
+        <div style={{
+          fontSize: 11, fontWeight: 700, letterSpacing: '1.2px',
+          textTransform: 'uppercase', color: C.blue, marginBottom: 10,
+        }}>
+          Espace administrateur · Organisation
+        </div>
 
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 13, color: C.sub, marginBottom: 5 }}>Identifiant organisation</div>
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: 0,
-                  background: C.bg, border: `1px solid ${C.border}`,
-                  borderRadius: 6, overflow: 'hidden',
-                }}>
-                  <code style={{ flex: 1, padding: '8px 12px', fontSize: 13, color: C.text, wordBreak: 'break-all' }}>
-                    {org?.id || user?.orgId || '-'}
-                  </code>
-                  {(org?.id || user?.orgId) && <CopyBtn text={org?.id || user?.orgId} />}
-                </div>
-                <div style={{ fontSize: 12, color: C.sub, marginTop: 5 }}>
-                  A partager avec vos membres pour rejoindre l'organisation
-                </div>
-              </div>
+        <h1 style={{
+          margin: '0 0 14px 0',
+          fontSize: 'clamp(1.6rem, 3.4vw, 2rem)',
+          fontWeight: 800,
+          lineHeight: 1.15,
+          letterSpacing: '-0.6px',
+          color: C.text,
+        }}>
+          {org?.name || user?.fullName || 'Tableau de bord'}
+        </h1>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                {[
-                  { label: 'Nom',     value: org?.name },
-                  { label: 'Pays',    value: [org?.city, org?.country].filter(Boolean).join(', ') },
-                  { label: 'Secteur', value: org?.sector },
-                  { label: 'Statut',  value: org?.status === 'active' ? 'Actif' : org?.status === 'pending' ? 'En cours' : org?.status },
-                  { label: 'Compte',  value: user?.fullName || user?.email },
-                  { label: 'Role',    value: "Administrateur" },
-                ].filter(r => r.value).map(({ label, value }) => (
-                  <div key={label}>
-                    <div style={{ fontSize: 11, color: C.sub, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 2 }}>{label}</div>
-                    <div style={{ fontSize: 14, color: C.text, fontWeight: 500 }}>{value}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ textAlign: 'center', flexShrink: 0 }}>
-              <div style={{ fontSize: 11, color: C.sub, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px' }}>QR membres</div>
-              <div style={{ border: `1px solid ${C.border}`, borderRadius: 8, padding: 6, display: 'inline-block', background: '#fff' }}>
-                <canvas ref={qrRef} />
-              </div>
-              <div style={{ fontSize: 11, color: C.sub, marginTop: 6, maxWidth: 120 }}>
-                Scannez pour rejoindre
-              </div>
-            </div>
-          </div>
-
-          {/* ── Alerte VPN offline ── */}
-          {org?.vpn?.status && org.vpn.status !== 'active' && (
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              padding: '13px 16px', marginBottom: 24,
-              background: org.vpn.status === 'unknown' ? `${C.amber}08` : `${C.red}06`,
-              border: `1px solid ${org.vpn.status === 'unknown' ? C.amber : C.red}30`,
-              borderRadius: 8, animation: 'fadein 0.4s ease',
-            }}>
-              <Ico d={ICO.info} size={18} color={org.vpn.status === 'unknown' ? C.amber : C.red} />
-              <div style={{ flex: 1, fontSize: 14, color: C.text }}>
-                {org.vpn.status === 'unknown'
-                  ? 'Tunnel VPN non encore configure. Suivez le guide d\'installation.'
-                  : 'Connexion VPN interrompue. Verifiez votre serveur local.'}
-              </div>
-              <Link to="/org/vpn" style={{ fontSize: 13, fontWeight: 600, color: C.blue, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>
-                Verifier <Ico d={ICO.right} size={14} color={C.blue} />
-              </Link>
-            </div>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap',
+          fontSize: 13.5, color: C.soft,
+        }}>
+          <span>
+            <span style={{ color: C.muted }}>Compte · </span>
+            {user?.fullName || user?.email || 'Administrateur'}
+          </span>
+          {org?.sector && (
+            <span>
+              <span style={{ color: C.muted }}>Secteur · </span>
+              {org.sector}
+            </span>
           )}
+          {(org?.city || org?.country) && (
+            <span>
+              <span style={{ color: C.muted }}>Localisation · </span>
+              {[org.city, org.country].filter(Boolean).join(', ')}
+            </span>
+          )}
+        </div>
+      </header>
 
-          {/* ── Actions ── */}
-          <div style={{ fontSize: 12, fontWeight: 700, color: C.sub, textTransform: 'uppercase', letterSpacing: '0.7px', marginBottom: 12 }}>
-            Actions rapides
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 28 }}>
-            {ACTIONS.map((a, i) => (
-              <Link key={a.to} to={a.to} style={{ textDecoration: 'none' }}>
-                <div style={{
-                  background: '#fff', border: `1px solid ${C.border}`, borderRadius: 10,
-                  padding: '16px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center',
-                  textAlign: 'center', gap: 10,
-                  transition: 'box-shadow 0.2s, transform 0.2s',
-                  animation: `fadein 0.4s ease ${i * 60}ms both`,
-                }}
-                onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 4px 16px ${a.color}22`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                >
-                  <div style={{
-                    width: 42, height: 42, borderRadius: 10,
-                    background: `${a.color}14`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <Ico d={a.icon} size={20} color={a.color} />
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 13, color: C.text }}>{a.label}</div>
-                    <div style={{ fontSize: 11, color: C.sub, marginTop: 2 }}>{a.desc}</div>
-                  </div>
-                </div>
-              </Link>
-            ))}
+      {/* ═══════════════════════════════════════════════════════════════════
+          BLOC 1 — ÉTAT DE L'INFRASTRUCTURE
+          Le message dominant. On comprend en 3 secondes où on en est.
+      ═══════════════════════════════════════════════════════════════════ */}
+      <section style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr auto',
+        gap: 40,
+        alignItems: 'flex-start',
+        paddingBottom: 32,
+        borderBottom: `1px solid ${C.border}`,
+        marginBottom: 36,
+      }}>
+        <div>
+          <div style={{
+            fontSize: 11, fontWeight: 700, letterSpacing: '1px',
+            textTransform: 'uppercase', color: C.muted, marginBottom: 12,
+          }}>
+            État de l'infrastructure
           </div>
 
-          {/* ── Guide rapide ── */}
-          <div style={{ background: '#fff', border: `1px solid ${C.border}`, borderRadius: 10, overflow: 'hidden' }}>
-            <div style={{ padding: '14px 20px', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>Premiers pas - installation du tenant</div>
-              <Link to="/org/guide" style={{ fontSize: 13, fontWeight: 600, color: C.blue, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
-                Guide complet <Ico d={ICO.right} size={13} color={C.blue} />
-              </Link>
+          {/* Statut dominant, typographique */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10,
+          }}>
+            <span style={{
+              width: 10, height: 10, borderRadius: '50%',
+              background: vpn.color, display: 'inline-block',
+            }} />
+            <span style={{
+              fontSize: 'clamp(1.15rem, 2.4vw, 1.35rem)',
+              fontWeight: 700,
+              color: C.text,
+              letterSpacing: '-0.3px',
+            }}>
+              {vpn.label}
+            </span>
+          </div>
+
+          <p style={{
+            margin: '0 0 20px 0',
+            fontSize: 14.5,
+            lineHeight: 1.7,
+            color: C.soft,
+            maxWidth: 520,
+          }}>
+            {vpn.hint}
+          </p>
+
+          {/* Appel à l'action contextuel, texte uniquement */}
+          {org?.vpn?.status && org.vpn.status !== 'active' && (
+            <Link to="/org/vpn" style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              fontSize: 14, fontWeight: 600, color: C.blue,
+              textDecoration: 'none',
+              borderBottom: `1px solid ${C.blue}`,
+              paddingBottom: 2,
+            }}>
+              Diagnostiquer le tunnel
+              <Ico d={ICO.arrow} size={13} color={C.blue} />
+            </Link>
+          )}
+          {(!org?.vpn?.status || org.vpn.status === 'active') && (
+            <Link to="/org/guide" style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              fontSize: 14, fontWeight: 600, color: C.blue,
+              textDecoration: 'none',
+              borderBottom: `1px solid ${C.blue}`,
+              paddingBottom: 2,
+            }}>
+              Consulter le guide d'installation
+              <Ico d={ICO.arrow} size={13} color={C.blue} />
+            </Link>
+          )}
+        </div>
+
+        {/* QR de provisioning — sans fioriture */}
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            fontSize: 10.5, fontWeight: 700, letterSpacing: '0.8px',
+            textTransform: 'uppercase', color: C.muted, marginBottom: 10,
+          }}>
+            QR d'invitation
+          </div>
+          <div style={{
+            border: `1px solid ${C.border}`,
+            padding: 8, display: 'inline-block', background: '#fff',
+          }}>
+            <canvas ref={qrRef} />
+          </div>
+          <div style={{
+            fontSize: 11, color: C.muted, marginTop: 8, maxWidth: 130, lineHeight: 1.5,
+          }}>
+            À scanner par vos membres pour rejoindre l'organisation
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          BLOC 2 — IDENTIFICATION
+          Table de définition classique. Aucune carte, juste des filets.
+      ═══════════════════════════════════════════════════════════════════ */}
+      <section style={{ marginBottom: 40 }}>
+        <div style={{
+          fontSize: 11, fontWeight: 700, letterSpacing: '1px',
+          textTransform: 'uppercase', color: C.muted, marginBottom: 16,
+        }}>
+          Identification de l'organisation
+        </div>
+
+        {/* Identifiant — mis en avant */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          gap: 16, padding: '14px 0',
+          borderTop: `1px solid ${C.border}`,
+          borderBottom: `1px solid ${C.border}`,
+          flexWrap: 'wrap',
+        }}>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{
+              fontSize: 11, color: C.muted, textTransform: 'uppercase',
+              letterSpacing: '0.6px', marginBottom: 4, fontWeight: 600,
+            }}>
+              Identifiant organisation
             </div>
-            {[
-              { n: 1, t: 'Preparez votre serveur',       d: 'Ubuntu 22.04+ ou Debian 12 - 4 vCPU, 8 Go RAM min' },
-              { n: 2, t: 'Installez Docker',              d: 'curl -fsSL https://get.docker.com | sh' },
-              { n: 3, t: 'Clonez et installez le tenant', d: 'git clone + ./setup.sh (script interactif)' },
-              { n: 4, t: 'Liez votre organisation',       d: 'Scannez le QR code ou collez le payload JSON' },
-              { n: 5, t: 'Verifiez le tunnel VPN',        d: 'Le statut passe a "Connexion etablie" apres le premier heartbeat' },
-            ].map((s, i, arr) => (
-              <div key={s.n} style={{
-                display: 'flex', gap: 14, padding: '13px 20px',
-                borderBottom: i < arr.length - 1 ? `1px solid ${C.bg}` : 'none',
-                transition: 'background 0.1s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = C.bg}
-              onMouseLeave={e => e.currentTarget.style.background = ''}
-              >
-                <div style={{
-                  width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
-                  background: `${C.blue}14`, color: C.blue,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontWeight: 700, fontSize: 12,
-                }}>{s.n}</div>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: C.text }}>{s.t}</div>
-                  <div style={{ fontSize: 13, color: C.sub, marginTop: 1, fontFamily: s.n === 2 ? 'monospace' : 'inherit' }}>{s.d}</div>
+            <code style={{
+              fontSize: 14, color: C.text, fontWeight: 600,
+              fontFamily: "'JetBrains Mono','Fira Code',monospace",
+              wordBreak: 'break-all',
+            }}>
+              {orgId || '—'}
+            </code>
+          </div>
+          {orgId && <CopyBtn text={orgId} label="Copier l'identifiant" />}
+        </div>
+
+        {/* Métadonnées en grille de définitions */}
+        <dl style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: 0,
+          margin: 0,
+        }}>
+          {[
+            { label: 'Statut',        value: org?.status === 'active' ? 'Actif' : org?.status === 'pending' ? 'En cours de validation' : org?.status },
+            { label: 'Rôle du compte', value: 'Administrateur' },
+            { label: 'Membres',       value: org?.memberCount != null ? `${org.memberCount}` : null },
+            { label: 'Créée le',      value: org?.createdAt ? new Date(org.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null },
+          ].filter(r => r.value).map(({ label, value }) => (
+            <div key={label} style={{
+              padding: '14px 0',
+              borderBottom: `1px solid ${C.rule}`,
+            }}>
+              <dt style={{
+                fontSize: 11, color: C.muted, textTransform: 'uppercase',
+                letterSpacing: '0.6px', marginBottom: 4, fontWeight: 600,
+              }}>{label}</dt>
+              <dd style={{ margin: 0, fontSize: 14, color: C.text, fontWeight: 500 }}>
+                {value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          BLOC 3 — PROCHAINES ÉTAPES
+          Une checklist éditoriale, pas une grille de widgets.
+      ═══════════════════════════════════════════════════════════════════ */}
+      <section style={{ marginBottom: 40 }}>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
+          marginBottom: 16, flexWrap: 'wrap', gap: 8,
+        }}>
+          <div style={{
+            fontSize: 11, fontWeight: 700, letterSpacing: '1px',
+            textTransform: 'uppercase', color: C.muted,
+          }}>
+            Installation du tenant — 5 étapes
+          </div>
+          <Link to="/org/guide" style={{
+            fontSize: 13, fontWeight: 600, color: C.blue,
+            textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4,
+          }}>
+            Guide détaillé <Ico d={ICO.arrow} size={12} color={C.blue} />
+          </Link>
+        </div>
+
+        <ol style={{ listStyle: 'none', margin: 0, padding: 0, borderTop: `1px solid ${C.border}` }}>
+          {STEPS.map((s) => (
+            <li key={s.n} style={{
+              display: 'grid',
+              gridTemplateColumns: '40px 1fr auto',
+              alignItems: 'center',
+              gap: 16,
+              padding: '14px 0',
+              borderBottom: `1px solid ${C.rule}`,
+            }}>
+              <span style={{
+                fontSize: 12, fontWeight: 700, color: C.muted,
+                fontFamily: "'JetBrains Mono',monospace",
+                fontVariantNumeric: 'tabular-nums',
+              }}>
+                {String(s.n).padStart(2, '0')}
+              </span>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 14.5, fontWeight: 600, color: C.text, marginBottom: 2 }}>
+                  {s.title}
+                </div>
+                <div style={{ fontSize: 13, color: C.soft, lineHeight: 1.6 }}>
+                  {s.detail}
                 </div>
               </div>
-            ))}
-          </div>
-        </>
-      )}
+              {s.cmd && (
+                <code style={{
+                  fontSize: 12, color: C.soft,
+                  fontFamily: "'JetBrains Mono',monospace",
+                  background: C.bgSoft,
+                  padding: '4px 10px',
+                  border: `1px solid ${C.border}`,
+                  borderRadius: 4,
+                  whiteSpace: 'nowrap',
+                }}>
+                  {s.cmd}
+                </code>
+              )}
+            </li>
+          ))}
+        </ol>
+      </section>
 
-      <style>{`
-        @keyframes fadein { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:translateY(0) } }
-        @media(max-width:760px){ .org-actions { grid-template-columns: repeat(3,1fr) !important; } }
-        @media(max-width:480px){ .org-actions { grid-template-columns: repeat(2,1fr) !important; } }
-      `}</style>
+      {/* ═══════════════════════════════════════════════════════════════════
+          BLOC 4 — NAVIGATION
+          Liste éditoriale, pas de grille de cartes colorées.
+      ═══════════════════════════════════════════════════════════════════ */}
+      <section style={{ marginBottom: 40 }}>
+        <div style={{
+          fontSize: 11, fontWeight: 700, letterSpacing: '1px',
+          textTransform: 'uppercase', color: C.muted, marginBottom: 16,
+        }}>
+          Gestion de l'organisation
+        </div>
+
+        <nav style={{ borderTop: `1px solid ${C.border}` }}>
+          {[
+            { to: '/org/vpn',       label: 'Tunnel VPN',           desc: 'État du serveur local et diagnostic de la liaison',        icon: ICO.vpn },
+            { to: '/org/invite',    label: 'Invitations membres',  desc: 'Générer et gérer les codes d\'invitation',                 icon: ICO.invite },
+            { to: '/org/link',      label: 'Liaison du tenant',    desc: 'Scanner ou coller le QR code de provisioning',             icon: ICO.link },
+            { to: '/org/guide',     label: 'Guide d\'installation',desc: 'Procédure complète de déploiement du serveur',             icon: ICO.guide },
+            { to: '/app/conversations', label: 'Messages',         desc: 'Conversations chiffrées avec vos membres',                 icon: ICO.msg },
+          ].map((item, i, arr) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '32px 1fr auto',
+                alignItems: 'center',
+                gap: 16,
+                padding: '16px 4px',
+                borderBottom: i < arr.length - 1 ? `1px solid ${C.rule}` : `1px solid ${C.border}`,
+                textDecoration: 'none',
+                color: 'inherit',
+                transition: 'padding-left .18s ease, background .18s ease',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.paddingLeft = '10px';
+                e.currentTarget.style.background = C.bgSoft;
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.paddingLeft = '4px';
+                e.currentTarget.style.background = 'transparent';
+              }}
+            >
+              <Ico d={item.icon} size={18} color={C.soft} />
+              <div>
+                <div style={{ fontSize: 14.5, fontWeight: 600, color: C.text, marginBottom: 2 }}>
+                  {item.label}
+                </div>
+                <div style={{ fontSize: 13, color: C.soft }}>
+                  {item.desc}
+                </div>
+              </div>
+              <Ico d={ICO.arrow} size={14} color={C.muted} />
+            </Link>
+          ))}
+        </nav>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          PIED — Mention institutionnelle discrète
+      ═══════════════════════════════════════════════════════════════════ */}
+      <footer style={{
+        paddingTop: 24,
+        borderTop: `1px solid ${C.border}`,
+        fontSize: 12.5,
+        color: C.muted,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: 12,
+      }}>
+        <span>
+          Palabre — Infrastructure de communication souveraine
+        </span>
+        <a href="mailto:support@palabre.app" style={{
+          color: C.soft, textDecoration: 'none', fontWeight: 600,
+        }}>
+          support@palabre.app
+        </a>
+      </footer>
+
     </div>
   );
 }
