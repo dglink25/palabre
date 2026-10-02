@@ -1,0 +1,17 @@
+# À fusionner dans le docker-compose de Palabre.
+# Votre Postgres doit fournir pgvector : utilisez l'image pgvector/pgvector:pg16
+# (ou installez l'extension sur votre image actuelle).
+services:
+  ai:
+    build: ./ai
+    env_file: ./ai/.env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ai_data:/data
+      - jitsi_recordings:/recordings:ro   # dossier où Jibri dépose les enregistrements
+    depends_on:
+      - db
+
+volumes:
+  ai_data:

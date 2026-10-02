@@ -217,12 +217,13 @@ export function ChatPage() {
       ws.onmessage = (e) => {
         try {
           const msg = JSON.parse(e.data);
-          if (msg.event === 'incoming_message' || msg.event === 'new_message') {
+
+          // msg:receive — message entrant du message-router Phoenix
+          if (msg.event === 'msg:receive') {
             const payload = msg.payload;
             // Ajouter le message seulement si on est dans la bonne conversation
             if (payload.to === user.id || payload.from === user.id) {
               setMessages(prev => {
-                // Déduplication
                 if (prev.find(m => m.id === payload.id)) return prev;
                 return [...prev, {
                   id:      payload.id || Date.now(),
@@ -235,16 +236,33 @@ export function ChatPage() {
               });
             }
           }
-          if (msg.event === 'delivery_receipt') {
+
+          // Statut livré (2 traits gris)
+          if (msg.event === 'msg:delivered') {
             setMessages(prev => prev.map(m =>
-              m.id === msg.payload.msg_id ? { ...m, status: 'delivered' } : m
+              m.id === msg.payload.id ? { ...m, status: 'delivered' } : m
             ));
           }
-          if (msg.event === 'read_receipt') {
+
+          // Statut lu (2 traits bleus)
+          if (msg.event === 'msg:read') {
             setMessages(prev => prev.map(m =>
               m.id === msg.payload.msg_id ? { ...m, status: 'read' } : m
             ));
           }
+
+          // Accusé d'envoi initial
+          if (msg.event === 'msg:sent_ack') {
+            setMessages(prev => prev.map(m =>
+              m.id === msg.payload.id ? { ...m, status: msg.payload.status === 'queued' ? 'sent' : 'sent' } : m
+            ));
+          }
+
+          // Présence d'un contact
+          if (msg.event === 'presence:update') {
+            // Les mises à jour de présence sont gérées au niveau de la liste de contacts
+          }
+
         } catch (_) {}
       };
 
@@ -259,10 +277,25 @@ export function ChatPage() {
 
     connect();
 
-    // Heartbeat Phoenix (30s)
+    // Heartbeat Phoenix toutes les 30s
+    // — sur le topic "phoenix" pour maintenir le socket vivant
+    // — sur le channel "user:{id}" avec event "heartbeat" pour la présence
     const hbInterval = setInterval(() => {
       if (ws?.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ topic: 'phoenix', event: 'heartbeat', payload: {}, ref: 'hb' }));
+        // Heartbeat Phoenix standard (maintient la connexion)
+        ws.send(JSON.stringify({
+          topic: 'phoenix',
+          event: 'heartbeat',
+          payload: {},
+          ref: `hb_${Date.now()}`,
+        }));
+        // Heartbeat présence sur le channel utilisateur
+        ws.send(JSON.stringify({
+          topic: `user:${user.id}`,
+          event: 'heartbeat',
+          payload: { ts: Date.now() },
+          ref: `hbp_${Date.now()}`,
+        }));
       }
     }, 30000);
 
@@ -287,23 +320,51 @@ export function ChatPage() {
     setText('');
     inputRef.current?.focus();
 
-    const optimisticId = `opt_${Date.now()}`;
+    const msgId = `msg_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const optimistic = {
-      id: optimisticId, from: user?.id, content,
+      id: msgId, from: user?.id, content,
       sentAt: new Date().toISOString(), isMine: true, status: 'sending',
     };
     setMessages(prev => [...prev, optimistic]);
 
+    // Tenter l'envoi via WebSocket Phoenix (temps réel)
+    const ws = wsRef.current;
+    const wsSent = ws?.readyState === WebSocket.OPEN;
+    if (wsSent) {
+      ws.send(JSON.stringify({
+        topic: `user:${user.id}`,
+        event: 'msg:send',
+        payload: {
+          id:         msgId,
+          to:         convInfo?.peerId,
+          ciphertext: content,       // En prod : chiffrer avec Signal avant envoi
+          type:       'text',
+          timestamp:  Date.now(),
+        },
+        ref: msgId,
+      }));
+      // Message considéré "envoyé" — le Phoenix ack confirmera
+      setMessages(prev => prev.map(m =>
+        m.id === msgId ? { ...m, status: 'sent' } : m
+      ));
+    }
+
+    // Toujours persister via REST pour la durabilité et l'historique
     try {
       const sent = await api.post(`/conversations/${id}/messages`, { content });
       setMessages(prev => prev.map(m =>
-        m.id === optimisticId ? { ...sent, isMine: true } : m
+        // Remplacer le message optimiste par la version serveur (avec vrai ID si différent)
+        m.id === msgId ? { ...sent, isMine: true } : m
       ));
     } catch (err) {
-      setMessages(prev => prev.map(m =>
-        m.id === optimisticId ? { ...m, status: 'failed' } : m
-      ));
-      notify.error(friendlyMessage(err));
+      if (!wsSent) {
+        // Ni WS ni REST → marquer comme échoué
+        setMessages(prev => prev.map(m =>
+          m.id === msgId ? { ...m, status: 'failed' } : m
+        ));
+        notify.error(friendlyMessage(err));
+      }
+      // Si WS a fonctionné mais REST échoue, le message est quand même livré
     }
   }
 

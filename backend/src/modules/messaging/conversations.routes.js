@@ -14,6 +14,33 @@ const { requireAuth } = require('../../middleware/authMiddleware');
 
 const router = express.Router();
 
+// URL interne du message-router (dans Docker : http://message-router:4020, en dev : http://localhost:4020)
+const MESSAGE_ROUTER_URL = process.env.MESSAGE_ROUTER_INTERNAL_URL || 'http://localhost:4020';
+const INTERNAL_SECRET    = process.env.INTERNAL_SERVICES_SECRET    || 'dev_internal_secret';
+
+/**
+ * Notifie le message-router Phoenix pour livrer un message en temps réel.
+ * Utilise l'endpoint interne /internal/messages/deliver.
+ * Non bloquant — le message est déjà persisté en DB.
+ */
+async function notifyMessageRouter(msg) {
+  try {
+    const fetch = require('node-fetch');
+    await fetch(`${MESSAGE_ROUTER_URL}/internal/messages/deliver`, {
+      method:  'POST',
+      headers: {
+        'Content-Type':      'application/json',
+        'x-internal-secret': INTERNAL_SECRET,
+      },
+      body:    JSON.stringify(msg),
+      timeout: 3000,
+    });
+  } catch (err) {
+    // Non bloquant — le destinataire récupérera le message via polling ou reconnexion
+    console.warn('[conversations] message-router unreachable, RT delivery skipped:', err.message);
+  }
+}
+
 // ── GET /conversations - liste les conversations de l'utilisateur ─────────────
 router.get('/', requireAuth, async (req, res, next) => {
   try {
@@ -230,6 +257,23 @@ router.post('/:id/messages', requireAuth, async (req, res, next) => {
     );
 
     const m = rows[0];
+
+    // ── Notification temps réel via le message-router Phoenix ─────────────────
+    // Appel HTTP interne vers /internal/messages/deliver pour pousser le message
+    // au destinataire via Phoenix PubSub s'il est connecté, ou le mettre en file
+    // Redis s'il est hors ligne.
+    notifyMessageRouter({
+      id:         m.id,
+      org_id:     orgId,
+      from:       m.from_user_id,
+      to:         m.to_user_id,
+      ciphertext: m.ciphertext,
+      type:       m.type,
+      status:     m.status,
+      timestamp:  m.server_ts,
+      server_ts:  m.server_ts,
+    });
+
     res.status(201).json({
       id:       m.id,
       from:     m.from_user_id,

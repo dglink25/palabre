@@ -38,6 +38,7 @@ services:
     environment:
       DATABASE_URL: postgres://palabre:palabre@postgres:5432/palabre
       REDIS_URL: redis://redis:6379
+      MESSAGE_ROUTER_INTERNAL_URL: http://message-router:4020
     depends_on:
       postgres:
         condition: service_healthy

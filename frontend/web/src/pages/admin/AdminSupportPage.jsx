@@ -406,7 +406,7 @@ export default function AdminSupportPage() {
                     if (msg.type === 'video_invite') return (
                       <div key={msg.id} style={{ textAlign: 'center', margin: '8px 0' }}>
                         <span style={{ display: 'inline-block', padding: '6px 14px', background: '#E8F0FE', border: '1px solid #1A73E8', fontSize: 12, color: '#1A73E8', fontWeight: 600 }}>
-                          📹 Invitation vidéoconférence envoyée
+                         Invitation vidéoconférence envoyée
                         </span>
                       </div>
                     );
