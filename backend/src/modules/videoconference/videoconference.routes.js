@@ -34,17 +34,39 @@ router.use(rejectJitsiLeak);
 // Le nom "jitsi" n'apparaît jamais dans l'URL côté client.
 router.get('/client-sdk', async (req, res) => {
   const fetch  = require('node-fetch');
-  const domain = process.env.JITSI_DOMAIN || 'meet.jitsi.si'; // fallback public
-  try {
-    const upstream = await fetch(`https://${domain}/external_api.js`);
-    if (!upstream.ok) throw new Error('SDK unavailable');
-    const script = await upstream.text();
-    res.setHeader('Content-Type', 'application/javascript');
-    res.setHeader('Cache-Control', 'public, max-age=3600');
-    res.send(script);
-  } catch {
-    res.status(503).json({ error: { code: 'SDK_UNAVAILABLE', message: 'Service temporairement indisponible.' } });
+  const domain = process.env.JITSI_DOMAIN || 'meet.jit.si';
+
+  // Essayer les URLs dans l'ordre (domaine configuré en premier, puis fallback public)
+  const sources = [
+    `https://${domain}/libs/external_api.min.js`,
+    `https://${domain}/external_api.js`,
+    `https://meet.jit.si/libs/external_api.min.js`,
+    `https://meet.jit.si/external_api.js`,
+  ];
+
+  for (const url of sources) {
+    try {
+      const upstream = await Promise.race([
+        fetch(url, { headers: { 'User-Agent': 'Palabre-Proxy/1.0' } }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000)),
+      ]);
+      if (!upstream.ok) continue;
+      const script = await upstream.text();
+      // Vérifier que c'est bien du JavaScript (pas une page d'erreur HTML)
+      if (script.length < 1000 || script.trimStart().startsWith('<')) continue;
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      return res.send(script);
+    } catch {
+      continue;
+    }
   }
+
+  // Toutes les sources ont échoué
+  res.status(503).json({
+    error: { code: 'SDK_UNAVAILABLE', message: 'Service de vidéoconférence indisponible. Vérifiez que votre serveur Jitsi est accessible.' },
+  });
 });
 
 // ═════════════════════════════════════════════════════════════════════════
