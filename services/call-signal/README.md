@@ -1,6 +1,6 @@
-# Service Call Signal — Palabre
+# Service Call Signal - Palabre
 
-Serveur de signaling WebRTC pour les appels audio et vidéo (1:1 et groupe). Échange les offres SDP et candidats ICE entre les pairs — ne traite jamais le flux média.
+Serveur de signaling WebRTC pour les appels audio et vidéo (1:1 et groupe). Échange les offres SDP et candidats ICE entre les pairs - ne traite jamais le flux média.
 
 Technologie : **Elixir/Phoenix Channels**.
 
@@ -50,7 +50,7 @@ Le script génère `services/call-signal/.env` automatiquement. Si le fichier ex
 ## Démarrage
 
 ```bash
-# Via Docker (inclus dans core — dépend de message-router)
+# Via Docker (inclus dans core - dépend de message-router)
 ./palabre.sh start core
 
 # Logs

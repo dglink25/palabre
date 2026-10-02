@@ -1,5 +1,5 @@
 defmodule CallSignal.Auth do
-  @moduledoc "Vérification JWT — même logique que MessageRouter.Auth."
+  @moduledoc "Vérification JWT - même logique que MessageRouter.Auth."
 
   @secret Application.compile_env(:call_signal, :jwt_secret, "change_me_access_secret")
 

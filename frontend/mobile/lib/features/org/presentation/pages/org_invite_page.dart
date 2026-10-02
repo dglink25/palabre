@@ -7,7 +7,7 @@ import '../../../../core/network/api_client.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// Page d'invitation de membres — admin organisation.
+/// Page d'invitation de membres - admin organisation.
 /// Génère un code d'invitation et un QR code à partager.
 /// Équivalent de OrgInvitePage du web.
 class OrgInvitePage extends ConsumerStatefulWidget {
@@ -37,7 +37,7 @@ class _OrgInvitePageState extends ConsumerState<OrgInvitePage> {
     try {
       final data = await ref.read(apiClientProvider).get<Map<String, dynamic>>('/org/me');
       // Si un joinCode existe déjà dans les données org, l'afficher
-      // (le backend ne le retourne pas pour raison de sécurité — il faut le régénérer)
+      // (le backend ne le retourne pas pour raison de sécurité - il faut le régénérer)
     } catch (e) {
       setState(() => _error = e.toString());
     } finally {

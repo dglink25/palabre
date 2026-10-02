@@ -1,5 +1,5 @@
 /**
- * NetworkDetector — Détection automatique du mode de connexion
+ * NetworkDetector - Détection automatique du mode de connexion
  *
  * Architecture :
  *   Le Tenant_Server fait tourner un DNS local (dnsmasq) qui résout
@@ -238,7 +238,7 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Singleton — une seule instance partagée dans toute l'app
+// Singleton - une seule instance partagée dans toute l'app
 export const networkDetector = new NetworkDetector();
 
 // Démarrer la détection initiale après le chargement du module

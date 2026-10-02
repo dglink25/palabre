@@ -201,7 +201,7 @@ class _AdminSupportPageState extends ConsumerState<AdminSupportPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Service client — Admin'),
+        title: const Text('Service client - Admin'),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
         ],

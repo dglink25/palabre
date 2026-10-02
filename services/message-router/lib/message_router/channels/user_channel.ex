@@ -2,23 +2,23 @@ defmodule MessageRouter.Channels.UserChannel do
   use Phoenix.Channel
 
   @moduledoc """
-  Channel personnel de chaque utilisateur — "user:{user_id}".
+  Channel personnel de chaque utilisateur - "user:{user_id}".
 
   Un seul utilisateur peut rejoindre ce channel (on vérifie que
   le user_id du token correspond au user_id du channel).
 
   Events entrants (client → serveur) :
-    "msg:send"       — envoyer un message direct (1:1)
-    "msg:ack_read"   — signaler qu'un message a été lu (2 traits bleus)
-    "heartbeat"      — keepalive toutes les 30s
+    "msg:send"       - envoyer un message direct (1:1)
+    "msg:ack_read"   - signaler qu'un message a été lu (2 traits bleus)
+    "heartbeat"      - keepalive toutes les 30s
 
   Events sortants (serveur → client) :
-    "msg:receive"    — message entrant
-    "msg:sent_ack"   — accusé de réception (1 trait)
-    "msg:delivered"  — livré à l'appareil (2 traits gris)
-    "msg:read"       — lu par le destinataire (2 traits bleus)
-    "presence:update"— changement de présence d'un contact
-    "error"          — erreur applicative
+    "msg:receive"    - message entrant
+    "msg:sent_ack"   - accusé de réception (1 trait)
+    "msg:delivered"  - livré à l'appareil (2 traits gris)
+    "msg:read"       - lu par le destinataire (2 traits bleus)
+    "presence:update"- changement de présence d'un contact
+    "error"          - erreur applicative
   """
 
   alias MessageRouter.{Router, Queue, PresenceClient}
@@ -83,7 +83,7 @@ defmodule MessageRouter.Channels.UserChannel do
   end
 
   @doc """
-  Accusé de lecture — envoyé quand l'utilisateur ouvre la conversation.
+  Accusé de lecture - envoyé quand l'utilisateur ouvre la conversation.
   Déclenche l'envoi d'un "msg:read" (2 traits bleus) à l'émetteur original.
   """
   def handle_in("msg:ack_read", %{"msg_id" => msg_id, "from" => from_user_id}, socket) do
@@ -92,7 +92,7 @@ defmodule MessageRouter.Channels.UserChannel do
   end
 
   @doc """
-  Heartbeat client — reçu toutes les 30 secondes.
+  Heartbeat client - reçu toutes les 30 secondes.
   Met à jour last_seen_at dans le service de présence.
   Répond immédiatement avec un pong pour que le client mesure la latence.
   """

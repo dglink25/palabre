@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Tunnel Gateway — WebSocket persistant pour les Tunnel Connectors
+ * Tunnel Gateway - WebSocket persistant pour les Tunnel Connectors
  *
  * Chaque Tenant_Server se connecte ici pour :
  *  1. S'authentifier (token d'enregistrement ou controlToken)
@@ -10,7 +10,7 @@
  *  4. Être notifié des directives (suspension, mise à jour)
  *
  * L'objectif est un canal WebSocket TLS persistant authenticated par token.
- * Le contenu des messages E2E n'est jamais inspecté — seule l'enveloppe
+ * Le contenu des messages E2E n'est jamais inspecté - seule l'enveloppe
  * de routage est lue (destinataire, tenant d'origine).
  *
  * Usage dans server.js :
@@ -29,7 +29,7 @@ const connections = new Map();
 
 /**
  * Attache le gateway WebSocket au serveur HTTP existant.
- * @param {http.Server} server — instance créée par app.listen()
+ * @param {http.Server} server - instance créée par app.listen()
  */
 function attachTunnelGateway(server) {
   const wss = new WebSocket.Server({

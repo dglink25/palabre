@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Support Service — Palabre Service Client
+ * Support Service - Palabre Service Client
  *
  * Gère les Support_Sessions et Support_Messages.
  * RÈGLE : le contenu des messages (ciphertext) est persisté et relayé

@@ -3,10 +3,10 @@ defmodule MessageRouter.HTTP.Router do
 
   @moduledoc """
   Routes HTTP du Message Router.
-  - /health                   — healthcheck Docker/orchestrateur
-  - /ws/info                  — infos de connexion WebSocket pour les clients
-  - /internal/messages/deliver — livraison d'un message entrant (depuis l'agent tenant)
-  - /internal/agent/mode       — changement de mode réseau (full/degraded)
+  - /health                   - healthcheck Docker/orchestrateur
+  - /ws/info                  - infos de connexion WebSocket pour les clients
+  - /internal/messages/deliver - livraison d'un message entrant (depuis l'agent tenant)
+  - /internal/agent/mode       - changement de mode réseau (full/degraded)
   """
 
   @internal_secret Application.compile_env(:message_router, :internal_secret, "dev_internal_secret")
@@ -80,7 +80,7 @@ defmodule MessageRouter.HTTP.Router do
       mode = conn.body_params["mode"] || "full"
       directives = conn.body_params["directives"] || %{}
       require Logger
-      Logger.info("[HTTP.Router] Mode reseau change : #{mode} — directives=#{inspect(directives)}")
+      Logger.info("[HTTP.Router] Mode reseau change : #{mode} - directives=#{inspect(directives)}")
 
       # Broadcaster le changement de mode à tous les channels connectés
       Phoenix.PubSub.broadcast(

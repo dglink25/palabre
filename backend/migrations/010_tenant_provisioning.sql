@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS tenant_registrations (
   organization_id         UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   -- Sous-domaine attribué : monorg.palabre.com
   tenant_subdomain        TEXT NOT NULL UNIQUE,
-  -- IP PUBLIQUE du Tenant_Server — enregistrée sur le DNS public du Central_Server
+  -- IP PUBLIQUE du Tenant_Server - enregistrée sur le DNS public du Central_Server
   -- Utilisée uniquement par le tunnel de relais (les appareils hors LAN passent par ici)
   -- Le Tenant_Server n'est PAS nécessairement accessible directement depuis Internet
   ip_address              INET NOT NULL,

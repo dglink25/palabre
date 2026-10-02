@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Support Gateway — WebSocket /support/socket
+ * Support Gateway - WebSocket /support/socket
  *
  * Gère le signaling temps réel pour :
  * - Messagerie instantanée (support:message)
@@ -336,7 +336,7 @@ function _handleRedisMessage(channel, payload) {
       break;
 
     case 'support:message:new':
-      // Livré par la gateway elle-même — pas de re-diffusion (déjà géré dans l'event handler)
+      // Livré par la gateway elle-même - pas de re-diffusion (déjà géré dans l'event handler)
       break;
 
     default:

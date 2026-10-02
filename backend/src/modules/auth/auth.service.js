@@ -117,7 +117,7 @@ async function registerWithFederatedProvider({ idToken, device }) {
       [identity.email.toLowerCase()]
     );
     if (emailMatch.rows[0]) {
-      // Compte existant avec cet email — lier le provider et renvoyer le compte
+      // Compte existant avec cet email - lier le provider et renvoyer le compte
       const existingUser = emailMatch.rows[0];
       await pool.query(
         `INSERT INTO oauth_accounts (user_id, provider, provider_uid, provider_email)
@@ -129,7 +129,7 @@ async function registerWithFederatedProvider({ idToken, device }) {
     }
   }
 
-  // Nouvelle inscription — vérification unicité appareil
+  // Nouvelle inscription - vérification unicité appareil
   const deviceRow = await deviceService.getOrCreateDevice(device);
   await deviceService.assertDeviceNotAlreadyRegistered(deviceRow);
 
@@ -177,7 +177,7 @@ async function loginWithFederatedProvider({ idToken, device, ip }) {
   let user;
 
   if (existingLink.rows[0]) {
-    // Lien OAuth trouvé — connexion directe
+    // Lien OAuth trouvé - connexion directe
     const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [existingLink.rows[0].user_id]);
     user = userResult.rows[0];
   } else if (identity.email) {
@@ -271,7 +271,7 @@ async function linkFederatedProvider(userId, idToken) {
  */
 async function issueSessionForUser({ user, deviceRow, ip, userAgent, twoFactorPassedOverride = false }) {
   // Si twoFactorPassedOverride est vrai (ex: connexion par passkey), le 2FA
-  // est considéré comme accompli — le passkey lui-même est le second facteur.
+  // est considéré comme accompli - le passkey lui-même est le second facteur.
   const twoFactorPassed = twoFactorPassedOverride || !user.two_factor_enabled;
 
   // Résoudre le rôle de membership si pas encore chargé (login téléphone/fédéré
@@ -328,7 +328,7 @@ function sanitizeUser(user) {
     preferences:      preferences || {},
     isSuperAdmin:     !!is_super_admin,
     orgId:            org_id || null,
-    // role de membership : 'org_admin', 'org_member', etc. — null si pas de membership
+    // role de membership : 'org_admin', 'org_member', etc. - null si pas de membership
     role:             member_role || null,
   };
 }

@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Support Routes — /api/v1/support
+ * Support Routes - /api/v1/support
  *
  * Routes utilisateur   : requièrent requireAuth
  * Routes super-admin   : requièrent requireAuth + requireSuperAdmin
@@ -42,7 +42,7 @@ router.use(rejectCrossTenantAccess);
 // ROUTES UTILISATEUR
 // ═════════════════════════════════════════════════════════════════════════════
 
-// GET /api/v1/support/status — Statut du service client (disponibilité, file)
+// GET /api/v1/support/status - Statut du service client (disponibilité, file)
 router.get('/status', async (req, res, next) => {
   try {
     const status = await queueService.getQueueStatus();
@@ -50,7 +50,7 @@ router.get('/status', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// POST /api/v1/support/sessions — Obtenir ou créer la session active
+// POST /api/v1/support/sessions - Obtenir ou créer la session active
 router.post('/sessions', async (req, res, next) => {
   try {
     const session = await supportService.getOrCreateSession(req.user.id);
@@ -58,7 +58,7 @@ router.post('/sessions', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// GET /api/v1/support/sessions/me — Session active + messages récents
+// GET /api/v1/support/sessions/me - Session active + messages récents
 router.get('/sessions/me', async (req, res, next) => {
   try {
     const session = await supportService.getOrCreateSession(req.user.id);
@@ -74,7 +74,7 @@ router.get('/sessions/me', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// GET /api/v1/support/sessions/me/messages — Messages paginés
+// GET /api/v1/support/sessions/me/messages - Messages paginés
 router.get('/sessions/me/messages', async (req, res, next) => {
   try {
     const session  = await supportService.getOrCreateSession(req.user.id);
@@ -85,7 +85,7 @@ router.get('/sessions/me/messages', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// POST /api/v1/support/sessions/me/calls — Initier un appel audio
+// POST /api/v1/support/sessions/me/calls - Initier un appel audio
 router.post('/sessions/me/calls', async (req, res, next) => {
   try {
     const session = await supportService.getOrCreateSession(req.user.id);
@@ -99,7 +99,7 @@ router.post('/sessions/me/calls', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// POST /api/v1/support/sessions/me/calls/:callId/hangup — Raccrocher
+// POST /api/v1/support/sessions/me/calls/:callId/hangup - Raccrocher
 router.post('/sessions/me/calls/:callId/hangup', async (req, res, next) => {
   try {
     const result = await callService.endCall(req.params.callId, req.user.id, 'user_hangup');
@@ -113,7 +113,7 @@ router.post('/sessions/me/calls/:callId/hangup', async (req, res, next) => {
 
 router.use('/admin', requireSuperAdmin);
 
-// GET /api/v1/support/admin/sessions — Toutes les sessions actives
+// GET /api/v1/support/admin/sessions - Toutes les sessions actives
 router.get('/admin/sessions', async (req, res, next) => {
   try {
     const sessions  = await supportService.listActiveSessions();
@@ -123,7 +123,7 @@ router.get('/admin/sessions', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// GET /api/v1/support/admin/sessions/history — Historique des sessions
+// GET /api/v1/support/admin/sessions/history - Historique des sessions
 router.get('/admin/sessions/history', async (req, res, next) => {
   try {
     const { userId, fromDate, toDate, channel } = req.query;
@@ -134,7 +134,7 @@ router.get('/admin/sessions/history', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// GET /api/v1/support/admin/sessions/:id — Détail session + messages
+// GET /api/v1/support/admin/sessions/:id - Détail session + messages
 router.get('/admin/sessions/:id', async (req, res, next) => {
   try {
     const session  = await supportService.getSessionById(req.params.id, req.user.id, true);
@@ -144,7 +144,7 @@ router.get('/admin/sessions/:id', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// POST /api/v1/support/admin/sessions/:id/calls/:callId/answer — Décrocher
+// POST /api/v1/support/admin/sessions/:id/calls/:callId/answer - Décrocher
 router.post('/admin/sessions/:id/calls/:callId/answer', async (req, res, next) => {
   try {
     const result = await callService.answerCall(req.params.callId, req.user.id);
@@ -152,7 +152,7 @@ router.post('/admin/sessions/:id/calls/:callId/answer', async (req, res, next) =
   } catch (err) { next(err); }
 });
 
-// POST /api/v1/support/admin/sessions/:id/calls/:callId/hold — Mettre en attente
+// POST /api/v1/support/admin/sessions/:id/calls/:callId/hold - Mettre en attente
 router.post('/admin/sessions/:id/calls/:callId/hold', async (req, res, next) => {
   try {
     const result = await callService.holdCall(req.params.callId, req.user.id);
@@ -160,7 +160,7 @@ router.post('/admin/sessions/:id/calls/:callId/hold', async (req, res, next) => 
   } catch (err) { next(err); }
 });
 
-// POST /api/v1/support/admin/sessions/:id/calls/:callId/resume — Reprendre
+// POST /api/v1/support/admin/sessions/:id/calls/:callId/resume - Reprendre
 router.post('/admin/sessions/:id/calls/:callId/resume', async (req, res, next) => {
   try {
     const result = await callService.resumeCall(req.params.callId, req.user.id);
@@ -168,7 +168,7 @@ router.post('/admin/sessions/:id/calls/:callId/resume', async (req, res, next) =
   } catch (err) { next(err); }
 });
 
-// POST /api/v1/support/admin/sessions/:id/calls/:callId/hangup — Terminer
+// POST /api/v1/support/admin/sessions/:id/calls/:callId/hangup - Terminer
 router.post('/admin/sessions/:id/calls/:callId/hangup', async (req, res, next) => {
   try {
     const result = await callService.endCall(req.params.callId, req.user.id, 'admin_hangup');
@@ -176,7 +176,7 @@ router.post('/admin/sessions/:id/calls/:callId/hangup', async (req, res, next) =
   } catch (err) { next(err); }
 });
 
-// POST /api/v1/support/admin/sessions/:id/videoconference — Lancer une vidéo depuis le chat
+// POST /api/v1/support/admin/sessions/:id/videoconference - Lancer une vidéo depuis le chat
 router.post('/admin/sessions/:id/videoconference', async (req, res, next) => {
   try {
     const session = await supportService.getSessionById(req.params.id, req.user.id, true);
@@ -184,8 +184,8 @@ router.post('/admin/sessions/:id/videoconference', async (req, res, next) => {
     // Créer la room via le VideoConference_Service existant
     const room = await vcService.createRoom({
       user:         req.user,
-      orgId:        null,          // Pas de tenant — vidéo publique support
-      title:        `Support — ${session.user_name || 'Client'}`,
+      orgId:        null,          // Pas de tenant - vidéo publique support
+      title:        `Support - ${session.user_name || 'Client'}`,
       accessPolicy: 'closed',
       immediate:    true,
       inviteeIds:   [session.user_id],
@@ -224,7 +224,7 @@ router.post('/admin/sessions/:id/videoconference', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// POST /api/v1/support/admin/sessions/:id/resolve — Résoudre la session
+// POST /api/v1/support/admin/sessions/:id/resolve - Résoudre la session
 router.post('/admin/sessions/:id/resolve', async (req, res, next) => {
   try {
     const result = await supportService.resolveSession(req.params.id, req.user.id);

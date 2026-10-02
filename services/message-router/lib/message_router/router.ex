@@ -97,7 +97,7 @@ defmodule MessageRouter.Router do
         :queued
 
       {:error, reason} ->
-        Logger.warning("[Router] Agent inaccessible (#{inspect(reason)}) — message #{msg.id} mis en file locale")
+        Logger.warning("[Router] Agent inaccessible (#{inspect(reason)}) - message #{msg.id} mis en file locale")
         Queue.push(msg.to, msg)
         :queued
     end

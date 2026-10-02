@@ -16,32 +16,32 @@ defmodule CallSignal.Channels.DirectCallChannel do
       │◀── sdp:answer ───│                      │
       │── ice:candidate ─▶│──▶ ice:candidate ──│ (échange ICE)
       │                  │                      │
-      │ [Appel P2P établi via STUN/TURN — UDP/SRTP]
+      │ [Appel P2P établi via STUN/TURN - UDP/SRTP]
       │                  │                      │
       │── call:end ─────▶│──▶ call:ended ──────│
       │◀── call:ended ───│                      │
 
   Events entrants :
-    call:invite      — initier un appel
-    call:accept      — accepter
-    call:reject      — refuser
-    call:end         — raccrocher
-    sdp:offer        — envoyer l'offre SDP
-    sdp:answer       — envoyer la réponse SDP
-    ice:candidate    — envoyer un candidat ICE
-    call:busy        — signaler occupé
+    call:invite      - initier un appel
+    call:accept      - accepter
+    call:reject      - refuser
+    call:end         - raccrocher
+    sdp:offer        - envoyer l'offre SDP
+    sdp:answer       - envoyer la réponse SDP
+    ice:candidate    - envoyer un candidat ICE
+    call:busy        - signaler occupé
 
   Events sortants :
-    call:incoming    — appel entrant
-    call:accepted    — appel accepté par le destinataire
-    call:rejected    — appel refusé
-    call:ended       — appel terminé (par l'un ou l'autre)
-    call:busy        — destinataire occupé
-    call:missed      — appel manqué (timeout)
-    sdp:offer        — offre SDP transmise
-    sdp:answer       — réponse SDP transmise
-    ice:candidate    — candidat ICE transmis
-    error            — erreur
+    call:incoming    - appel entrant
+    call:accepted    - appel accepté par le destinataire
+    call:rejected    - appel refusé
+    call:ended       - appel terminé (par l'un ou l'autre)
+    call:busy        - destinataire occupé
+    call:missed      - appel manqué (timeout)
+    sdp:offer        - offre SDP transmise
+    sdp:answer       - réponse SDP transmise
+    ice:candidate    - candidat ICE transmis
+    error            - erreur
   """
 
   alias CallSignal.{CallRegistry, PubSubHelper}
@@ -218,7 +218,7 @@ defmodule CallSignal.Channels.DirectCallChannel do
     {:noreply, socket}
   end
 
-  # Timeout sonnerie — appel manqué
+  # Timeout sonnerie - appel manqué
   def handle_info({:ring_timeout, call_id, callee_id}, socket) do
     case CallRegistry.get(call_id) do
       {:ok, %{status: :ringing} = call} ->

@@ -113,7 +113,7 @@ services:
     ports:
       - "51820:51820/udp"
 
-  # ── Services temps réel (Phase 1 — messagerie) ──────────────────────────────
+  # ── Services temps réel (Phase 1 - messagerie) ──────────────────────────────
 
   coturn:
     build:

@@ -18,7 +18,7 @@ export default function AuthLayout({ children, cardWidth = 420 }) {
     <div className="auth-layout">
       {/* Topbar */}
       <div className="auth-layout-topbar">
-        <a href="/" className="brand-inline light" aria-label="Palabre — retour à l'accueil">
+        <a href="/" className="brand-inline light" aria-label="Palabre - retour à l'accueil">
           <img src="/logo.png" alt="" aria-hidden="true" width="30" height="30" />
           <span>PALABRE</span>
         </a>

@@ -6,7 +6,7 @@ import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/storage/local_database.dart';
 
-/// Page d'accueil — résumé de l'activité et raccourcis.
+/// Page d'accueil - résumé de l'activité et raccourcis.
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 

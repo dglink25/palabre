@@ -5,7 +5,7 @@ import 'package:phoenix_socket/phoenix_socket.dart';
 import '../config/app_config.dart';
 import '../storage/secure_storage.dart';
 
-/// Service WebSocket Phoenix — connexion permanente au Message Router.
+/// Service WebSocket Phoenix - connexion permanente au Message Router.
 ///
 /// La connexion NE RACCROCHE JAMAIS côté client :
 /// - Heartbeat toutes les 30s pour maintenir la connexion
@@ -67,7 +67,7 @@ class SocketService {
     });
 
     _socket!.onError((error) {
-      // Log — la reconnexion est gérée automatiquement par phoenix_socket
+      // Log - la reconnexion est gérée automatiquement par phoenix_socket
     });
 
     await _socket!.connect();

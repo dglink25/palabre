@@ -10,7 +10,7 @@ const { authMiddleware } = require('./middleware/auth');
 const app = express();
 
 app.use(helmet({
-  // Les fichiers sont servis directement — pas de frameguard agressif
+  // Les fichiers sont servis directement - pas de frameguard agressif
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
 
@@ -19,7 +19,7 @@ app.use(cors({
   methods: ['GET', 'POST', 'DELETE'],
 }));
 
-app.use(express.json({ limit: '1kb' })); // JSON minimal — les fichiers passent par multipart
+app.use(express.json({ limit: '1kb' })); // JSON minimal - les fichiers passent par multipart
 
 // Rate limiting global
 app.use(rateLimit({

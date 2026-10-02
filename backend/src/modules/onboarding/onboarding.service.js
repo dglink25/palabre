@@ -406,7 +406,7 @@ async function approveRequest(id, reviewerId) {
 
     // Compte administrateur
     // Si un utilisateur avec ce téléphone OU cet email existe déjà,
-    // on vérifie la cohérence avant de réutiliser — pas de réutilisation aveugle.
+    // on vérifie la cohérence avant de réutiliser - pas de réutilisation aveugle.
     let adminUser;
     const existing = await client.query(
       'SELECT * FROM users WHERE phone_e164 = $1 OR (email = $2 AND email IS NOT NULL)',
@@ -559,7 +559,7 @@ async function approveRequest(id, reviewerId) {
  * du compte (téléphone et email partiellement cachés).
  *
  * L'administrateur DOIT ensuite lier son moyen de connexion via
- * `linkActivationMethod` — aucune session n'est émise ici.
+ * `linkActivationMethod` - aucune session n'est émise ici.
  */
 async function activateInvitation({ organizationId, code }) {
   const { rows } = await pool.query(

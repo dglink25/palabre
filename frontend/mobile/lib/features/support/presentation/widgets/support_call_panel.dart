@@ -7,7 +7,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../data/support_api.dart';
 import 'support_queue_indicator.dart';
 
-/// Panneau appel audio — intégré dans SupportPage (onglet Appel).
+/// Panneau appel audio - intégré dans SupportPage (onglet Appel).
 class SupportCallPanel extends ConsumerStatefulWidget {
   const SupportCallPanel({
     super.key,

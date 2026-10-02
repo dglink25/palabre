@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * VideoConference Service — Palabre
+ * VideoConference Service - Palabre
  *
  * Ce service gère toutes les opérations sur les vidéoconférences.
  * RÈGLE ABSOLUE : jitsi_room_name ne doit JAMAIS être retourné
@@ -45,7 +45,7 @@ async function insertNotification({ userId, type, payload }) {
 
 // ── Génération du nom de salle Jitsi interne (opaque) ────────────────────
 function generateJitsiRoomName() {
-  // Préfixe 'pb_' + 32 hex chars — jamais exposé au client
+  // Préfixe 'pb_' + 32 hex chars - jamais exposé au client
   return 'pb_' + crypto.randomBytes(16).toString('hex');
 }
 
@@ -654,7 +654,7 @@ async function resolveJitsiConfig({ roomId, sessionToken, user }) {
     throw forbidden('Token de session invalide.', 'TOKEN_INVALID');
   }
 
-  // Récupérer le jitsi_room_name — USAGE INTERNE UNIQUEMENT
+  // Récupérer le jitsi_room_name - USAGE INTERNE UNIQUEMENT
   const { rows } = await pool.query(
     `SELECT r.jitsi_room_name, r.title, r.org_id, r.host_user_id,
             p.role
@@ -668,12 +668,12 @@ async function resolveJitsiConfig({ roomId, sessionToken, user }) {
 
   const isModerator = host_user_id === user.id || role === 'host' || role === 'moderator';
 
-  // Générer le JWT JaaS (RS256 ou HS256 selon config) — jamais transmis au client
+  // Générer le JWT JaaS (RS256 ou HS256 selon config) - jamais transmis au client
   const jaasToken = generateJaaSToken({ jitsiRoomName: jitsi_room_name, user, isModerator });
 
   const domain = process.env.JITSI_DOMAIN || 'meet.palabre.app';
 
-  // Retourner domain + roomToken (JWT JaaS) — le client ne peut pas en extraire le room name
+  // Retourner domain + roomToken (JWT JaaS) - le client ne peut pas en extraire le room name
   // car il est encodé dans le JWT signé côté serveur
   return {
     domain,

@@ -1,8 +1,8 @@
-# Service Presence — Palabre
+# Service Presence - Palabre
 
 Service de présence temps réel. Répond à la question : "Cet utilisateur est-il en ligne en ce moment ?".
 
-Technologie : **Erlang/OTP** — stockage en mémoire ETS (lecture microseconde) + persistance Mnesia.
+Technologie : **Erlang/OTP** - stockage en mémoire ETS (lecture microseconde) + persistance Mnesia.
 
 ## Responsabilités
 
@@ -12,11 +12,11 @@ Technologie : **Erlang/OTP** — stockage en mémoire ETS (lecture microseconde)
 
 ## Port
 
-- HTTP interne : **4010** (non exposé à l'extérieur — uniquement inter-services)
+- HTTP interne : **4010** (non exposé à l'extérieur - uniquement inter-services)
 
 ## Configuration du .env
 
-Toutes les variables de ce service sont déjà dans `backend/.env`. Ne pas les saisir manuellement — utilisez le script :
+Toutes les variables de ce service sont déjà dans `backend/.env`. Ne pas les saisir manuellement - utilisez le script :
 
 ```bash
 # Depuis la racine du projet
@@ -43,7 +43,7 @@ Le script génère `services/presence/.env` automatiquement. Si le fichier exist
 ## Démarrage
 
 ```bash
-# Via Docker (inclus dans le profil core — recommandé)
+# Via Docker (inclus dans le profil core - recommandé)
 ./palabre.sh start core
 
 # Logs en direct

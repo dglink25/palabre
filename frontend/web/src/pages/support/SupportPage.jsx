@@ -1,5 +1,5 @@
 /**
- * SupportPage — Page principale du service client (/support)
+ * SupportPage - Page principale du service client (/support)
  * Tabs : Messagerie | Appel audio
  */
 import { useState, useEffect } from 'react';

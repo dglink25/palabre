@@ -67,7 +67,7 @@ export function ConversationsListPage() {
 
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 56px)', background: 'var(--color-white)', overflow: 'hidden' }}>
-      {/* Panneau liste — pleine largeur sur mobile, 360px fixe sur desktop */}
+      {/* Panneau liste - pleine largeur sur mobile, 360px fixe sur desktop */}
       <div style={{
         width: 'min(360px, 100%)',
         flexShrink: 0,
@@ -137,7 +137,7 @@ export function ConversationsListPage() {
         </div>
       </div>
 
-      {/* Zone vide — cachée sur mobile quand la liste est visible */}
+      {/* Zone vide - cachée sur mobile quand la liste est visible */}
       <div className="conv-empty-panel" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f2f5', minWidth: 0 }}>
         <div style={{ textAlign: 'center', color: 'var(--color-text-secondary)' }}>
           <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.8" style={{ opacity: 0.2, marginBottom: 16 }}>
@@ -315,7 +315,7 @@ export function ChatPage() {
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 56px)', overflow: 'hidden' }}>
 
-      {/* ── Liste latérale — cachée sur mobile (< 640px) ── */}
+      {/* ── Liste latérale - cachée sur mobile (< 640px) ── */}
       <div style={{
         width: 'min(320px, 30%)',
         flexShrink: 0,

@@ -152,7 +152,7 @@ export default function OrgDashboardPage() {
                   borderRadius: 6, overflow: 'hidden',
                 }}>
                   <code style={{ flex: 1, padding: '8px 12px', fontSize: 13, color: C.text, wordBreak: 'break-all' }}>
-                    {org?.id || user?.orgId || '—'}
+                    {org?.id || user?.orgId || '-'}
                   </code>
                   {(org?.id || user?.orgId) && <CopyBtn text={org?.id || user?.orgId} />}
                 </div>
@@ -246,13 +246,13 @@ export default function OrgDashboardPage() {
           {/* ── Guide rapide ── */}
           <div style={{ background: '#fff', border: `1px solid ${C.border}`, borderRadius: 10, overflow: 'hidden' }}>
             <div style={{ padding: '14px 20px', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>Premiers pas — installation du tenant</div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>Premiers pas - installation du tenant</div>
               <Link to="/org/guide" style={{ fontSize: 13, fontWeight: 600, color: C.blue, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
                 Guide complet <Ico d={ICO.right} size={13} color={C.blue} />
               </Link>
             </div>
             {[
-              { n: 1, t: 'Preparez votre serveur',       d: 'Ubuntu 22.04+ ou Debian 12 — 4 vCPU, 8 Go RAM min' },
+              { n: 1, t: 'Preparez votre serveur',       d: 'Ubuntu 22.04+ ou Debian 12 - 4 vCPU, 8 Go RAM min' },
               { n: 2, t: 'Installez Docker',              d: 'curl -fsSL https://get.docker.com | sh' },
               { n: 3, t: 'Clonez et installez le tenant', d: 'git clone + ./setup.sh (script interactif)' },
               { n: 4, t: 'Liez votre organisation',       d: 'Scannez le QR code ou collez le payload JSON' },

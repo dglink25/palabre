@@ -18,7 +18,7 @@ tls-listening-port=5349
 min-port=${MIN_PORT}
 max-port=${MAX_PORT}
 
-# IP externe (requise si derrière NAT — identique à l'IP publique du VPS)
+# IP externe (requise si derrière NAT - identique à l'IP publique du VPS)
 $([ -n "$EXTERNAL_IP" ] && echo "external-ip=${EXTERNAL_IP}" || echo "# external-ip=<auto>")
 
 # ── Authentification TURN (REST API / time-limited credentials) ─────────────
@@ -47,5 +47,5 @@ $([ "$VERBOSE" = "1" ] && echo "verbose" || echo "# verbose")
 log-file=stdout
 EOF
 
-echo "[coturn] Démarrage du serveur TURN — realm=${TURN_REALM}, ports ${MIN_PORT}-${MAX_PORT}"
+echo "[coturn] Démarrage du serveur TURN - realm=${TURN_REALM}, ports ${MIN_PORT}-${MAX_PORT}"
 exec turnserver -c /tmp/turnserver.conf

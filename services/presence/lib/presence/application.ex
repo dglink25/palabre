@@ -1,6 +1,6 @@
 defmodule Presence.Application do
   @moduledoc """
-  Service de présence Palabre — construit sur Erlang/OTP.
+  Service de présence Palabre - construit sur Erlang/OTP.
 
   Responsabilités :
   - Tenir un registre en temps réel de qui est en ligne (ETS, microseconde)
@@ -11,12 +11,12 @@ defmodule Presence.Application do
   Architecture :
     Application.start
       └── Supervisor (one_for_one)
-            ├── Presence.Mnesia.Setup       — initialise les tables Mnesia
-            ├── Presence.ETS.Manager        — crée et possède la table ETS
-            ├── Presence.Registry           — GenServer maître du registre
-            ├── Presence.PubSub             — diffusion interne des events
-            ├── Presence.Heartbeat.Sweeper  — supprime les connexions zombies
-            └── Presence.HTTP.Server        — API interne Bandit
+            ├── Presence.Mnesia.Setup       - initialise les tables Mnesia
+            ├── Presence.ETS.Manager        - crée et possède la table ETS
+            ├── Presence.Registry           - GenServer maître du registre
+            ├── Presence.PubSub             - diffusion interne des events
+            ├── Presence.Heartbeat.Sweeper  - supprime les connexions zombies
+            └── Presence.HTTP.Server        - API interne Bandit
   """
   use Application
 

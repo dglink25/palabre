@@ -30,8 +30,8 @@ UPDATE_MODE=false
 ORG_ID=""
 ORG_SLUG=""
 CONTROL_TOKEN=""
-LOCAL_IP=""    # IP sur le réseau local (192.168.x.x) — pour le DNS local
-PUBLIC_IP=""   # IP publique Internet — pour l'enregistrement central
+LOCAL_IP=""    # IP sur le réseau local (192.168.x.x) - pour le DNS local
+PUBLIC_IP=""   # IP publique Internet - pour l'enregistrement central
 COMPONENTS_VERSION="1.0.0"
 BASE_DOMAIN="palabre.com"
 
@@ -51,7 +51,7 @@ for arg in "$@"; do
 done
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ÉTAPE 1 — Vérification des prérequis
+# ÉTAPE 1 - Vérification des prérequis
 # ─────────────────────────────────────────────────────────────────────────────
 check_prerequisites() {
   title "Vérification des prérequis"
@@ -72,7 +72,7 @@ check_prerequisites() {
     log "Système : $PRETTY_NAME"
     case "$ID" in
       ubuntu|debian) ok "OS supporté : $ID $VERSION_ID" ;;
-      *) warn "OS non testé : $ID — continuez à vos risques." ;;
+      *) warn "OS non testé : $ID - continuez à vos risques." ;;
     esac
   fi
 
@@ -142,7 +142,7 @@ check_ports() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ÉTAPE 2 — Connectivité vers le serveur central
+# ÉTAPE 2 - Connectivité vers le serveur central
 # ─────────────────────────────────────────────────────────────────────────────
 check_central_connectivity() {
   title "Vérification de la connectivité Internet"
@@ -150,14 +150,14 @@ check_central_connectivity() {
   status=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 10 \
     "${CENTRAL_API_URL}/health" 2>/dev/null || echo "000")
   if [ "$status" != "200" ]; then
-    fail "Serveur central inaccessible (HTTP $status) — $CENTRAL_API_URL"
+    fail "Serveur central inaccessible (HTTP $status) - $CENTRAL_API_URL"
     exit $EXIT_CENTRAL_UNREACHABLE
   fi
   ok "Serveur central joignable"
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ÉTAPE 3 — Collecte des informations
+# ÉTAPE 3 - Collecte des informations
 # ─────────────────────────────────────────────────────────────────────────────
 collect_config() {
   title "Configuration"
@@ -207,7 +207,7 @@ collect_config() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ÉTAPE 4 — Génération des clés tenant
+# ÉTAPE 4 - Génération des clés tenant
 # ─────────────────────────────────────────────────────────────────────────────
 generate_keys() {
   title "Génération des clés tenant"
@@ -228,7 +228,7 @@ generate_keys() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ÉTAPE 5 — Enregistrement auprès du serveur central
+# ÉTAPE 5 - Enregistrement auprès du serveur central
 # Le Central_Server enregistre le sous-domaine dans son DNS public
 # et connaît l'IP publique pour le routage du tunnel.
 # ─────────────────────────────────────────────────────────────────────────────
@@ -273,7 +273,7 @@ register_with_central() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ÉTAPE 6 — Configuration DNS LOCAL avec dnsmasq
+# ÉTAPE 6 - Configuration DNS LOCAL avec dnsmasq
 #
 # dnsmasq est un serveur DNS léger installé sur le Tenant_Server.
 # Il résout {org}.palabre.com → IP LOCALE du serveur.
@@ -298,7 +298,7 @@ configure_local_dns() {
   elif command -v apk &>/dev/null; then
     sudo apk add --no-cache dnsmasq 2>&1 | tail -3
   else
-    warn "Gestionnaire de paquets non reconnu — dnsmasq non installé automatiquement."
+    warn "Gestionnaire de paquets non reconnu - dnsmasq non installé automatiquement."
     warn "Installez manuellement dnsmasq et ajoutez la ligne :"
     warn "  address=/${TENANT_FQDN}/${LOCAL_IP}"
     return
@@ -307,7 +307,7 @@ configure_local_dns() {
   # Créer la configuration dnsmasq pour Palabre
   local DNSMASQ_CONF="/etc/dnsmasq.d/palabre.conf"
   sudo tee "$DNSMASQ_CONF" > /dev/null <<EOF
-# Palabre — DNS local
+# Palabre - DNS local
 # Résout ${TENANT_FQDN} → ${LOCAL_IP} (IP locale du Tenant_Server)
 # Généré automatiquement par install.sh le $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 #
@@ -364,7 +364,7 @@ EOF
   elif command -v nslookup &>/dev/null; then
     RESOLVED=$(nslookup "${TENANT_FQDN}" "${LOCAL_IP}" 2>/dev/null | grep 'Address:' | tail -1 | awk '{print $2}' || echo "")
     [ "$RESOLVED" = "$LOCAL_IP" ] && ok "DNS local opérationnel : ${TENANT_FQDN} → ${LOCAL_IP}" || \
-      warn "DNS local démarré — vérifiez manuellement la résolution."
+      warn "DNS local démarré - vérifiez manuellement la résolution."
   else
     ok "dnsmasq configuré. Vérifiez : nslookup ${TENANT_FQDN} ${LOCAL_IP}"
   fi
@@ -386,13 +386,13 @@ EOF
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ÉTAPE 7 — Écriture de la configuration
+# ÉTAPE 7 - Écriture de la configuration
 # ─────────────────────────────────────────────────────────────────────────────
 write_conf_file() {
   title "Écriture de la configuration"
   sudo mkdir -p "$CONF_DIR"
   sudo tee "$CONF_FILE" > /dev/null <<EOF
-# /etc/palabre/tenant.conf — NE PAS MODIFIER MANUELLEMENT
+# /etc/palabre/tenant.conf - NE PAS MODIFIER MANUELLEMENT
 # Généré le $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 TENANT_SUBDOMAIN=${TENANT_FQDN}
 TENANT_ORG_ID=${ORG_ID}
@@ -413,7 +413,7 @@ EOF
 write_conf_file_partial() {
   sudo mkdir -p "$CONF_DIR"
   sudo tee "$CONF_FILE" > /dev/null <<EOF
-# /etc/palabre/tenant.conf — Enregistrement partiel
+# /etc/palabre/tenant.conf - Enregistrement partiel
 TENANT_ORG_ID=${ORG_ID}
 TENANT_LOCAL_IP=${LOCAL_IP:-}
 CENTRAL_SERVER_URL=${CENTRAL_API_URL}
@@ -424,7 +424,7 @@ EOF
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ÉTAPE 8 — Déploiement des services Docker
+# ÉTAPE 8 - Déploiement des services Docker
 # ─────────────────────────────────────────────────────────────────────────────
 deploy_services() {
   title "Déploiement des services"
@@ -459,7 +459,7 @@ generate_env_file() {
   local JWT_R;   JWT_R=$(openssl rand -hex 32)
 
   sudo tee "${PALABRE_DIR}/.env" > /dev/null <<EOF
-# Généré automatiquement — ne pas modifier manuellement
+# Généré automatiquement - ne pas modifier manuellement
 ORG_ID=${ORG_ID}
 ORG_NAME=${ORG_SLUG}
 CONTROL_TOKEN=${CONTROL_TOKEN}
@@ -485,7 +485,7 @@ TURN_REALM=${TENANT_FQDN}
 TURN_EXTERNAL_IP=${LOCAL_IP}
 AGENT_PORT=8080
 HEARTBEAT_INTERVAL_MS=30000
-# L'URL publique de l'agent utilise le FQDN local — accessible via DNS local
+# L'URL publique de l'agent utilise le FQDN local - accessible via DNS local
 AGENT_PUBLIC_URL=https://${TENANT_FQDN}
 PUBLIC_HOST=${TENANT_FQDN}
 FILE_SERVER_PUBLIC_URL=https://${TENANT_FQDN}/files
@@ -499,7 +499,7 @@ EOF
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ÉTAPE 9 — Vérification de santé
+# ÉTAPE 9 - Vérification de santé
 # ─────────────────────────────────────────────────────────────────────────────
 verify_health() {
   title "Vérification de la santé des composants"
@@ -561,7 +561,7 @@ print_summary() {
 main() {
   echo ""
   echo -e "${BOLD}${BLUE}╔══════════════════════════════════════════════════════╗${RESET}"
-  echo -e "${BOLD}${BLUE}║     PALABRE — Installation du service tenant local   ║${RESET}"
+  echo -e "${BOLD}${BLUE}║     PALABRE - Installation du service tenant local   ║${RESET}"
   echo -e "${BOLD}${BLUE}╚══════════════════════════════════════════════════════╝${RESET}"
   echo ""
 
@@ -588,7 +588,7 @@ main() {
 
 main "$@"
 # =============================================================================
-# PALABRE — Script d'installation du service tenant local
+# PALABRE - Script d'installation du service tenant local
 # =============================================================================
 # Usage :
 #   curl -sSL https://install.palabre.com | bash -s -- \
@@ -653,7 +653,7 @@ for arg in "$@"; do
 done
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ÉTAPE 1 — Vérification des prérequis
+# ÉTAPE 1 - Vérification des prérequis
 # ─────────────────────────────────────────────────────────────────────────────
 check_prerequisites() {
   title "Vérification des prérequis"
@@ -674,7 +674,7 @@ check_prerequisites() {
     log "Système : $PRETTY_NAME"
     case "$ID" in
       ubuntu|debian) ok "OS supporté : $ID $VERSION_ID" ;;
-      *) warn "OS non testé : $ID — continuez à vos risques." ;;
+      *) warn "OS non testé : $ID - continuez à vos risques." ;;
     esac
   fi
 
@@ -753,7 +753,7 @@ check_ports() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ÉTAPE 2 — Connectivité vers le serveur central
+# ÉTAPE 2 - Connectivité vers le serveur central
 # ─────────────────────────────────────────────────────────────────────────────
 check_central_connectivity() {
   title "Vérification de la connectivité vers le serveur central"
@@ -773,7 +773,7 @@ check_central_connectivity() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ÉTAPE 3 — Collecte des informations
+# ÉTAPE 3 - Collecte des informations
 # ─────────────────────────────────────────────────────────────────────────────
 collect_config() {
   title "Configuration"
@@ -807,7 +807,7 @@ collect_config() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ÉTAPE 4 — Génération des clés tenant
+# ÉTAPE 4 - Génération des clés tenant
 # ─────────────────────────────────────────────────────────────────────────────
 generate_keys() {
   title "Génération des clés tenant"
@@ -836,7 +836,7 @@ generate_keys() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ÉTAPE 5 — Enregistrement auprès du serveur central (avec retry)
+# ÉTAPE 5 - Enregistrement auprès du serveur central (avec retry)
 # ─────────────────────────────────────────────────────────────────────────────
 register_with_central() {
   title "Enregistrement auprès du serveur central"
@@ -887,14 +887,14 @@ register_with_central() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ÉTAPE 6 — Écriture de la configuration
+# ÉTAPE 6 - Écriture de la configuration
 # ─────────────────────────────────────────────────────────────────────────────
 write_conf_file() {
   title "Écriture de la configuration"
   sudo mkdir -p "$CONF_DIR"
 
   sudo tee "$CONF_FILE" > /dev/null <<EOF
-# /etc/palabre/tenant.conf — NE PAS MODIFIER MANUELLEMENT
+# /etc/palabre/tenant.conf - NE PAS MODIFIER MANUELLEMENT
 # Généré le $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 TENANT_SUBDOMAIN=${TENANT_SUBDOMAIN}
 TENANT_ORG_ID=${ORG_ID}
@@ -914,7 +914,7 @@ EOF
 write_conf_file_partial() {
   sudo mkdir -p "$CONF_DIR"
   sudo tee "$CONF_FILE" > /dev/null <<EOF
-# /etc/palabre/tenant.conf — Enregistrement partiel (re-tentative requise)
+# /etc/palabre/tenant.conf - Enregistrement partiel (re-tentative requise)
 TENANT_ORG_ID=${ORG_ID}
 CENTRAL_SERVER_URL=${CENTRAL_API_URL}
 TENANT_PUBLIC_KEY_PATH=${KEYS_DIR}/tenant.pub
@@ -926,7 +926,7 @@ EOF
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ÉTAPE 7 — Déploiement des services Docker
+# ÉTAPE 7 - Déploiement des services Docker
 # ─────────────────────────────────────────────────────────────────────────────
 deploy_services() {
   title "Déploiement des services"
@@ -971,7 +971,7 @@ generate_env_file() {
   local JWT_R;   JWT_R=$(openssl rand -hex 32)
 
   sudo tee "${PALABRE_DIR}/.env" > /dev/null <<EOF
-# Generé automatiquement — ne pas modifier manuellement
+# Generé automatiquement - ne pas modifier manuellement
 ORG_ID=${ORG_ID}
 ORG_NAME=${ORG_SLUG:-Palabre Tenant}
 CONTROL_TOKEN=${CONTROL_TOKEN}
@@ -1005,7 +1005,7 @@ EOF
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ÉTAPE 8 — Vérification de santé
+# ÉTAPE 8 - Vérification de santé
 # ─────────────────────────────────────────────────────────────────────────────
 verify_health() {
   title "Vérification de la santé des composants"
@@ -1068,7 +1068,7 @@ print_summary() {
 main() {
   echo ""
   echo -e "${BOLD}${BLUE}╔══════════════════════════════════════════════════════╗${RESET}"
-  echo -e "${BOLD}${BLUE}║     PALABRE — Installation du service tenant local   ║${RESET}"
+  echo -e "${BOLD}${BLUE}║     PALABRE - Installation du service tenant local   ║${RESET}"
   echo -e "${BOLD}${BLUE}╚══════════════════════════════════════════════════════╝${RESET}"
   echo ""
 

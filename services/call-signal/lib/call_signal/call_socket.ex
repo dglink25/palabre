@@ -5,11 +5,11 @@ defmodule CallSignal.CallSocket do
   Socket WebSocket pour le signaling d'appels.
 
   Même authentification JWT que le message-router.
-  Un socket par appareil — monté sur /signal/websocket.
+  Un socket par appareil - monté sur /signal/websocket.
 
   Channels :
-    "call:direct"          — signaling appels 1:1
-    "call:group:{room_id}" — signaling appels de groupe
+    "call:direct"          - signaling appels 1:1
+    "call:group:{room_id}" - signaling appels de groupe
   """
 
   channel "call:direct",        CallSignal.Channels.DirectCallChannel

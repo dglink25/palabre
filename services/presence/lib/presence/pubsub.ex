@@ -3,7 +3,7 @@ defmodule Presence.PubSub do
   PubSub interne pour la diffusion des changements de présence.
 
   Utilise :pg (Process Groups) natif à Erlang/OTP 23+.
-  Aucune dépendance externe — pas de Redis, pas de RabbitMQ.
+  Aucune dépendance externe - pas de Redis, pas de RabbitMQ.
 
   Fonctionnement :
   - Le Message Router s'abonne au groupe "presence:{org_id}"

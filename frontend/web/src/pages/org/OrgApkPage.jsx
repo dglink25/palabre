@@ -69,7 +69,7 @@ export default function OrgApkPage() {
         <ol style={{ lineHeight: 2, paddingLeft: 20, fontSize: 15 }}>
           <li>Partagez l'APK a vos utilisateurs par e-mail, WhatsApp, ou serveur interne.</li>
           <li>Les utilisateurs l'installent en activant "Sources inconnues" sur Android.</li>
-          <li>A l'ouverture, l'app est deja configuree pour votre organisation — pas de saisie de serveur.</li>
+          <li>A l'ouverture, l'app est deja configuree pour votre organisation - pas de saisie de serveur.</li>
           <li>Chaque utilisateur cree son compte ou se connecte avec son numero de telephone.</li>
         </ol>
       </div>

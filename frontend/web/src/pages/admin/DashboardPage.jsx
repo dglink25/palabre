@@ -74,7 +74,7 @@ function StatCard({ label, value, icon, color, to, delay = 0 }) {
       </div>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 30, fontWeight: 800, color: C.text, lineHeight: 1, letterSpacing: '-0.5px' }}>
-          {value ?? <span style={{ opacity: 0.25, fontSize: 22 }}>—</span>}
+          {value ?? <span style={{ opacity: 0.25, fontSize: 22 }}>-</span>}
         </div>
         <div style={{ fontSize: 13, color: C.sub, marginTop: 3, fontWeight: 500 }}>{label}</div>
       </div>
@@ -139,7 +139,7 @@ export default function DashboardPage() {
           <p style={{ margin: '4px 0 0', fontSize: 14, color: C.sub }}>
             {stats?.submitted > 0
               ? `${stats.submitted} dossier${stats.submitted > 1 ? 's' : ''} en attente d'instruction`
-              : 'Tout est a jour — aucun dossier en attente'}
+              : 'Tout est a jour - aucun dossier en attente'}
           </p>
         </div>
         <div style={{ textAlign: 'right' }}>
@@ -271,13 +271,13 @@ export default function DashboardPage() {
                           </div>
                         </td>
                         <td style={{ padding: '13px 16px', color: C.sub }}>
-                          {r.step2_leader?.fullName || '—'}
+                          {r.step2_leader?.fullName || '-'}
                         </td>
                         <td style={{ padding: '13px 16px' }}>
                           <Badge variant={STATUS_VARIANT[r.status]}>{STATUS_LABEL[r.status] || r.status}</Badge>
                         </td>
                         <td style={{ padding: '13px 16px', color: C.sub, whiteSpace: 'nowrap', fontSize: 13 }}>
-                          {r.submitted_at ? new Date(r.submitted_at).toLocaleDateString('fr-FR') : '—'}
+                          {r.submitted_at ? new Date(r.submitted_at).toLocaleDateString('fr-FR') : '-'}
                         </td>
                         <td style={{ padding: '13px 16px', textAlign: 'right' }}>
                           <Link to={`/admin/onboarding/${r.id}`} style={{

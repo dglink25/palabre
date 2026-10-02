@@ -1,6 +1,6 @@
 /**
- * PublicFooter — Pied de page du site public Palabre.
- * Toutes les couleurs utilisent les tokens CSS — zéro valeur en dur.
+ * PublicFooter - Pied de page du site public Palabre.
+ * Toutes les couleurs utilisent les tokens CSS - zéro valeur en dur.
  * Grille responsive : 4 col desktop → 2 col tablette → 1 col mobile.
  */
 import { Link } from 'react-router-dom';
@@ -116,7 +116,7 @@ export default function PublicFooter() {
       {/* ── Séparateur ── */}
       <div className="pub-footer-sep" aria-hidden="true" />
 
-      {/* ── Barre copyright — fond bleu primaire (token) ── */}
+      {/* ── Barre copyright - fond bleu primaire (token) ── */}
       <div className="pub-footer-bottom">
         &copy; {new Date().getFullYear()} Palabre &mdash; Tous droits réservés.
       </div>

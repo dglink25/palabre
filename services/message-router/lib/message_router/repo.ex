@@ -10,10 +10,10 @@ defmodule MessageRouter.Repo do
   Le serveur ne stocke JAMAIS le contenu en clair.
 
   Tables attendues (migrées par le backend Node.js) :
-    messages        — messages persistés (ciphertext, métadonnées de routage)
-    conversations   — conversations 1:1
-    rooms           — groupes
-    room_members    — membres des groupes
+    messages        - messages persistés (ciphertext, métadonnées de routage)
+    conversations   - conversations 1:1
+    rooms           - groupes
+    room_members    - membres des groupes
   """
 
   # ─── Messages ────────────────────────────────────────────────────────────────
@@ -57,7 +57,7 @@ defmodule MessageRouter.Repo do
       {:error, err} ->
         require Logger
         Logger.error("[Repo] update_message_status failed: #{inspect(err)}")
-        :ok  # best-effort — ne pas bloquer le flux pour un statut
+        :ok  # best-effort - ne pas bloquer le flux pour un statut
     end
   end
 

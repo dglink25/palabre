@@ -42,7 +42,7 @@ export default function PublicHeader() {
   return (
     <>
       <header className="pub-header" role="banner">
-        {/* Bande bleue supérieure — masquée sur mobile */}
+        {/* Bande bleue supérieure - masquée sur mobile */}
         <div className="pub-header-top">
           <div className="pub-header-top-inner">
             <span>Plateforme souveraine de communication pour les organisations</span>
@@ -57,7 +57,7 @@ export default function PublicHeader() {
         {/* Barre principale */}
         <div className="pub-header-main">
           {/* Logo */}
-          <Link to="/" className="pub-logo" aria-label="Palabre — retour à l'accueil">
+          <Link to="/" className="pub-logo" aria-label="Palabre - retour à l'accueil">
             <img src="/logo.png" alt="" width="28" height="28" />
             <span>PALABRE</span>
           </Link>

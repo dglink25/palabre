@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Support Call Service — Appels audio du service client
+ * Support Call Service - Appels audio du service client
  *
  * Gère le cycle de vie des Support_Calls :
  * initiateCall → queued → (hold ↔ active) → ended
@@ -215,7 +215,7 @@ async function resumeCall(callId, adminUserId) {
     [callId]
   );
 
-  // Si un autre appel était actif, il est passé en hold — mettre à jour la BDD
+  // Si un autre appel était actif, il est passé en hold - mettre à jour la BDD
   const newCurrent = await queue.getCurrentCallId();
   if (newCurrent !== callId) {
     await pool.query(

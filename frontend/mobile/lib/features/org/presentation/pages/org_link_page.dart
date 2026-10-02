@@ -9,7 +9,7 @@ import '../../../../core/storage/secure_storage.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// Page de liaison admin — "Joindre mon serveur local"
+/// Page de liaison admin - "Joindre mon serveur local"
 ///
 /// L'administrateur scanne le QR code généré lors de l'approbation.
 /// Le payload contient : tenantId, controlToken, vpnPrivateKey, heartbeatUrl.

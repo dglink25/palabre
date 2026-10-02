@@ -6,7 +6,7 @@ import { friendlyMessage } from '../../lib/errorMessages';
 import { useAuth } from '../../context/AuthContext';
 
 /**
- * Page de liaison admin — "Joindre mon serveur local"
+ * Page de liaison admin - "Joindre mon serveur local"
  *
  * L'administrateur d'organisation a installé son tenant sur son serveur.
  * Il scanne (ou colle) le QR payload généré lors de l'approbation.

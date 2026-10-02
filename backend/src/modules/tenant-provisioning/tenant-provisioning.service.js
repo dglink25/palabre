@@ -144,7 +144,7 @@ async function registerTenant({ orgId, orgSlug, publicKey, ipAddress, localIp, c
     [orgId, tenantSubdomain, ipAddress, publicKey, regTokenHash, componentsVersion]
   );
 
-  // 6. Provisionner le DNS (asynchrone — ne bloque pas la réponse)
+  // 6. Provisionner le DNS (asynchrone - ne bloque pas la réponse)
   dnsService.createDnsRecord(finalSlug, ipAddress).then(async () => {
     await pool.query(
       `UPDATE tenant_registrations
@@ -285,7 +285,7 @@ async function getTenantStatus(orgId) {
 }
 
 /**
- * Liste tous les tenants actifs — pour le tableau de bord super-admin.
+ * Liste tous les tenants actifs - pour le tableau de bord super-admin.
  */
 async function listActiveTenants({ page = 1, limit = 50 } = {}) {
   const offset = (page - 1) * limit;

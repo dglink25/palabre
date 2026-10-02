@@ -74,7 +74,7 @@ class _RealtimeClockState extends State<_RealtimeClock> {
   }
 }
 
-/// Shell principal — barre de navigation 6 onglets.
+/// Shell principal - barre de navigation 6 onglets.
 /// Accueil | Discussions | Vidéo | Appels | Contacts | Profil
 class ShellPage extends ConsumerWidget {
   const ShellPage({super.key, required this.child});

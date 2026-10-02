@@ -1,4 +1,4 @@
-# Coturn — Serveur STUN/TURN Palabre
+# Coturn - Serveur STUN/TURN Palabre
 
 Serveur STUN/TURN basé sur [coturn](https://github.com/coturn/coturn). Permet aux appels WebRTC de traverser les NAT et pare-feux lorsqu'une connexion pair-à-pair directe n'est pas possible.
 
@@ -7,7 +7,7 @@ Serveur STUN/TURN basé sur [coturn](https://github.com/coturn/coturn). Permet a
 
 ## Port
 
-Coturn utilise `network_mode: host` — il écoute directement sur les ports de la machine hôte :
+Coturn utilise `network_mode: host` - il écoute directement sur les ports de la machine hôte :
 
 | Port | Protocole | Usage |
 |------|-----------|-------|
@@ -15,11 +15,11 @@ Coturn utilise `network_mode: host` — il écoute directement sur les ports de 
 | 5349 | TCP + TLS | TURN over TLS |
 | 49152–65535 | UDP | Plage de ports relais (media) |
 
-> Avec `network_mode: host`, ces ports ne sont pas "mappés" — coturn accède directement à la pile réseau de l'hôte. Assurez-vous qu'ils sont ouverts dans votre pare-feu.
+> Avec `network_mode: host`, ces ports ne sont pas "mappés" - coturn accède directement à la pile réseau de l'hôte. Assurez-vous qu'ils sont ouverts dans votre pare-feu.
 
-## Configuration — variables d'environnement
+## Configuration - variables d'environnement
 
-### Obligatoire en production — IP publique
+### Obligatoire en production - IP publique
 
 **Action manuelle requise sur un VPS.**
 
@@ -36,7 +36,7 @@ curl -4 icanhazip.com
 
 > En développement local, laissez `TURN_EXTERNAL_IP` vide. Coturn utilisera l'interface réseau par défaut.
 
-### Obligatoire — Secret partagé avec le backend
+### Obligatoire - Secret partagé avec le backend
 
 **Même valeur que `TURN_SECRET` dans `backend/.env`.**
 

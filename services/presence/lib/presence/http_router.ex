@@ -2,13 +2,13 @@ defmodule Presence.HTTP.Router do
   @moduledoc """
   API HTTP interne du service de présence.
   Accessible UNIQUEMENT depuis les autres services (pas exposée à l'extérieur).
-  Port 4010 — protégé par un secret partagé entre services.
+  Port 4010 - protégé par un secret partagé entre services.
 
   Routes :
-    GET  /internal/presence/:user_id           — statut d'un utilisateur
-    GET  /internal/presence/org/:org_id/online — membres en ligne d'une org
-    POST /internal/presence/:user_id/heartbeat — heartbeat depuis le message router
-    GET  /health                               — healthcheck Docker
+    GET  /internal/presence/:user_id           - statut d'un utilisateur
+    GET  /internal/presence/org/:org_id/online - membres en ligne d'une org
+    POST /internal/presence/:user_id/heartbeat - heartbeat depuis le message router
+    GET  /health                               - healthcheck Docker
   """
   use Plug.Router
 
@@ -18,7 +18,7 @@ defmodule Presence.HTTP.Router do
 
   # ─── Routes ──────────────────────────────────────────────────────────────────
 
-  # /health — pas de secret requis (Docker healthcheck, Kubernetes probe)
+  # /health - pas de secret requis (Docker healthcheck, Kubernetes probe)
   get "/health" do
     send_json(conn, 200, %{status: "ok", service: "presence", node: node()})
   end

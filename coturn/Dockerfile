@@ -1,11 +1,11 @@
 FROM coturn/coturn:4.6.2
 
-# Coturn — serveur STUN/TURN auto-hébergé pour les appels WebRTC Palabre.
+# Coturn - serveur STUN/TURN auto-hébergé pour les appels WebRTC Palabre.
 #
 # STUN : permet aux clients de découvrir leur IP publique et de tenter
 #        une connexion P2P directe (sans coût de bande passante serveur).
 # TURN : relay de secours quand le P2P est impossible (NAT symétrique,
-#        firewall strict). Chiffré DTLS — le contenu des appels est
+#        firewall strict). Chiffré DTLS - le contenu des appels est
 #        SRTP-chiffré E2E, le serveur TURN ne voit que du chiffré.
 #
 # Configuration : injectée via variables d'environnement au démarrage.

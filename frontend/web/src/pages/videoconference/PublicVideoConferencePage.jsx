@@ -24,7 +24,7 @@ const ICONS = {
 
 /**
  * PublicVideoConferencePage
- * Route : /videoconference (ProtectedRoute — authentification obligatoire)
+ * Route : /videoconference (ProtectedRoute - authentification obligatoire)
  * Permet à tout utilisateur Palabre authentifié de créer ou planifier
  * une réunion sans appartenir à une organisation.
  */

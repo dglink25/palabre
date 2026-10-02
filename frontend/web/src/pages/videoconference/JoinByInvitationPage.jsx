@@ -20,7 +20,7 @@ const ICONS = {
 
 /**
  * JoinByInvitationPage
- * Route : /join/v/:token  (ProtectedRoute — redirige vers /login si non auth)
+ * Route : /join/v/:token  (ProtectedRoute - redirige vers /login si non auth)
  *
  * Résout le token d'invitation, affiche les informations de la réunion,
  * puis redirige vers la room une fois l'utilisateur admis.
@@ -47,13 +47,13 @@ export default function JoinByInvitationPage() {
     try {
       const result = await joinRoom(info.roomId, token);
       if (result.status === 'admitted') {
-        // Redirige vers la room — tenant ou publique
+        // Redirige vers la room - tenant ou publique
         const path = info.orgId
           ? `/app/videoconference/${info.roomId}`
           : `/videoconference/${info.roomId}`;
         navigate(path, { replace: true });
       } else {
-        // En salle d'attente — rediriger quand même, la page VideoRoomPage gère l'attente
+        // En salle d'attente - rediriger quand même, la page VideoRoomPage gère l'attente
         const path = info.orgId
           ? `/app/videoconference/${info.roomId}`
           : `/videoconference/${info.roomId}`;

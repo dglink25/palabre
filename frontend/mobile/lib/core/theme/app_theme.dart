@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// Thème Palabre — reprend exactement la charte du web (theme.css)
+/// Thème Palabre - reprend exactement la charte du web (theme.css)
 class AppTheme {
   AppTheme._();
 

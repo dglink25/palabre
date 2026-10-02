@@ -37,7 +37,7 @@ export default function AdminActivationPage() {
   const [hasEmail,   setHasEmail]   = useState(false);
   const [fullName,   setFullName]   = useState('');
 
-  // Étape 3 — méthode choisie + hint affiché
+  // Étape 3 - méthode choisie + hint affiché
   const [chosenMethod, setChosenMethod] = useState('');
   const [otpHint,      setOtpHint]      = useState('');
   const [otp,          setOtp]          = useState('');

@@ -8,7 +8,7 @@ import CountrySelect from '../../components/CountrySelect';
 import PhoneInput from '../../components/PhoneInput';
 
 const STATUS_VARIANT = { draft: 'neutral', submitted: 'primary', rejected: 'warning', approved: 'success' };
-const STATUS_LABEL = { draft: 'Brouillon', submitted: 'Soumise — en instruction', rejected: 'À corriger', approved: 'Approuvée' };
+const STATUS_LABEL = { draft: 'Brouillon', submitted: 'Soumise - en instruction', rejected: 'À corriger', approved: 'Approuvée' };
 
 const STATUS_COLORS = {
   draft:     { bg: '#F8F9FA', border: '#E0E0E0', dot: '#5F6368' },
@@ -84,7 +84,7 @@ function EditableField({ fullPath, request, corrections, onFieldChange, onDocUpl
       ) : field === 'gender' ? (
         <select value={getValue()} onChange={(e) => onFieldChange(fullPath, e.target.value)}
           style={{ width: '100%', padding: '10px 12px', border: '2px solid #EA4335', borderRadius: 8, fontSize: 14, background: '#fff', color: '#202124' }}>
-          <option value="">— Choisir —</option>
+          <option value="">- Choisir -</option>
           <option value="male">Masculin</option>
           <option value="female">Féminin</option>
         </select>
@@ -317,7 +317,7 @@ export default function OnboardingStatusPage() {
             {flaggedSet.has('step1_organization.city') ? <EditableField fullPath="step1_organization.city" {...efProps} /> : <ReadOnlyRow label="Ville" value={org.city} />}
             {flaggedSet.has('step1_organization.address') ? <EditableField fullPath="step1_organization.address" {...efProps} /> : <ReadOnlyRow label="Adresse complète" value={org.address} />}
             {flaggedSet.has('step1_organization.sector') ? <EditableField fullPath="step1_organization.sector" {...efProps} /> : <ReadOnlyRow label="Secteur d'activité" value={org.sector} />}
-            {flaggedSet.has('step1_organization.ifuNumber') ? <EditableField fullPath="step1_organization.ifuNumber" {...efProps} /> : <ReadOnlyRow label="Numéro IFU" value={org.ifuNumber || '—'} />}
+            {flaggedSet.has('step1_organization.ifuNumber') ? <EditableField fullPath="step1_organization.ifuNumber" {...efProps} /> : <ReadOnlyRow label="Numéro IFU" value={org.ifuNumber || '-'} />}
           </div>
 
           <div className="card" style={{ marginBottom: 16, padding: '20px 24px' }}>

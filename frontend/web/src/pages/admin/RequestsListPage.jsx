@@ -162,7 +162,7 @@ export default function RequestsListPage() {
                       </span>
                     </td>
                     <td style={{ padding: '13px 16px', fontSize: 15, color: '#5F6368' }}>
-                      {r.step2_leader?.fullName || '—'}
+                      {r.step2_leader?.fullName || '-'}
                     </td>
                     <td style={{ padding: '13px 16px' }}>
                       <Badge variant={STATUS_VARIANT[r.status]}>
@@ -174,7 +174,7 @@ export default function RequestsListPage() {
                         ? new Date(r.submitted_at).toLocaleString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
                         : r.status === 'draft'
                           ? <span style={{ fontStyle: 'italic' }}>Non soumis</span>
-                          : '—'
+                          : '-'
                       }
                     </td>
                     <td style={{ padding: '13px 16px' }}>
@@ -224,7 +224,7 @@ export default function RequestsListPage() {
           {totalPages > 1 && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
               <span style={{ fontSize: 13, color: '#5F6368' }}>
-                Page {page} sur {totalPages} — {total} résultat{total !== 1 ? 's' : ''}
+                Page {page} sur {totalPages} - {total} résultat{total !== 1 ? 's' : ''}
               </span>
               <div style={{ display: 'flex', gap: 4 }}>
                 <button

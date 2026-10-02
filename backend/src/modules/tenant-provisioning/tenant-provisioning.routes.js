@@ -5,17 +5,17 @@
  * Montées sous /api/v1/tenants
  *
  * Routes publiques (authentifiées par controlToken) :
- *   POST /api/v1/tenants/register   — Enregistrer un nouveau Tenant_Server
- *   POST /api/v1/tenants/heartbeat  — Heartbeat HTTP (fallback si WebSocket indispo)
- *   GET  /api/v1/tenants/:orgId/status — Statut du tenant
+ *   POST /api/v1/tenants/register   - Enregistrer un nouveau Tenant_Server
+ *   POST /api/v1/tenants/heartbeat  - Heartbeat HTTP (fallback si WebSocket indispo)
+ *   GET  /api/v1/tenants/:orgId/status - Statut du tenant
  *
  * Routes super-admin :
- *   GET  /api/v1/tenants             — Lister tous les tenants actifs
- *   POST /api/v1/tenants/:orgId/suspend — Suspendre un tenant
- *   POST /api/v1/tenants/:orgId/reactivate — Réactiver un tenant
+ *   GET  /api/v1/tenants             - Lister tous les tenants actifs
+ *   POST /api/v1/tenants/:orgId/suspend - Suspendre un tenant
+ *   POST /api/v1/tenants/:orgId/reactivate - Réactiver un tenant
  *
  * Routes relatives au relay (utilisées par les clients web/mobile) :
- *   GET  /api/v1/tenants/resolve/:orgId  — Résoudre l'URL du tenant pour un org
+ *   GET  /api/v1/tenants/resolve/:orgId  - Résoudre l'URL du tenant pour un org
  */
 
 const express    = require('express');
@@ -32,7 +32,7 @@ const registerLimiter  = rateLimit({ windowMs: 5 * 60_000, max: 10, standardHead
 const heartbeatLimiter = rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false });
 
 // ═════════════════════════════════════════════════════════════════════════════
-// POST /tenants/register — Enregistrer un Tenant_Server
+// POST /tenants/register - Enregistrer un Tenant_Server
 // ═════════════════════════════════════════════════════════════════════════════
 
 router.post('/register', registerLimiter, async (req, res, next) => {
@@ -75,7 +75,7 @@ router.post('/register', registerLimiter, async (req, res, next) => {
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
-// POST /tenants/heartbeat — Heartbeat HTTP (fallback du WebSocket)
+// POST /tenants/heartbeat - Heartbeat HTTP (fallback du WebSocket)
 // ═════════════════════════════════════════════════════════════════════════════
 
 router.post('/heartbeat', heartbeatLimiter, async (req, res, next) => {
@@ -116,7 +116,7 @@ router.post('/heartbeat', heartbeatLimiter, async (req, res, next) => {
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
-// GET /tenants/resolve/:orgId — Résoudre l'URL du tenant pour un orgId
+// GET /tenants/resolve/:orgId - Résoudre l'URL du tenant pour un orgId
 // Utilisé par le NetworkDetector côté client
 // ═════════════════════════════════════════════════════════════════════════════
 
@@ -145,7 +145,7 @@ router.get('/resolve/:orgId', requireAuth, async (req, res, next) => {
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
-// GET /tenants/:orgId/status — Statut détaillé d'un tenant
+// GET /tenants/:orgId/status - Statut détaillé d'un tenant
 // ═════════════════════════════════════════════════════════════════════════════
 
 router.get('/:orgId/status', requireAuth, async (req, res, next) => {
@@ -172,7 +172,7 @@ router.get('/:orgId/status', requireAuth, async (req, res, next) => {
 // Routes super-admin
 // ═════════════════════════════════════════════════════════════════════════════
 
-// GET /tenants — Liste tous les tenants
+// GET /tenants - Liste tous les tenants
 router.get('/', requireAuth, requireSuperAdmin, async (req, res, next) => {
   try {
     const page  = parseInt(req.query.page  || '1', 10);

@@ -41,7 +41,7 @@
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>Palabre utilise Bluetooth pour les périphériques audio lors des appels.</string>
 
-	<!-- ── Contacts (optionnel — import) ── -->
+	<!-- ── Contacts (optionnel - import) ── -->
 	<key>NSContactsUsageDescription</key>
 	<string>Palabre peut accéder à vos contacts pour faciliter l'ajout de membres.</string>
 
@@ -74,7 +74,7 @@
 	</array>
 
 	<!-- ── Sécurité réseau (ATS) ── -->
-	<!-- En développement uniquement — retirer en production -->
+	<!-- En développement uniquement - retirer en production -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>

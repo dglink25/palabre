@@ -1,5 +1,5 @@
 /**
- * Route TURN credentials — génère des identifiants éphémères pour Coturn.
+ * Route TURN credentials - génère des identifiants éphémères pour Coturn.
  *
  * Authentification REST API de Coturn :
  *   username = "<timestamp_expiry>:<user_id>"

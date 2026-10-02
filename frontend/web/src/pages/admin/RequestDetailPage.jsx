@@ -68,7 +68,7 @@ function InfoRow({ label, value, isLink }) {
               </svg>
               Voir le fichier
             </a>
-          : String(value ?? '—')
+          : String(value ?? '-')
         }
       </td>
     </tr>
@@ -512,7 +512,7 @@ export default function RequestDetailPage() {
         </div>
       )}
 
-      {/* Approved — history */}
+      {/* Approved - history */}
       {request.status === 'approved' && !approval && (
         <div className="card" style={{ padding: '20px 24px' }}>
           <SectionHeading

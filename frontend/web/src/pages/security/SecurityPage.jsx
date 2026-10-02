@@ -85,7 +85,7 @@ export default function SecurityPage() {
       .map(([questionId, answer]) => ({ questionId, answer }));
     try {
       await api.put('/security/questions/answers', { answers: payload });
-      setNotice('Réponses enregistrées — elles pourront servir à récupérer votre compte.');
+      setNotice('Réponses enregistrées - elles pourront servir à récupérer votre compte.');
     } catch (e) { setError(friendlyMessage(e)); }
   }
 

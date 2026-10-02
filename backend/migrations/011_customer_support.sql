@@ -1,5 +1,5 @@
 -- ============================================================
--- Migration 011 — Service Client (Customer Support)
+-- Migration 011 - Service Client (Customer Support)
 -- Central_Server uniquement. Toutes les sessions transitent
 -- exclusivement par le serveur central, jamais par un Tenant_Server.
 -- ============================================================
@@ -28,7 +28,7 @@ CREATE INDEX idx_support_sessions_user     ON support_sessions(user_id);
 CREATE INDEX idx_support_sessions_status   ON support_sessions(status) WHERE status = 'open';
 CREATE INDEX idx_support_sessions_resolved ON support_sessions(resolved_at DESC) WHERE status = 'resolved';
 
--- ── Messages de support (ciphertext opaque — jamais déchiffré côté serveur) ──
+-- ── Messages de support (ciphertext opaque - jamais déchiffré côté serveur) ──
 CREATE TABLE support_messages (
   id             TEXT PRIMARY KEY,
   session_id     UUID NOT NULL REFERENCES support_sessions(id) ON DELETE CASCADE,

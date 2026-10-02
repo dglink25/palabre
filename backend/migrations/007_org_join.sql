@@ -1,5 +1,5 @@
 -- ============================================================
--- Migration 007 — Liaison organisation (nouveau modèle mobile)
+-- Migration 007 - Liaison organisation (nouveau modèle mobile)
 -- Ajoute le code d'invitation pour les utilisateurs standard
 -- ============================================================
 

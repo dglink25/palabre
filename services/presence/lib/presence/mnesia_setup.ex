@@ -23,7 +23,7 @@ defmodule Presence.Mnesia.Setup do
 
   @table :presence_records
 
-  # Record Erlang natif — accès O(1) depuis n'importe quel processus du noeud
+  # Record Erlang natif - accès O(1) depuis n'importe quel processus du noeud
   Record.defrecord(:presence_record, [
     :user_id,
     :org_id,
@@ -47,7 +47,7 @@ defmodule Presence.Mnesia.Setup do
   Crée le schéma Mnesia et les tables si elles n'existent pas.
   """
   def ensure_schema do
-    # Démarrer Mnesia sans schéma disc — ram_copies suffit pour les conteneurs Docker
+    # Démarrer Mnesia sans schéma disc - ram_copies suffit pour les conteneurs Docker
     :mnesia.start()
 
     case :mnesia.create_table(@table,
@@ -61,7 +61,7 @@ defmodule Presence.Mnesia.Setup do
              :last_seen_at,
              :platform
            ],
-           # ram_copies : données en mémoire — plus simple en conteneur Docker
+           # ram_copies : données en mémoire - plus simple en conteneur Docker
            # (disc_copies nécessite un répertoire Mnesia persistant configuré au niveau du schéma)
            ram_copies: [node()],
            # Index secondaire sur org_id pour lister tous les membres d'une org

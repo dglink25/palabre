@@ -136,7 +136,7 @@ export default function SessionsPage() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 2 }}>
                     <span style={{ fontWeight: 600, fontSize: 14, color: '#202124' }}>
-                      {s.platform || 'Appareil'}{s.model ? ` — ${s.model}` : ''}
+                      {s.platform || 'Appareil'}{s.model ? ` - ${s.model}` : ''}
                     </span>
                     {s.isCurrent && <Badge variant="primary">Cet appareil</Badge>}
                   </div>

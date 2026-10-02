@@ -1,4 +1,4 @@
-# Service Message Router — Palabre
+# Service Message Router - Palabre
 
 Routeur de messages temps réel. Maintient une connexion WebSocket permanente avec chaque client et achemine les messages chiffrés E2E sans jamais les déchiffrer.
 
@@ -18,7 +18,7 @@ Technologie : **Elixir/Phoenix Channels**.
 
 ## Configuration du .env
 
-Toutes les variables de ce service sont déjà dans `backend/.env`. Ne pas les saisir manuellement — utilisez le script :
+Toutes les variables de ce service sont déjà dans `backend/.env`. Ne pas les saisir manuellement - utilisez le script :
 
 ```bash
 # Depuis la racine du projet
@@ -51,7 +51,7 @@ Le script génère `services/message-router/.env` automatiquement. Si le fichier
 ## Démarrage
 
 ```bash
-# Via Docker (inclus dans core — dépend de postgres, redis, presence)
+# Via Docker (inclus dans core - dépend de postgres, redis, presence)
 ./palabre.sh start core
 
 # Logs en direct

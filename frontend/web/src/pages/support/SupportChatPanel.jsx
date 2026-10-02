@@ -1,5 +1,5 @@
 /**
- * SupportChatPanel — Panneau de messagerie du service client
+ * SupportChatPanel - Panneau de messagerie du service client
  * Messages chiffrés E2E, indicateurs de statut, invitation vidéo.
  */
 import { useState, useRef, useEffect } from 'react';
@@ -51,7 +51,7 @@ export default function SupportChatPanel({ session, messages, setMessages, user 
 
     setSending(true);
     try {
-      // Chiffrement E2E — le ciphertext est opaque côté serveur.
+      // Chiffrement E2E - le ciphertext est opaque côté serveur.
       // En production, utiliser libsignal ou libsodium pour chiffrer.
       // Ici le texte est wrappé en JSON comme placeholder (à remplacer).
       const ciphertext = JSON.stringify({ text });

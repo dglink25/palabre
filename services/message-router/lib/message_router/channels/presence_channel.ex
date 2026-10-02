@@ -2,7 +2,7 @@ defmodule MessageRouter.Channels.PresenceChannel do
   use Phoenix.Channel
 
   @moduledoc """
-  Channel de présence organisation — "presence:{org_id}".
+  Channel de présence organisation - "presence:{org_id}".
 
   Utilisé pour recevoir en temps réel les changements de présence
   de tous les membres d'une organisation.
@@ -12,8 +12,8 @@ defmodule MessageRouter.Channels.PresenceChannel do
   - On envoie l'état initial (qui est en ligne maintenant)
 
   Events sortants :
-    "presence:state"   — état initial à la connexion
-    "presence:update"  — changement d'un membre (en ligne / hors ligne)
+    "presence:state"   - état initial à la connexion
+    "presence:update"  - changement d'un membre (en ligne / hors ligne)
   """
 
   alias MessageRouter.PresenceClient

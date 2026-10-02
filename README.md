@@ -1,4 +1,4 @@
-# Palabre — Plateforme de communication sécurisée
+# Palabre - Plateforme de communication sécurisée
 
 Palabre est une plateforme de communication d'entreprise chiffrée de bout en bout (protocole Signal), conçue pour des organisations qui souhaitent héberger leur propre instance (tenant local) connectée à un serveur central en production.
 
@@ -24,7 +24,7 @@ Palabre est une plateforme de communication d'entreprise chiffrée de bout en bo
 
 ```
 palabre/
-├── backend/              API REST Node.js/Express — auth, onboarding, org, sessions
+├── backend/              API REST Node.js/Express - auth, onboarding, org, sessions
 ├── services/
 │   ├── presence/         Service de présence temps réel (Erlang/OTP + ETS + Mnesia)
 │   ├── message-router/   Routeur WebSocket E2E (Elixir/Phoenix Channels)
@@ -32,7 +32,7 @@ palabre/
 │   └── call-signal/      Signaling WebRTC 1:1 et groupe (Elixir/Phoenix)
 ├── coturn/               Serveur STUN/TURN (coturn) pour les appels WebRTC
 ├── frontend/
-│   ├── web/              Application React (Vite) — admin, org-admin, membres
+│   ├── web/              Application React (Vite) - admin, org-admin, membres
 │   └── mobile/           Application Flutter multiplateforme
 ├── mediasoup/            SFU audio/vidéo (placeholder)
 ├── asterisk/             Passerelle téléphonie PBX (placeholder)
@@ -102,7 +102,7 @@ cd palabre
 **Backend** (obligatoire) :
 ```bash
 cp backend/.env.example backend/.env
-# Editez backend/.env — voir section "Configuration manuelle" ci-dessous
+# Editez backend/.env - voir section "Configuration manuelle" ci-dessous
 ```
 
 **Docker Compose** (variables de build frontend + services temps réel) :
@@ -136,9 +136,9 @@ La documentation Swagger sur **http://localhost:4001/docs**
 
 ## Configuration manuelle
 
-Toutes les configurations ci-dessous sont **manuelles** — elles ne peuvent pas être générées automatiquement car elles nécessitent des comptes ou des services externes.
+Toutes les configurations ci-dessous sont **manuelles** - elles ne peuvent pas être générées automatiquement car elles nécessitent des comptes ou des services externes.
 
-### backend/.env — configurations requises
+### backend/.env - configurations requises
 
 #### 1. Clé Firebase (authentification fédérée Google, GitHub, etc.)
 
@@ -244,7 +244,7 @@ Laissez vide pour désactiver le CAPTCHA (développement local).
 
 ---
 
-### docker/.env — configurations requises
+### docker/.env - configurations requises
 
 #### Variables Firebase pour le frontend
 
@@ -305,18 +305,18 @@ En développement local, laissez vide.
 
 Voir les READMEs individuels :
 
-- [backend/README.md](backend/README.md) — API Node.js/Express
-- [services/presence/README.md](services/presence/README.md) — Présence Erlang
-- [services/message-router/README.md](services/message-router/README.md) — WebSocket Elixir
-- [services/file-server/README.md](services/file-server/README.md) — Fichiers chiffrés
-- [services/call-signal/README.md](services/call-signal/README.md) — Signaling WebRTC
-- [coturn/README.md](coturn/README.md) — Serveur STUN/TURN
+- [backend/README.md](backend/README.md) - API Node.js/Express
+- [services/presence/README.md](services/presence/README.md) - Présence Erlang
+- [services/message-router/README.md](services/message-router/README.md) - WebSocket Elixir
+- [services/file-server/README.md](services/file-server/README.md) - Fichiers chiffrés
+- [services/call-signal/README.md](services/call-signal/README.md) - Signaling WebRTC
+- [coturn/README.md](coturn/README.md) - Serveur STUN/TURN
 
 ---
 
 ## Frontend web
 
-Application React (Vite) — `frontend/web/`
+Application React (Vite) - `frontend/web/`
 
 Démarrage en développement (sans Docker) :
 ```bash
@@ -341,7 +341,7 @@ Interfaces disponibles :
 
 ## Application mobile
 
-Application Flutter — `frontend/mobile/`
+Application Flutter - `frontend/mobile/`
 
 ```bash
 cd frontend/mobile
@@ -393,7 +393,7 @@ Les migrations sont dans `backend/migrations/`, numérotées séquentiellement :
 
 Exécution :
 ```bash
-# Via palabre.sh (recommandé — le backend doit tourner)
+# Via palabre.sh (recommandé - le backend doit tourner)
 ./palabre.sh migrate
 
 # Ou directement
@@ -407,7 +407,7 @@ docker exec palabre-backend node src/db/reset.js
 
 ## Variables d'environnement
 
-### Résumé — ce qui est obligatoire vs optionnel
+### Résumé - ce qui est obligatoire vs optionnel
 
 | Variable | Fichier | Obligatoire | Génération |
 |----------|---------|-------------|------------|

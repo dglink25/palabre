@@ -87,7 +87,7 @@ async function sendHeartbeat() {
     state.reconnectDelay = RECONNECT_BASE_DELAY;
 
     if (wasDown) {
-      log('ok', `Tunnel retabli — statut organisation : ${status}`);
+      log('ok', `Tunnel retabli - statut organisation : ${status}`);
       // Reconnexion : synchroniser les messages en attente
       await syncPendingMessages();
       // Rétablir le WebSocket
@@ -95,7 +95,7 @@ async function sendHeartbeat() {
     }
   } catch (err) {
     if (state.tunnelUp) {
-      log('warn', 'Tunnel perdu —', err.message || err.code, '— mode dégradé activé');
+      log('warn', 'Tunnel perdu -', err.message || err.code, '- mode dégradé activé');
       state.tunnelUp = false;
       notifyLocalServices({ mode: 'degraded' });
     }
@@ -134,7 +134,7 @@ async function syncPendingMessages() {
         { timeout: 10000 }
       );
     } catch (e) {
-      log('warn', 'Echec sync message — requeue', e.message);
+      log('warn', 'Echec sync message - requeue', e.message);
       state.pendingSync.unshift(msg); // Remettre en tête de file
       break; // Arrêter si le central est encore inaccessible
     }
@@ -159,7 +159,7 @@ function connectWebSocket() {
   try {
     state.ws = new WebSocket(wsUrl);
   } catch (e) {
-    log('warn', 'WebSocket central indisponible — nouvelle tentative dans', state.reconnectDelay / 1000, 's');
+    log('warn', 'WebSocket central indisponible - nouvelle tentative dans', state.reconnectDelay / 1000, 's');
     scheduleReconnect();
     return;
   }
@@ -179,7 +179,7 @@ function connectWebSocket() {
   });
 
   state.ws.on('close', (code, reason) => {
-    log('warn', `WebSocket central ferme (code=${code})${reason ? ' — ' + reason : ''}`);
+    log('warn', `WebSocket central ferme (code=${code})${reason ? ' - ' + reason : ''}`);
     state.ws = null;
     if (state.tunnelUp) {
       scheduleReconnect();
@@ -187,7 +187,7 @@ function connectWebSocket() {
   });
 
   state.ws.on('error', (err) => {
-    log('error', 'WebSocket central — erreur :', err.message);
+    log('error', 'WebSocket central - erreur :', err.message);
   });
 }
 
@@ -279,15 +279,15 @@ const server = http.createServer(async (req, res) => {
         const msg = JSON.parse(body);
 
         if (!state.tunnelUp) {
-          // Tunnel down — mettre en file pour sync ultérieure
+          // Tunnel down - mettre en file pour sync ultérieure
           state.pendingSync.push(msg);
-          log('info', `Message ${msg.id} mis en file (tunnel hors ligne) — total : ${state.pendingSync.length}`);
+          log('info', `Message ${msg.id} mis en file (tunnel hors ligne) - total : ${state.pendingSync.length}`);
           res.writeHead(202);
           res.end(JSON.stringify({ queued: true, pending: state.pendingSync.length }));
           return;
         }
 
-        // Tunnel up — relai immédiat vers le central
+        // Tunnel up - relai immédiat vers le central
         await axios.post(
           `${CENTRAL_API_URL}/api/v1/internal/messages/relay`,
           { tenantId: TENANT_ID, controlToken: CONTROL_TOKEN, message: msg },

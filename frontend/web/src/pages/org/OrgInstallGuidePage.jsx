@@ -116,7 +116,7 @@ export default function OrgInstallGuidePage() {
       .catch(() => {});
   }, [orgId]);
 
-  // Nom de dossier : palabre_<nom_org_sanitisé> — ex: palabre_acme_corp
+  // Nom de dossier : palabre_<nom_org_sanitisé> - ex: palabre_acme_corp
   const folderName = orgName
     ? `palabre_${orgName.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')}`
     : 'palabre_mon_organisation';
@@ -143,7 +143,7 @@ export default function OrgInstallGuidePage() {
           <Ico d={ICO.shield} size={20} color="var(--color-primary-blue)" />
           <div>
             <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 3 }}>
-              Identifiant de votre organisation — a conserver precieusement
+              Identifiant de votre organisation - a conserver precieusement
             </div>
             <code style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-primary-blue)', letterSpacing: '0.5px' }}>
               {orgId}
@@ -157,7 +157,7 @@ export default function OrgInstallGuidePage() {
         title="Preparez votre serveur"
         desc="Provisionnez un serveur dedie ou une machine virtuelle avec le systeme d'exploitation recommande.">
         <ul style={{ paddingLeft: 22, margin: '0 0 12px 0' }}>
-          <li>Ubuntu Server 22.04 LTS ou Debian 12 — recommande</li>
+          <li>Ubuntu Server 22.04 LTS ou Debian 12 - recommande</li>
           <li>Minimum : <strong>4 vCPU, 8 Go RAM, 100 Go SSD</strong>, connexion internet stable</li>
           <li>Adresse IP publique fixe ou nom de domaine pointe sur votre serveur</li>
         </ul>
@@ -193,7 +193,7 @@ docker compose version`} />
       <StepCard n={3} icon={ICO.download} color="var(--color-success-green)"
         title="Telechargez et configurez le paquet tenant Palabre"
         desc="Le tenant est inclus dans le depot Palabre. Vous allez cloner uniquement le dossier tenant/ necessaire a votre installation.">
-        <CopyBlock label="Cloner uniquement le dossier tenant (sparse checkout — SSH)" code={`# Cloner le depot Palabre dans un dossier propre a votre organisation
+        <CopyBlock label="Cloner uniquement le dossier tenant (sparse checkout - SSH)" code={`# Cloner le depot Palabre dans un dossier propre a votre organisation
 git clone --filter=blob:none --sparse git@github.com:dglink25/palabre.git ${folderName}
 cd ${folderName}
 
@@ -202,7 +202,7 @@ git sparse-checkout set tenant services coturn
 
 # Se placer dans le dossier tenant
 cd tenant`} />
-        <CopyBlock label="Alternative — HTTPS (si pas de cle SSH configuree)" code={`git clone --filter=blob:none --sparse https://github.com/dglink25/palabre.git ${folderName}
+        <CopyBlock label="Alternative - HTTPS (si pas de cle SSH configuree)" code={`git clone --filter=blob:none --sparse https://github.com/dglink25/palabre.git ${folderName}
 cd ${folderName}
 git sparse-checkout set tenant services coturn
 cd tenant`} />
@@ -223,7 +223,7 @@ chmod +x setup.sh
         title="Liez votre organisation via le QR code de provisioning"
         desc="Le QR code de provisioning vous a ete transmis par e-mail lors de l'approbation. Il contient les cles de liaison securisees avec le serveur central.">
         <div style={{ marginBottom: 12 }}>
-          <div style={{ fontWeight: 600, marginBottom: 8 }}>Option A — Depuis l'application mobile (recommande)</div>
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>Option A - Depuis l'application mobile (recommande)</div>
           <ol style={{ paddingLeft: 22, margin: 0 }}>
             <li>Ouvrez Palabre sur votre telephone</li>
             <li>Allez dans <strong>Tableau de bord &gt; Lier mon organisation</strong></li>
@@ -232,7 +232,7 @@ chmod +x setup.sh
           </ol>
         </div>
         <div style={{ marginBottom: 12 }}>
-          <div style={{ fontWeight: 600, marginBottom: 8 }}>Option B — Depuis le navigateur web</div>
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>Option B - Depuis le navigateur web</div>
           <ol style={{ paddingLeft: 22, margin: 0 }}>
             <li>Allez dans <strong>Tunnel VPN &gt; Page de liaison</strong></li>
             <li>Collez le contenu JSON du QR code (disponible dans l'email)</li>

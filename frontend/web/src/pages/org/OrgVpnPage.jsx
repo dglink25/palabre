@@ -45,10 +45,10 @@ const ORG_STATUS_LABELS = {
 
 // Status messages
 const VPN_ALERT_TEXT = {
-  active:   'Le serveur local est joignable — tunnel opérationnel.',
-  degraded: 'Signal instable — dernier contact il y a plus de 2 minutes.',
-  offline:  'Connexion interrompue — aucun contact depuis plus de 5 minutes.',
-  unknown:  'En attente de connexion — le serveur local n\'a pas encore envoyé de signal.',
+  active:   'Le serveur local est joignable - tunnel opérationnel.',
+  degraded: 'Signal instable - dernier contact il y a plus de 2 minutes.',
+  offline:  'Connexion interrompue - aucun contact depuis plus de 5 minutes.',
+  unknown:  'En attente de connexion - le serveur local n\'a pas encore envoyé de signal.',
 };
 
 export default function OrgVpnPage() {
@@ -225,8 +225,8 @@ export default function OrgVpnPage() {
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <tbody>
             {[
-              ['Identifiant tenant', user?.orgId || '—', false],
-              ['Clé VPN (privée)', 'Confidentielle — stockée sur votre appareil lors de la liaison', false],
+              ['Identifiant tenant', user?.orgId || '-', false],
+              ['Clé VPN (privée)', 'Confidentielle - stockée sur votre appareil lors de la liaison', false],
               ['URL heartbeat', `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:4001/api/v1'}/org/tenants/heartbeat`, true],
             ].map(([label, value, isMono]) => (
               <tr key={label}

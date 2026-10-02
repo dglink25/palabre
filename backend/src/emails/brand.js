@@ -23,7 +23,7 @@ const COLORS = {
 
 const FONT_STACK = "-apple-system, 'Segoe UI', Roboto, Arial, Helvetica, sans-serif";
 
-// Logo Palabre encodé en base64 inline — aucune requête externe requise.
+// Logo Palabre encodé en base64 inline - aucune requête externe requise.
 // Les clients mail (Gmail, Outlook, Apple Mail) bloquent souvent les images
 // hébergées sur des domaines inconnus, mais affichent toujours les data URI.
 // SVG 36x36 : carré bleu arrondi avec la lettre P en blanc.

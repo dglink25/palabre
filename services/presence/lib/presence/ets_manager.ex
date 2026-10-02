@@ -32,7 +32,7 @@ defmodule Presence.ETS.Manager do
     {:ok, []}
   end
 
-  # API publique ETS — appelable depuis n'importe quel processus, pas de GenServer call
+  # API publique ETS - appelable depuis n'importe quel processus, pas de GenServer call
 
   def put(entry) do
     key = {entry.user_id, entry.device_id}

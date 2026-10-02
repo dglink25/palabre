@@ -1,5 +1,5 @@
 -- ============================================================
--- Migration 009 — Vidéoconférence (white-label Jitsi/JaaS)
+-- Migration 009 - Vidéoconférence (white-label Jitsi/JaaS)
 -- ============================================================
 
 -- ── Rooms de vidéoconférence ──────────────────────────────────

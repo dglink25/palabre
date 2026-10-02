@@ -2,7 +2,7 @@
 
 Application Flutter multiplateforme (Android + iOS). Communication sécurisée E2E pour les membres d'une organisation.
 
-L'app est **universelle** — un seul APK/IPA pour tous. L'utilisateur lie son organisation au premier lancement (QR code ou identifiant + code d'invitation).
+L'app est **universelle** - un seul APK/IPA pour tous. L'utilisateur lie son organisation au premier lancement (QR code ou identifiant + code d'invitation).
 
 ## Prérequis
 
@@ -65,7 +65,7 @@ flutter run \
   --dart-define=FILE_SERVER_URL=http://192.168.1.x:4030
 ```
 
-## Configuration manuelle requise — Firebase
+## Configuration manuelle requise - Firebase
 
 **Action manuelle obligatoire** avant le premier build.
 
@@ -132,7 +132,7 @@ flutter build ios --release \
 ```
 lib/
 ├── main.dart                         Point d'entrée
-├── firebase_options.dart             Config Firebase (à configurer — voir ci-dessus)
+├── firebase_options.dart             Config Firebase (à configurer - voir ci-dessus)
 └── core/
 │   ├── config/app_config.dart        URLs injectées au build via --dart-define
 │   ├── theme/app_theme.dart          Charte graphique (couleurs Palabre)
@@ -156,7 +156,7 @@ lib/
     └── settings/                     Paramètres application
 ```
 
-## Navigation — 5 onglets
+## Navigation - 5 onglets
 
 | Onglet | Route | Description |
 |--------|-------|-------------|
@@ -182,7 +182,7 @@ lib/
 - Messages en attente livrés automatiquement à la reconnexion
 - Notifications FCM/APNs uniquement quand l'app est fermée ou en arrière-plan
 
-## Liaison organisation — premier lancement
+## Liaison organisation - premier lancement
 
 ### Pour un administrateur d'organisation
 
@@ -197,7 +197,7 @@ lib/
 3. Soit saisir l'identifiant org + code d'invitation
 4. Confirmé → accès aux communications
 
-## Notifications push — configuration
+## Notifications push - configuration
 
 ### Android (FCM)
 

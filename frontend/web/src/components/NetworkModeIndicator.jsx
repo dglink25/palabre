@@ -5,9 +5,9 @@ import { networkDetector } from '../lib/networkDetector';
  * NetworkModeIndicator
  *
  * Badge discret affiché dans la sidebar qui indique le mode de connexion actif :
- *   🟢 Réseau local    — connexion directe au Tenant_Server
- *   🟠 Via serveur central — connexion relayée (hors réseau local)
- *   🔴 Hors ligne      — ni tenant ni relais ne répondent
+ *   🟢 Réseau local    - connexion directe au Tenant_Server
+ *   🟠 Via serveur central - connexion relayée (hors réseau local)
+ *   🔴 Hors ligne      - ni tenant ni relais ne répondent
  *
  * S'affiche uniquement si un tenant est configuré (organisation avec serveur local).
  * Invisible pour les utilisateurs sans organisation ou en mode public.
@@ -25,7 +25,7 @@ export default function NetworkModeIndicator() {
 
   const config = {
     direct:      { dot: '#16a34a', label: 'Réseau local',         title: 'Connexion directe au serveur de votre organisation' },
-    relay:       { dot: '#f97316', label: 'Via serveur central',   title: 'Connexion relayée — vous êtes hors du réseau local' },
+    relay:       { dot: '#f97316', label: 'Via serveur central',   title: 'Connexion relayée - vous êtes hors du réseau local' },
     unavailable: { dot: '#dc2626', label: 'Hors ligne',            title: 'Impossible de joindre le serveur. Vérifiez votre connexion.' },
   };
 

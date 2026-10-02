@@ -28,10 +28,10 @@ defmodule CallSignal.Application do
   Architecture interne :
     Application.start
       └── Supervisor
-            ├── CallSignal.PubSub          — diffusion interne
-            ├── CallSignal.CallRegistry    — registre ETS des appels actifs
-            ├── CallSignal.Endpoint        — Phoenix WebSocket (port 4040)
-            └── CallSignal.Timeout.Sweeper — expire les appels sans réponse
+            ├── CallSignal.PubSub          - diffusion interne
+            ├── CallSignal.CallRegistry    - registre ETS des appels actifs
+            ├── CallSignal.Endpoint        - Phoenix WebSocket (port 4040)
+            └── CallSignal.Timeout.Sweeper - expire les appels sans réponse
   """
   use Application
 

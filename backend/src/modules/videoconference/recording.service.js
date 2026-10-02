@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Recording Service — Vidéoconférence Palabre
+ * Recording Service - Vidéoconférence Palabre
  *
  * Gère le démarrage et l'arrêt des enregistrements.
  * Supporte deux backends :
@@ -64,7 +64,7 @@ async function startRecording({ roomId, actorUserId }) {
     metadata: { title },
   });
 
-  // Si JaaS configuré — appel API JaaS
+  // Si JaaS configuré - appel API JaaS
   if (process.env.JAAS_APP_ID && process.env.JAAS_PRIVATE_KEY) {
     await startJaaSRecording(jitsiRoomName).catch(err => {
       console.error('[recording] JaaS recording start failed:', err.message);

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// Indicateur de position en file d'attente — affiché pendant un appel en attente.
+/// Indicateur de position en file d'attente - affiché pendant un appel en attente.
 class SupportQueueIndicator extends StatelessWidget {
   const SupportQueueIndicator({
     super.key,
@@ -49,7 +49,7 @@ class SupportQueueIndicator extends StatelessWidget {
                 if (!isHold)
                   Text(
                     'Position : $position'
-                    '${estimatedWaitMinutes != null ? ' — ~$estimatedWaitMinutes min' : ''}',
+                    '${estimatedWaitMinutes != null ? ' - ~$estimatedWaitMinutes min' : ''}',
                     style: const TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 12,

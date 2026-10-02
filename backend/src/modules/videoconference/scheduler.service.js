@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Scheduler Service — Vidéoconférences planifiées
+ * Scheduler Service - Vidéoconférences planifiées
  *
  * Gère :
  * 1. L'activation automatique des rooms à l'heure prévue
@@ -78,7 +78,7 @@ async function activateDueRooms() {
         metadata: { title: room.title, scheduledAt: room.scheduled_at },
       });
 
-      console.log(`[scheduler] Room activée : ${room.id} — ${room.title}`);
+      console.log(`[scheduler] Room activée : ${room.id} - ${room.title}`);
     } catch (err) {
       console.error(`[scheduler] Erreur activation ${room.id}:`, err.message);
     }

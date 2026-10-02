@@ -28,7 +28,7 @@ export function OrgAdminRoute({ children }) {
 }
 
 /**
- * MemberRoute — utilisateur connecté avec orgId, ni super-admin ni org-admin
+ * MemberRoute - utilisateur connecté avec orgId, ni super-admin ni org-admin
  * Redirige vers /org/join si pas d'orgId
  */
 export function MemberRoute({ children }) {
@@ -38,12 +38,12 @@ export function MemberRoute({ children }) {
   if (user.isSuperAdmin) return <Navigate to="/admin" replace />;
   if (!user.orgId) return <Navigate to="/org/join" replace />;
   // org_admin redirigé vers /app (il a aussi accès aux communications)
-  // Ne pas rediriger vers /org/dashboard depuis ici — laisser passer
+  // Ne pas rediriger vers /org/dashboard depuis ici - laisser passer
   return children;
 }
 
 /**
- * OrgMemberOrAdminRoute — accepte tout utilisateur avec orgId
+ * OrgMemberOrAdminRoute - accepte tout utilisateur avec orgId
  * (membres ET org_admins). Utilisé pour les routes /app/*.
  */
 export function OrgMemberOrAdminRoute({ children }) {

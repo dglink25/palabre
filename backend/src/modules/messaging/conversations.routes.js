@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Routes de messagerie — conversations et messages REST
+ * Routes de messagerie - conversations et messages REST
  * Ces routes complètent le message-router WebSocket pour :
  *   - Créer et lister les conversations
  *   - Charger l'historique des messages (pagination)
@@ -14,7 +14,7 @@ const { requireAuth } = require('../../middleware/authMiddleware');
 
 const router = express.Router();
 
-// ── GET /conversations — liste les conversations de l'utilisateur ─────────────
+// ── GET /conversations - liste les conversations de l'utilisateur ─────────────
 router.get('/', requireAuth, async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -74,7 +74,7 @@ router.get('/', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// ── POST /conversations — créer ou retrouver une conversation 1:1 ────────────
+// ── POST /conversations - créer ou retrouver une conversation 1:1 ────────────
 router.post('/', requireAuth, async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -86,7 +86,7 @@ router.post('/', requireAuth, async (req, res, next) => {
     }
 
     if (!isGroup) {
-      // Conversation 1:1 — retrouver ou créer
+      // Conversation 1:1 - retrouver ou créer
       const otherId = participants[0];
       const [userA, userB] = userId < otherId ? [userId, otherId] : [otherId, userId];
 
@@ -105,12 +105,12 @@ router.post('/', requireAuth, async (req, res, next) => {
       return res.status(201).json({ id: rows[0].id, exists: false });
     }
 
-    // Groupe — pas encore implémenté
+    // Groupe - pas encore implémenté
     return res.status(501).json({ error: { code: 'NOT_IMPLEMENTED', message: 'Les groupes arrivent bientot.' } });
   } catch (err) { next(err); }
 });
 
-// ── GET /conversations/:id — détails d'une conversation ──────────────────────
+// ── GET /conversations/:id - détails d'une conversation ──────────────────────
 router.get('/:id', requireAuth, async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -136,7 +136,7 @@ router.get('/:id', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// ── GET /conversations/:id/messages — historique paginé ──────────────────────
+// ── GET /conversations/:id/messages - historique paginé ──────────────────────
 router.get('/:id/messages', requireAuth, async (req, res, next) => {
   try {
     const userId  = req.user.id;
@@ -195,7 +195,7 @@ router.get('/:id/messages', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// ── POST /conversations/:id/messages — envoyer un message ────────────────────
+// ── POST /conversations/:id/messages - envoyer un message ────────────────────
 router.post('/:id/messages', requireAuth, async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -244,7 +244,7 @@ router.post('/:id/messages', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// ── GET /contacts — membres de l'organisation ────────────────────────────────
+// ── GET /contacts - membres de l'organisation ────────────────────────────────
 router.get('/contacts/list', requireAuth, async (req, res, next) => {
   try {
     const userId = req.user.id;

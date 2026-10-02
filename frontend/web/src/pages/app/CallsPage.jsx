@@ -82,7 +82,7 @@ function ActiveCallOverlay({ peer, callType, onEnd }) {
         if (remoteVideoRef.current) remoteVideoRef.current.srcObject = e.streams[0];
       };
     } catch {
-      // permission refusee ou pas de camera — on continue quand meme
+      // permission refusee ou pas de camera - on continue quand meme
     }
   }
 

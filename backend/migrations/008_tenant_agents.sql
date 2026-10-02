@@ -1,5 +1,5 @@
 -- ============================================================
--- Migration 008 — Table des agents tenant
+-- Migration 008 - Table des agents tenant
 -- Enregistre l'URL publique de chaque agent tenant
 -- pour le routage inter-organisations (multi-tenant)
 -- ============================================================

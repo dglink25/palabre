@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Support Queue Service — File d'attente des appels du service client
+ * Support Queue Service - File d'attente des appels du service client
  *
  * Utilise Redis pour gérer :
  * - support:call_queue  → liste FIFO des callIds en attente (RPUSH/LPOP)
@@ -29,7 +29,7 @@ async function getCallMeta(callId) {
 }
 
 async function setCallMeta(callId, meta) {
-  // TTL 4h — nettoyage automatique si l'appel reste bloqué
+  // TTL 4h - nettoyage automatique si l'appel reste bloqué
   await redis.set(callMetaKey(callId), JSON.stringify(meta), 'EX', 14400);
 }
 

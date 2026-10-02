@@ -6,19 +6,19 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4001/api
 /**
  * VideoConferenceGateway
  *
- * Composant central d'encapsulation Jitsi — WHITE-LABEL TOTAL.
+ * Composant central d'encapsulation Jitsi - WHITE-LABEL TOTAL.
  * - Le nom de salle Jitsi (jitsi_room_name) n'apparaît JAMAIS ici.
  * - Le domaine Jitsi n'est pas hardcodé dans ce fichier.
  * - Le SDK Jitsi est chargé via le proxy backend (/api/v1/videoconference/client-sdk).
  * - L'iframe est pilotée exclusivement via JitsiMeetExternalAPI.
  *
  * Props :
- *   roomId        — UUID Palabre de la room
- *   sessionToken  — JWT Palabre de session (jamais un token JaaS)
- *   displayName   — Nom de l'utilisateur à afficher
- *   isModerator   — true si hôte/modérateur
- *   onLeave       — callback quand l'utilisateur quitte
- *   onError       — callback(message) en cas d'erreur fatale
+ *   roomId        - UUID Palabre de la room
+ *   sessionToken  - JWT Palabre de session (jamais un token JaaS)
+ *   displayName   - Nom de l'utilisateur à afficher
+ *   isModerator   - true si hôte/modérateur
+ *   onLeave       - callback quand l'utilisateur quitte
+ *   onError       - callback(message) en cas d'erreur fatale
  */
 export default function VideoConferenceGateway({ roomId, sessionToken, displayName, isModerator, onLeave, onError }) {
   const containerRef = useRef(null);
@@ -31,7 +31,7 @@ export default function VideoConferenceGateway({ roomId, sessionToken, displayNa
 
     async function init() {
       try {
-        // 1. Charger le SDK Jitsi via le proxy backend (URL opaque — jamais "jitsi" visible)
+        // 1. Charger le SDK Jitsi via le proxy backend (URL opaque - jamais "jitsi" visible)
         await loadSdk(`${API_BASE}/videoconference/client-sdk`);
 
         if (!mounted) return;
@@ -45,7 +45,7 @@ export default function VideoConferenceGateway({ roomId, sessionToken, displayNa
 
         // 3. Initialiser l'API Jitsi External avec white-label complet
         const jitsiApi = new window.JitsiMeetExternalAPI(domain, {
-          roomName:   roomToken,    // JWT JaaS opaque — Jitsi l'utilise pour l'auth
+          roomName:   roomToken,    // JWT JaaS opaque - Jitsi l'utilise pour l'auth
           jwt:        roomToken,
           parentNode: containerRef.current,
           width:      '100%',
@@ -187,7 +187,7 @@ export default function VideoConferenceGateway({ roomId, sessionToken, displayNa
           <div className="spinner" style={{ borderTopColor: '#fff', opacity: 0.6 }} />
         </div>
       )}
-      {/* Container de l'iframe Jitsi — data-palabre-room ne révèle pas Jitsi */}
+      {/* Container de l'iframe Jitsi - data-palabre-room ne révèle pas Jitsi */}
       <div
         ref={containerRef}
         data-palabre-room={roomId}

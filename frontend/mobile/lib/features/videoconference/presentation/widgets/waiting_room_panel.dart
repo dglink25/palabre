@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// Panneau de la salle d'attente — affiché pour l'hôte pendant une session.
+/// Panneau de la salle d'attente - affiché pour l'hôte pendant une session.
 /// Équivalent de WaitingRoomPanel.jsx
 class WaitingRoomPanel extends ConsumerStatefulWidget {
   const WaitingRoomPanel({super.key, required this.roomId, required this.onClose});

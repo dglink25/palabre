@@ -230,7 +230,7 @@ export default function OrgInvitePage() {
           {[
             <>Ouvrir <strong>Palabre</strong> (web ou mobile) et aller dans "Rejoindre une organisation"</>,
             <>Scanner le <strong>QR code</strong> ci-dessus ou saisir l'identifiant + le code manuellement</>,
-            <>Confirmer — accès immédiat aux conversations et appels</>,
+            <>Confirmer - accès immédiat aux conversations et appels</>,
           ].map((step, i) => (
             <li key={i} style={{ fontSize: 14, color: '#202124', lineHeight: 1.75, marginBottom: 4 }}>
               {step}

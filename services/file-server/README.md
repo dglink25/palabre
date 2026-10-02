@@ -1,6 +1,6 @@
-# Service File Server — Palabre
+# Service File Server - Palabre
 
-Serveur de transfert de fichiers pour la messagerie. Stocke les fichiers chiffrés côté client (AES-256-GCM) — le serveur ne voit jamais le contenu en clair.
+Serveur de transfert de fichiers pour la messagerie. Stocke les fichiers chiffrés côté client (AES-256-GCM) - le serveur ne voit jamais le contenu en clair.
 
 Technologie : **Node.js** (Express + multer).
 

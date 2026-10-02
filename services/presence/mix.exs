@@ -25,7 +25,7 @@ defmodule Presence.MixProject do
 
   defp deps do
     [
-      # HTTP server pur Elixir — pas de cowboy/cowlib (incompatibles Alpine/rebar3)
+      # HTTP server pur Elixir - pas de cowboy/cowlib (incompatibles Alpine/rebar3)
       {:bandit, "~> 1.5"},
       {:jason, "~> 1.4"},
       # Distribution Erlang entre noeuds

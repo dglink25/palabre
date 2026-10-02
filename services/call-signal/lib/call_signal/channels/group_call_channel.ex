@@ -19,19 +19,19 @@ defmodule CallSignal.Channels.GroupCallChannel do
     6. Dernier membre → appel terminé
 
   Events entrants :
-    call:group:start      — démarrer un appel de groupe
-    call:group:join       — rejoindre un appel de groupe en cours
-    call:group:leave      — quitter
-    sfu:sdp:offer         — offre SDP vers le SFU
-    sfu:ice:candidate     — candidat ICE vers le SFU
+    call:group:start      - démarrer un appel de groupe
+    call:group:join       - rejoindre un appel de groupe en cours
+    call:group:leave      - quitter
+    sfu:sdp:offer         - offre SDP vers le SFU
+    sfu:ice:candidate     - candidat ICE vers le SFU
 
   Events sortants :
-    call:group:started    — appel initié, paramètres SFU inclus
-    call:group:participant_joined  — quelqu'un a rejoint
-    call:group:participant_left    — quelqu'un a quitté
-    call:group:ended      — plus aucun participant
-    sfu:sdp:answer        — réponse SDP du SFU
-    sfu:ice:candidate     — candidat ICE du SFU
+    call:group:started    - appel initié, paramètres SFU inclus
+    call:group:participant_joined  - quelqu'un a rejoint
+    call:group:participant_left    - quelqu'un a quitté
+    call:group:ended      - plus aucun participant
+    sfu:sdp:answer        - réponse SDP du SFU
+    sfu:ice:candidate     - candidat ICE du SFU
     error
   """
 

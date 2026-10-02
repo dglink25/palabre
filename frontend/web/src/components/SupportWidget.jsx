@@ -1,8 +1,8 @@
 /**
- * SupportWidget — Bouton flottant d'accès au service client
+ * SupportWidget - Bouton flottant d'accès au service client
  * Affiché sur toutes les pages (public + tenant).
  * Redirige vers /login si non authentifié, sinon ouvre SupportPage.
- * Toutes les couleurs utilisent les tokens CSS — zéro valeur en dur.
+ * Toutes les couleurs utilisent les tokens CSS - zéro valeur en dur.
  */
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -53,7 +53,7 @@ export default function SupportWidget() {
     setLoading(false);
   };
 
-  // Couleurs via tokens CSS — on lit la valeur via une variable CSS inline
+  // Couleurs via tokens CSS - on lit la valeur via une variable CSS inline
   const dotColor = status?.available
     ? 'var(--color-success-green)'
     : 'var(--color-warning-amber)';
@@ -113,8 +113,8 @@ export default function SupportWidget() {
         className="support-widget-btn"
         onClick={handleClick}
         disabled={loading}
-        aria-label={`Service client — ${dotTitle}`}
-        title={`Service client — ${dotTitle}`}
+        aria-label={`Service client - ${dotTitle}`}
+        title={`Service client - ${dotTitle}`}
       >
         <span style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
           <HeadsetIcon />

@@ -218,7 +218,7 @@ export default function OrgJoinPage() {
   const handleQrResult = useCallback(async (parsed) => {
     setShowScanner(false);
     setError('');
-    if (!parsed?.orgId) { setError('QR code invalide — identifiant organisation introuvable.'); return; }
+    if (!parsed?.orgId) { setError('QR code invalide - identifiant organisation introuvable.'); return; }
     setOrgId(parsed.orgId);
     if (parsed.joinCode) setJoinCode(parsed.joinCode);
     // Charger la prévisualisation directement

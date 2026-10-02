@@ -233,8 +233,8 @@ export default function Layout() {
         aria-label="Navigation principale"
       >
 
-        {/* Logo — cliquable vers accueil */}
-        <Link to="/" className="shell-logo" onClick={() => setOpen(false)} aria-label="Palabre — retour à l'accueil">
+        {/* Logo - cliquable vers accueil */}
+        <Link to="/" className="shell-logo" onClick={() => setOpen(false)} aria-label="Palabre - retour à l'accueil">
           <img src="/logo.png" alt="" width="32" height="32" aria-hidden="true" />
           <span>PALABRE</span>
         </Link>
@@ -268,7 +268,7 @@ export default function Layout() {
       {/* ── Zone principale ── */}
       <div className="shell-body">
 
-        {/* ── Barre supérieure desktop — horloge en haut à droite ── */}
+        {/* ── Barre supérieure desktop - horloge en haut à droite ── */}
         <div className="shell-desktopbar">
           <RealtimeClock timezone={user?.timezone} />
         </div>
@@ -278,11 +278,11 @@ export default function Layout() {
           <button className="shell-hamburger" onClick={() => setOpen(v => !v)} aria-label={open ? 'Fermer le menu' : 'Ouvrir le menu'} aria-expanded={open}>
             <Ico path={open ? ICONS.close : ICONS.menu} size={22} aria-hidden="true" />
           </button>
-          <Link to="/" className="shell-topbar-logo" aria-label="Palabre — accueil">
+          <Link to="/" className="shell-topbar-logo" aria-label="Palabre - accueil">
             <img src="/logo.png" alt="" width="24" height="24" aria-hidden="true" />
             <span>PALABRE</span>
           </Link>
-          {/* Horloge temps réel — visible sur toutes les pages */}
+          {/* Horloge temps réel - visible sur toutes les pages */}
           <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', paddingRight: 8 }}>
             <RealtimeClock timezone={user?.timezone} />
           </div>

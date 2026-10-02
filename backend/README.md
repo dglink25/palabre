@@ -1,4 +1,4 @@
-# Backend Palabre — API REST
+# Backend Palabre - API REST
 
 API Node.js/Express. Gère l'authentification, les profils, l'onboarding des organisations, la gestion des sessions et la sécurité.
 
@@ -74,11 +74,11 @@ npm run db:reset    # Reset complet de la base (DÉTRUIT LES DONNÉES)
 npm run db:seed     # Insérer des données de test
 ```
 
-## Configuration — backend/.env
+## Configuration - backend/.env
 
 Copiez `.env.example` et renseignez les valeurs. Voici ce qui nécessite une action manuelle :
 
-### Obligatoire — Firebase (authentification fédérée)
+### Obligatoire - Firebase (authentification fédérée)
 
 **Action manuelle requise.**
 
@@ -92,7 +92,7 @@ Copiez `.env.example` et renseignez les valeurs. Voici ce qui nécessite une act
 FIREBASE_SERVICE_ACCOUNT_PATH=/run/secrets/nom-du-fichier.json
 ```
 
-### Obligatoire — Convessa (OTP WhatsApp)
+### Obligatoire - Convessa (OTP WhatsApp)
 
 **Action manuelle requise.** Créez un compte sur https://convessa.epac-uac-optica-chapter.bj
 
@@ -101,7 +101,7 @@ CONVESSA_API_KEY=pk_convessa_xxxxxx
 CONVESSA_API_URL=https://convessa.epac-uac-optica-chapter.bj
 ```
 
-### Obligatoire — SMTP (emails)
+### Obligatoire - SMTP (emails)
 
 **Action manuelle requise.**
 
@@ -118,7 +118,7 @@ MAIL_PASSWORD=xxxx xxxx xxxx xxxx
 MAIL_FROM=Palabre <votre@gmail.com>
 ```
 
-### Obligatoire — Secrets cryptographiques
+### Obligatoire - Secrets cryptographiques
 
 **Générez avec des commandes.** Ne partagez jamais ces valeurs.
 
@@ -147,7 +147,7 @@ TURN_SECRET=<sortie openssl>
 
 > Ces mêmes valeurs (`INTERNAL_SERVICES_SECRET`, `ERLANG_COOKIE`, `PHOENIX_SECRET_KEY_BASE`, `TURN_SECRET`) doivent être identiques dans `docker/.env`.
 
-### Obligatoire — Super-administrateur
+### Obligatoire - Super-administrateur
 
 **Action manuelle.** Correspond au compte dans la migration `004_super_admin.sql`.
 
@@ -155,7 +155,7 @@ TURN_SECRET=<sortie openssl>
 SUPER_ADMIN_EMAIL=votre@email.com
 ```
 
-### Obligatoire — Passkeys WebAuthn
+### Obligatoire - Passkeys WebAuthn
 
 ```env
 PASSKEY_RP_NAME=Palabre
@@ -169,7 +169,7 @@ PASSKEY_ORIGIN=http://localhost:3000
 
 > Attention : changer `PASSKEY_RP_ID` invalide tous les passkeys existants.
 
-### Optionnel — reCAPTCHA
+### Optionnel - reCAPTCHA
 
 **Action manuelle si activé.** Obtenez une clé sur https://www.google.com/recaptcha/admin (v2 checkbox).
 
@@ -179,7 +179,7 @@ RECAPTCHA_SECRET_KEY=6Lc...
 
 Laissez vide pour désactiver (développement).
 
-### Optionnel — URLs des services (développement local)
+### Optionnel - URLs des services (développement local)
 
 ```env
 APP_BASE_URL=http://localhost:4001

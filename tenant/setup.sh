@@ -30,8 +30,8 @@ check_requirements() {
   docker compose version &>/dev/null 2>&1 || err "docker compose (v2) n'est pas disponible. Mettez Docker à jour."
   docker info &>/dev/null 2>&1     || err "Le daemon Docker n'est pas en cours d'exécution."
 
-  ok "Docker $(docker --version | cut -d' ' -f3 | tr -d ',') — OK"
-  ok "docker compose $(docker compose version --short) — OK"
+  ok "Docker $(docker --version | cut -d' ' -f3 | tr -d ',') - OK"
+  ok "docker compose $(docker compose version --short) - OK"
 }
 
 # ── Collecte des informations ─────────────────────────────────────────────────
@@ -110,7 +110,7 @@ generate_secrets() {
   JWT_ACCESS_SECRET=$(openssl rand -hex 32)
   JWT_REFRESH_SECRET=$(openssl rand -hex 32)
 
-  ok "Secrets générés — ils seront écrits dans $ENV_FILE"
+  ok "Secrets générés - ils seront écrits dans $ENV_FILE"
 }
 
 # ── Écriture du .env ──────────────────────────────────────────────────────────
@@ -120,7 +120,7 @@ write_env() {
 
   cat > "$ENV_FILE" <<EOF
 # =============================================================================
-# PALABRE TENANT — Configuration générée par setup.sh le $(date)
+# PALABRE TENANT - Configuration générée par setup.sh le $(date)
 # NE PAS COMMITER CE FICHIER DANS GIT
 # =============================================================================
 
@@ -180,7 +180,7 @@ PRESENCE_SERVICE_URL=http://presence:4010
 EOF
 
   ok "$ENV_FILE créé avec succès"
-  warn "Ce fichier contient des secrets — ne le partagez JAMAIS et ne le committez PAS dans git."
+  warn "Ce fichier contient des secrets - ne le partagez JAMAIS et ne le committez PAS dans git."
 }
 
 # ── Configuration WireGuard ───────────────────────────────────────────────────
@@ -189,18 +189,18 @@ configure_wireguard() {
   title "Configuration WireGuard"
 
   if ! command -v wg &>/dev/null; then
-    warn "WireGuard non trouvé — installation..."
+    warn "WireGuard non trouvé - installation..."
     if command -v apt-get &>/dev/null; then
-      sudo apt-get install -y wireguard-tools iproute2 || warn "Installation WireGuard échouée — continuez sans VPN tunnel"
+      sudo apt-get install -y wireguard-tools iproute2 || warn "Installation WireGuard échouée - continuez sans VPN tunnel"
     elif command -v apk &>/dev/null; then
       sudo apk add --no-cache wireguard-tools iproute2 || warn "Installation WireGuard échouée"
     fi
   fi
 
   if command -v wg &>/dev/null; then
-    ok "WireGuard disponible — $(wg --version)"
+    ok "WireGuard disponible - $(wg --version)"
   else
-    warn "WireGuard indisponible — le tunnel VPN sera géré par l'agent via Docker"
+    warn "WireGuard indisponible - le tunnel VPN sera géré par l'agent via Docker"
   fi
 }
 
@@ -225,7 +225,7 @@ start_services() {
   if docker logs palabre-tenant-agent 2>&1 | grep -q "Agent tenant demarre"; then
     ok "Agent tenant opérationnel"
   else
-    warn "L'agent tarde à démarrer — vérifiez les logs : docker logs palabre-tenant-agent"
+    warn "L'agent tarde à démarrer - vérifiez les logs : docker logs palabre-tenant-agent"
   fi
 }
 
@@ -260,7 +260,7 @@ print_summary() {
 main() {
   echo ""
   echo -e "${BOLD}${BLUE}╔══════════════════════════════════════════════════╗${RESET}"
-  echo -e "${BOLD}${BLUE}║        PALABRE — Installation du tenant          ║${RESET}"
+  echo -e "${BOLD}${BLUE}║        PALABRE - Installation du tenant          ║${RESET}"
   echo -e "${BOLD}${BLUE}╚══════════════════════════════════════════════════╝${RESET}"
   echo ""
 

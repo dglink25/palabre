@@ -1,7 +1,7 @@
 /**
- * Étape 7 — Guide d'installation transmis à l'administrateur de l'organisation.
- * Étape 9 — Configuration VPN via QR code.
- * Étape 10 — Génération APK.
+ * Étape 7 - Guide d'installation transmis à l'administrateur de l'organisation.
+ * Étape 9 - Configuration VPN via QR code.
+ * Étape 10 - Génération APK.
  *
  * Cette page est accessible uniquement au super-administrateur pour
  * consulter et transmettre le guide à une organisation approuvée.
@@ -90,7 +90,7 @@ export default function InstallationGuidePage() {
             )}
           </div>
 
-          {/* Etape 7 — Guide */}
+          {/* Etape 7 - Guide */}
           <div className="card">
             <h2>Etape 7 : Guide d'installation (a transmettre a l'administrateur)</h2>
             <ol style={{ lineHeight: 2, paddingLeft: 20 }}>
@@ -114,15 +114,15 @@ sudo usermod -aG docker $USER`}
                 ou clonez le depot de deploiement.
               </li>
               <li>
-                <strong>Scannez le code QR</strong> depuis l'interface de configuration VPN — voir l'etape 9 ci-dessous.
+                <strong>Scannez le code QR</strong> depuis l'interface de configuration VPN - voir l'etape 9 ci-dessous.
               </li>
               <li>
-                <strong>Generez l'APK</strong> de votre organisation — voir l'etape 10 ci-dessous.
+                <strong>Generez l'APK</strong> de votre organisation - voir l'etape 10 ci-dessous.
               </li>
             </ol>
           </div>
 
-          {/* Etape 9 — VPN */}
+          {/* Etape 9 - VPN */}
           <div className="card">
             <h2>Etape 9 : Configuration du tunnel VPN WireGuard</h2>
             <p className="text-secondary">
@@ -148,7 +148,7 @@ sudo usermod -aG docker $USER`}
             )}
           </div>
 
-          {/* Etape 10 — APK */}
+          {/* Etape 10 - APK */}
           <div className="card">
             <h2>Etape 10 : Generation de l'APK</h2>
             <p className="text-secondary">

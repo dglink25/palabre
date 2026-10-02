@@ -65,7 +65,7 @@ app.use('/api/v1/internal', tenantRoutes);
 app.use('/api/v1/videoconference', videoconferenceRoutes);
 // Provisionnement tenant local (DNS + tunnel + heartbeat)
 app.use('/api/v1/tenants', tenantProvisioningRoutes);
-// Service client (support) — Central_Server uniquement
+// Service client (support) - Central_Server uniquement
 app.use('/api/v1/support', supportRoutes);
 
 // --- 404 ---

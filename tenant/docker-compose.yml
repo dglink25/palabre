@@ -1,7 +1,7 @@
 name: palabre-tenant
 
 # =============================================================================
-# PALABRE TENANT — Stack complète
+# PALABRE TENANT - Stack complète
 #
 # Démarrage :
 #   ./setup.sh          (installation interactive avec configuration)
@@ -11,14 +11,14 @@ name: palabre-tenant
 # configurés pour fonctionner en mode autonome et en liaison avec le central.
 #
 # Services :
-#   postgres        — base de données locale des messages
-#   redis           — pub/sub et files de messages hors-ligne
-#   presence        — présence intra-réseau local
-#   message-router  — WebSocket E2E local (mode dégradé si tunnel down)
-#   file-server     — stockage médias chiffrés
-#   call-signal     — signaling WebRTC local
-#   coturn          — STUN/TURN local pour les appels intra-réseau
-#   agent           — liaison WireGuard + heartbeat + sync central
+#   postgres        - base de données locale des messages
+#   redis           - pub/sub et files de messages hors-ligne
+#   presence        - présence intra-réseau local
+#   message-router  - WebSocket E2E local (mode dégradé si tunnel down)
+#   file-server     - stockage médias chiffrés
+#   call-signal     - signaling WebRTC local
+#   coturn          - STUN/TURN local pour les appels intra-réseau
+#   agent           - liaison WireGuard + heartbeat + sync central
 # =============================================================================
 
 services:
@@ -35,7 +35,7 @@ services:
     volumes:
       - tenant_postgres_data:/var/lib/postgresql/data
     ports:
-      - "127.0.0.1:5433:5432"     # Uniquement en local — ne pas exposer publiquement
+      - "127.0.0.1:5433:5432"     # Uniquement en local - ne pas exposer publiquement
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-palabre}"]
       interval: 5s
@@ -102,7 +102,7 @@ services:
       # Mode réseau : 'local_only' si tunnel down, 'full' si tunnel up
       INITIAL_NETWORK_MODE: "full"
     ports:
-      - "4020:4020"               # Exposé — les clients se connectent ici
+      - "4020:4020"               # Exposé - les clients se connectent ici
     depends_on:
       postgres:
         condition: service_healthy

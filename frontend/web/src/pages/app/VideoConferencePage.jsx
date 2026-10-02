@@ -214,7 +214,7 @@ function HistoryRow({ room }) {
       <div style={{ fontSize: 13 }}>
         {room.recordingAvailable
           ? <span style={{ color: 'var(--color-success-green)', fontWeight: 600 }}>✓</span>
-          : <span style={{ color: 'var(--color-text-secondary)' }}>—</span>}
+          : <span style={{ color: 'var(--color-text-secondary)' }}>-</span>}
       </div>
     </div>
   );

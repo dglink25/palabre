@@ -1,6 +1,6 @@
 defmodule MessageRouter.Queue do
   @moduledoc """
-  File de messages hors-ligne — stockée dans Redis.
+  File de messages hors-ligne - stockée dans Redis.
 
   Structure Redis :
     Key  : "msg_queue:{user_id}"
@@ -14,9 +14,9 @@ defmodule MessageRouter.Queue do
   - Mnesia est réservé au service de présence (state critique, tolérance aux pannes)
 
   Opérations :
-    push/2       — ajoute un message en fin de file
-    pop_all/1    — retire tous les messages en attente (atomique avec MULTI/EXEC)
-    count/1      — nombre de messages en attente
+    push/2       - ajoute un message en fin de file
+    pop_all/1    - retire tous les messages en attente (atomique avec MULTI/EXEC)
+    count/1      - nombre de messages en attente
   """
 
   @key_prefix "msg_queue:"

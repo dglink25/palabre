@@ -29,7 +29,7 @@ function rejectJitsiLeak(req, res, next) {
 
 router.use(rejectJitsiLeak);
 
-// ── Proxy du SDK client — charge le script external_api.js de Jitsi ───────
+// ── Proxy du SDK client - charge le script external_api.js de Jitsi ───────
 // Le frontend charge ce script via /api/v1/videoconference/client-sdk
 // Le nom "jitsi" n'apparaît jamais dans l'URL côté client.
 router.get('/client-sdk', async (req, res) => {
@@ -51,7 +51,7 @@ router.get('/client-sdk', async (req, res) => {
 // ROOMS
 // ═════════════════════════════════════════════════════════════════════════
 
-// POST /rooms — Créer une room (tenant)
+// POST /rooms - Créer une room (tenant)
 router.post('/rooms', requireAuth, async (req, res, next) => {
   try {
     const { title, accessPolicy, immediate, scheduledAt, estimatedDurationMin, inviteeIds } = req.body;
@@ -75,7 +75,7 @@ router.post('/rooms', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// POST /public/rooms — Créer une room publique (depuis la page d'accueil)
+// POST /public/rooms - Créer une room publique (depuis la page d'accueil)
 router.post('/public/rooms', requireAuth, async (req, res, next) => {
   try {
     const { title, accessPolicy, immediate, scheduledAt, estimatedDurationMin, inviteeIdentifiers } = req.body;
@@ -117,7 +117,7 @@ router.post('/public/rooms', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// GET /rooms — Lister les rooms du tenant
+// GET /rooms - Lister les rooms du tenant
 router.get('/rooms', requireAuth, async (req, res, next) => {
   try {
     const orgId   = req.user.org_id;
@@ -136,7 +136,7 @@ router.get('/rooms', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// GET /rooms/:roomId — Détail d'une room
+// GET /rooms/:roomId - Détail d'une room
 router.get('/rooms/:roomId', requireAuth, async (req, res, next) => {
   try {
     const room = await vcService.getRoomById(req.params.roomId, req.user.id, req.user.org_id || null);
@@ -144,7 +144,7 @@ router.get('/rooms/:roomId', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// PATCH /rooms/:roomId — Modifier une room planifiée
+// PATCH /rooms/:roomId - Modifier une room planifiée
 router.patch('/rooms/:roomId', requireAuth, async (req, res, next) => {
   try {
     const { title, scheduledAt, estimatedDurationMin, accessPolicy, addInviteeIds, removeInviteeIds } = req.body;
@@ -160,7 +160,7 @@ router.patch('/rooms/:roomId', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// DELETE /rooms/:roomId — Annuler une room
+// DELETE /rooms/:roomId - Annuler une room
 router.delete('/rooms/:roomId', requireAuth, async (req, res, next) => {
   try {
     await vcService.cancelRoom({
@@ -176,7 +176,7 @@ router.delete('/rooms/:roomId', requireAuth, async (req, res, next) => {
 // SESSION JITSI (usage serveur uniquement)
 // ═════════════════════════════════════════════════════════════════════════
 
-// POST /rooms/:roomId/session — Résoudre la config Jitsi (white-label)
+// POST /rooms/:roomId/session - Résoudre la config Jitsi (white-label)
 // Retourne { domain, roomToken, displayName, isModerator }
 // Ne contient JAMAIS jitsi_room_name en clair
 router.post('/rooms/:roomId/session', requireAuth, async (req, res, next) => {
@@ -222,7 +222,7 @@ router.post('/rooms/:roomId/leave', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// POST /rooms/:roomId/end — Terminer une room (hôte uniquement)
+// POST /rooms/:roomId/end - Terminer une room (hôte uniquement)
 router.post('/rooms/:roomId/end', requireAuth, async (req, res, next) => {
   try {
     await vcService.endRoom(req.params.roomId, req.user.id, null);
@@ -289,7 +289,7 @@ router.post('/rooms/:roomId/invite', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// GET /invite/:token — Résoudre un lien d'invitation
+// GET /invite/:token - Résoudre un lien d'invitation
 router.get('/invite/:token', requireAuth, async (req, res, next) => {
   try {
     const info = await vcService.resolveInvitationToken(req.params.token);

@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/services/socket_service.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// Écran d'appel plein écran — audio ou vidéo.
+/// Écran d'appel plein écran - audio ou vidéo.
 ///
 /// Flux WebRTC :
 ///   1. CallScreen reçoit le callId + type (audio/video)

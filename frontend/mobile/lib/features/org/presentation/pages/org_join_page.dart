@@ -8,7 +8,7 @@ import '../../../../core/storage/secure_storage.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// Page "Rejoindre une organisation" — utilisateur standard.
+/// Page "Rejoindre une organisation" - utilisateur standard.
 ///
 /// Deux méthodes :
 /// 1. Saisie manuelle : orgId + code d'invitation

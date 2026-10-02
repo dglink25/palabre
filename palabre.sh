@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# palabre.sh — Gestionnaire de démarrage du système central Palabre
+# palabre.sh - Gestionnaire de démarrage du système central Palabre
 #
 # Usage :
 #   ./palabre.sh start  core        # Système central complet (sans frontend)
@@ -55,7 +55,7 @@ err()  { echo -e "${RED}[palabre] ERREUR${RESET} $*"; exit 1; }
 # ── Usage ─────────────────────────────────────────────────────────────────────
 usage() {
   echo ""
-  echo -e "${BOLD}Palabre — Système central${RESET}"
+  echo -e "${BOLD}Palabre - Système central${RESET}"
   echo ""
   echo "  ./palabre.sh start  core          Système central (hors frontend)"
   echo "  ./palabre.sh start  all           Tout démarrer"
@@ -95,7 +95,7 @@ check_docker() {
 check_env() {
   local envfile="${SCRIPT_DIR}/backend/.env"
   if [ ! -f "$envfile" ]; then
-    warn "Fichier ${envfile} introuvable — copie de l'exemple..."
+    warn "Fichier ${envfile} introuvable - copie de l'exemple..."
     if [ -f "${SCRIPT_DIR}/backend/.env.example" ]; then
       cp "${SCRIPT_DIR}/backend/.env.example" "$envfile"
       warn "Editez ${envfile} avec vos valeurs avant de relancer."
@@ -154,7 +154,7 @@ cmd_restart() {
 
 cmd_logs() {
   local svc="$1"
-  log "Logs en direct — service : ${svc}  (Ctrl+C pour quitter)"
+  log "Logs en direct - service : ${svc}  (Ctrl+C pour quitter)"
   # Le nom du conteneur suit la convention palabre-<service>
   $COMPOSE logs -f "palabre-${svc}" 2>/dev/null || $COMPOSE logs -f "${svc}"
 }

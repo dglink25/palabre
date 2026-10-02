@@ -6,7 +6,7 @@ final secureStorageProvider = Provider<SecureStorageService>((ref) {
   return SecureStorageService();
 });
 
-/// Stockage sécurisé — Keystore Android / Keychain iOS.
+/// Stockage sécurisé - Keystore Android / Keychain iOS.
 /// Utilisé pour : tokens JWT, clés Signal, device ID.
 class SecureStorageService {
   static const _storage = FlutterSecureStorage(

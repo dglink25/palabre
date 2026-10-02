@@ -53,7 +53,7 @@ defmodule Presence.Registry do
 
   @doc """
   Retourne le statut d'un utilisateur.
-  Lecture directe ETS — pas de GenServer call = O(1) sans contention.
+  Lecture directe ETS - pas de GenServer call = O(1) sans contention.
 
   Retourne :
     {:online, connected_at}
@@ -110,7 +110,7 @@ defmodule Presence.Registry do
     # 2. Écriture Mnesia (asynchrone, pour persistance)
     persist_async(entry)
 
-    # 3. Surveiller le PID — si le processus WebSocket meurt, on recevra :DOWN
+    # 3. Surveiller le PID - si le processus WebSocket meurt, on recevra :DOWN
     ref = Process.monitor(socket_pid)
     new_state = put_in(state.pid_to_session[ref], {user_id, device_id})
 
@@ -132,7 +132,7 @@ defmodule Presence.Registry do
     case ETSManager.get(user_id, device_id) do
       {:ok, entry} ->
         ETSManager.put(%{entry | last_seen_at: now})
-        # Pas de broadcast pour les heartbeats — trop fréquent
+        # Pas de broadcast pour les heartbeats - trop fréquent
       :not_found -> :ok
     end
     {:noreply, state}

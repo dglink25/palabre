@@ -4,7 +4,7 @@ defmodule CallSignal.Endpoint do
   socket "/signal", CallSignal.CallSocket,
     websocket: [
       timeout: :infinity,
-      compress: false        # SDP/ICE sont de petits messages texte — pas besoin de compression
+      compress: false        # SDP/ICE sont de petits messages texte - pas besoin de compression
     ],
     longpoll: false
 

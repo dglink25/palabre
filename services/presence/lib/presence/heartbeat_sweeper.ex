@@ -42,7 +42,7 @@ defmodule Presence.Heartbeat.Sweeper do
   defp sweep do
     threshold = DateTime.add(DateTime.utc_now(), -@zombie_threshold_seconds, :second)
 
-    # Lire toutes les entrées ETS et filtrer en Elixir — plus simple et portable
+    # Lire toutes les entrées ETS et filtrer en Elixir - plus simple et portable
     # que les match specs ETS qui ne supportent pas :map_get sur des maps Elixir
     zombies =
       :ets.tab2list(:presence_ets)

@@ -3,16 +3,16 @@
  *
  * Ces routes sont appelées UNIQUEMENT par les agents tenant (jamais par les clients).
  * Elles permettent :
- *   POST /internal/messages/relay  — Un agent relai un message d'un utilisateur local
+ *   POST /internal/messages/relay  - Un agent relai un message d'un utilisateur local
  *                                    vers un utilisateur externe (dans une autre org ou
  *                                    sur le serveur central)
- *   POST /internal/messages/sync   — Un agent synchronise les messages accumulés
+ *   POST /internal/messages/sync   - Un agent synchronise les messages accumulés
  *                                    pendant une coupure tunnel (mode dégradé)
  *
  * Authentification : secret partagé via header X-Internal-Secret
  * (même valeur que INTERNAL_SERVICES_SECRET dans tous les services)
  *
- * Sécurité : ces routes ne sont jamais exposées publiquement —
+ * Sécurité : ces routes ne sont jamais exposées publiquement -
  * elles doivent être derrière un pare-feu ou accessibles uniquement
  * via le tunnel WireGuard.
  */
@@ -86,7 +86,7 @@ router.post('/messages/relay', requireInternalSecret, async (req, res, next) => 
     const destOrgStatus = memberRows[0]?.org_status;
 
     if (!destOrgId) {
-      // Utilisateur introuvable — peut-être jamais connecté
+      // Utilisateur introuvable - peut-être jamais connecté
       // On stocke le message quand même pour livraison ultérieure
       await storeUndeliveredMessage(message, tenantId);
       return res.json({ ok: true, status: 'queued_unknown_recipient' });

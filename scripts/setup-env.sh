@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# setup-env.sh — Initialise les .env de tous les services à partir de backend/.env
+# setup-env.sh - Initialise les .env de tous les services à partir de backend/.env
 #
 # Usage :
 #   ./scripts/setup-env.sh          # configure tous les services
@@ -10,7 +10,7 @@
 #   1. Lit les variables partagées depuis backend/.env
 #   2. Génère un .env complet pour chaque service (presence, message-router,
 #      file-server, call-signal)
-#   3. N'écrase jamais un .env existant — ajoute le suffixe .new si déjà présent
+#   3. N'écrase jamais un .env existant - ajoute le suffixe .new si déjà présent
 # =============================================================================
 set -euo pipefail
 
@@ -73,8 +73,8 @@ TARGET="${1:-all}"
 
 # ── presence ──────────────────────────────────────────────────────────────────
 setup_presence() {
-  write_env "${ROOT}/services/presence/.env" "# Service Presence — généré par scripts/setup-env.sh depuis backend/.env
-# Variables copiées depuis backend/.env — ne pas modifier ici, modifier backend/.env
+  write_env "${ROOT}/services/presence/.env" "# Service Presence - généré par scripts/setup-env.sh depuis backend/.env
+# Variables copiées depuis backend/.env - ne pas modifier ici, modifier backend/.env
 # puis relancer : ./scripts/setup-env.sh presence
 
 # Port d'écoute HTTP interne (inter-services uniquement)
@@ -83,7 +83,7 @@ PRESENCE_HTTP_PORT=4010
 # Copié depuis backend/.env (INTERNAL_SERVICES_SECRET)
 INTERNAL_SERVICES_SECRET=${INTERNAL_SERVICES_SECRET}
 
-# Cookie Erlang — doit être identique sur tous les noeuds BEAM
+# Cookie Erlang - doit être identique sur tous les noeuds BEAM
 # Copié depuis backend/.env (ERLANG_COOKIE)
 RELEASE_COOKIE=${ERLANG_COOKIE}
 "
@@ -91,8 +91,8 @@ RELEASE_COOKIE=${ERLANG_COOKIE}
 
 # ── message-router ────────────────────────────────────────────────────────────
 setup_message_router() {
-  write_env "${ROOT}/services/message-router/.env" "# Service Message Router — généré par scripts/setup-env.sh depuis backend/.env
-# Variables copiées depuis backend/.env — ne pas modifier ici, modifier backend/.env
+  write_env "${ROOT}/services/message-router/.env" "# Service Message Router - généré par scripts/setup-env.sh depuis backend/.env
+# Variables copiées depuis backend/.env - ne pas modifier ici, modifier backend/.env
 # puis relancer : ./scripts/setup-env.sh message-router
 
 # Port WebSocket/HTTP
@@ -110,15 +110,15 @@ PHOENIX_SECRET_KEY_BASE=${PHOENIX_SECRET_KEY_BASE}
 # Copié depuis backend/.env (PUBLIC_HOST)
 PUBLIC_HOST=${PUBLIC_HOST}
 
-# URL du service presence (interne Docker — ne pas changer en dev Docker)
+# URL du service presence (interne Docker - ne pas changer en dev Docker)
 PRESENCE_SERVICE_URL=http://presence:4010
 "
 }
 
 # ── file-server ───────────────────────────────────────────────────────────────
 setup_file_server() {
-  write_env "${ROOT}/services/file-server/.env" "# Service File Server — généré par scripts/setup-env.sh depuis backend/.env
-# Variables copiées depuis backend/.env — ne pas modifier ici, modifier backend/.env
+  write_env "${ROOT}/services/file-server/.env" "# Service File Server - généré par scripts/setup-env.sh depuis backend/.env
+# Variables copiées depuis backend/.env - ne pas modifier ici, modifier backend/.env
 # puis relancer : ./scripts/setup-env.sh file-server
 
 # Port HTTP
@@ -132,15 +132,15 @@ JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
 FILE_SERVER_PUBLIC_URL=${FILE_SERVER_PUBLIC_URL}
 
 # Origines autorisées pour les uploads CORS (séparées par virgule)
-# A CONFIGURER MANUELLEMENT — remplacez par l'URL exacte de votre frontend
+# A CONFIGURER MANUELLEMENT - remplacez par l'URL exacte de votre frontend
 ALLOWED_ORIGINS=http://localhost:3000,http://localhost:4020
 "
 }
 
 # ── call-signal ───────────────────────────────────────────────────────────────
 setup_call_signal() {
-  write_env "${ROOT}/services/call-signal/.env" "# Service Call Signal — généré par scripts/setup-env.sh depuis backend/.env
-# Variables copiées depuis backend/.env — ne pas modifier ici, modifier backend/.env
+  write_env "${ROOT}/services/call-signal/.env" "# Service Call Signal - généré par scripts/setup-env.sh depuis backend/.env
+# Variables copiées depuis backend/.env - ne pas modifier ici, modifier backend/.env
 # puis relancer : ./scripts/setup-env.sh call-signal
 
 # Port WebSocket/HTTP

@@ -1,5 +1,5 @@
 /**
- * Support API — Palabre Service Client
+ * Support API - Palabre Service Client
  * Wrappers REST + WebSocket pour le module support
  */
 

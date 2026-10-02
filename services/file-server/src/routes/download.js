@@ -1,9 +1,9 @@
 /**
  * Routes de téléchargement et gestion des fichiers.
  *
- * GET    /files/:orgId/:fileId   — télécharge le blob chiffré
- * DELETE /files/:orgId/:fileId   — supprime un fichier (expéditeur ou admin org)
- * GET    /files/:orgId/usage     — espace disque utilisé par l'organisation
+ * GET    /files/:orgId/:fileId   - télécharge le blob chiffré
+ * DELETE /files/:orgId/:fileId   - supprime un fichier (expéditeur ou admin org)
+ * GET    /files/:orgId/usage     - espace disque utilisé par l'organisation
  *
  * Sécurité multi-tenant :
  *   - Un utilisateur ne peut accéder qu'aux fichiers de SON organisation (req.orgId)
@@ -47,7 +47,7 @@ router.get('/:orgId/:fileId', downloadLimiter, async (req, res, next) => {
       'Content-Type':        'application/octet-stream',
       'Content-Length':      buffer.length,
       'Content-Disposition': `attachment; filename="${fileId}.enc"`,
-      // Cache 1 heure côté client — le blob ne change jamais (immuable par fileId)
+      // Cache 1 heure côté client - le blob ne change jamais (immuable par fileId)
       'Cache-Control':       'private, max-age=3600, immutable',
       // Sécurité : empêcher l'interprétation du contenu
       'X-Content-Type-Options': 'nosniff',

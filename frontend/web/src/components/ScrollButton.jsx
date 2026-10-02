@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 /**
  * Bouton flottant de défilement bidirectionnel.
- * Couleur : bleu primaire (var(--color-primary-blue)) — charte Palabre.
+ * Couleur : bleu primaire (var(--color-primary-blue)) - charte Palabre.
  * Positionné à droite, décalé pour ne pas chevaucher le SupportWidget.
  */
 export default function ScrollButton() {

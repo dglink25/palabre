@@ -1,7 +1,7 @@
 {
   "name": "palabre-file-server",
   "version": "0.1.0",
-  "description": "Palabre — serveur de fichiers chiffrés côté client (médias E2E)",
+  "description": "Palabre - serveur de fichiers chiffrés côté client (médias E2E)",
   "main": "src/server.js",
   "type": "commonjs",
   "scripts": {

@@ -1,5 +1,5 @@
 /**
- * AdminSupportPage — Dashboard service client pour le super-admin
+ * AdminSupportPage - Dashboard service client pour le super-admin
  * Route : /admin/support
  * Panneau gauche : sessions actives + file d'attente + appels en hold
  * Panneau droit  : chat + contrôles appel + lancement vidéo
@@ -209,7 +209,7 @@ export default function AdminSupportPage() {
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           {queueStatus && (
             <span style={{ fontSize: 13, color: '#5F6368' }}>
-              File : <strong>{queueStatus.queueLength}</strong> — Hold : <strong>{holdCalls.length}</strong>
+              File : <strong>{queueStatus.queueLength}</strong> - Hold : <strong>{holdCalls.length}</strong>
               {queueStatus.adminOnline
                 ? <span style={{ marginLeft: 8, color: '#34A853', fontWeight: 600 }}>● En ligne</span>
                 : <span style={{ marginLeft: 8, color: '#EA4335', fontWeight: 600 }}>● Hors ligne</span>}
@@ -271,7 +271,7 @@ export default function AdminSupportPage() {
                   <td style={{ padding: '8px 12px', textTransform: 'capitalize' }}>{s.channel}</td>
                   <td style={{ padding: '8px 12px' }}><StatusBadge status={s.status} /></td>
                   <td style={{ padding: '8px 12px', color: '#5F6368' }}>{new Date(s.created_at).toLocaleDateString('fr')}</td>
-                  <td style={{ padding: '8px 12px', color: '#5F6368' }}>{s.resolved_at ? new Date(s.resolved_at).toLocaleDateString('fr') : '—'}</td>
+                  <td style={{ padding: '8px 12px', color: '#5F6368' }}>{s.resolved_at ? new Date(s.resolved_at).toLocaleDateString('fr') : '-'}</td>
                 </tr>
               ))}
               {history.length === 0 && (
@@ -284,7 +284,7 @@ export default function AdminSupportPage() {
         /* ── Sessions actives ── */
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
-          {/* Panneau gauche — liste des sessions */}
+          {/* Panneau gauche - liste des sessions */}
           <aside className="admin-support-aside" style={{ width: 300, borderRight: '1px solid var(--color-border)', overflowY: 'auto', flexShrink: 0 }}>
             {loading ? (
               <div style={{ padding: 24, textAlign: 'center', color: '#9AA0A6', fontSize: 13 }}>Chargement…</div>
@@ -313,7 +313,7 @@ export default function AdminSupportPage() {
             ))}
           </aside>
 
-          {/* Panneau droit — chat + contrôles */}
+          {/* Panneau droit - chat + contrôles */}
           <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {!selected ? (
               <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9AA0A6', fontSize: 14 }}>

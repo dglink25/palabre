@@ -1,11 +1,11 @@
 'use strict';
 
 /**
- * DNS Service — Provisionnement automatique des sous-domaines tenant
+ * DNS Service - Provisionnement automatique des sous-domaines tenant
  *
  * Supporte deux backends :
- *   - PowerDNS (via REST API)  — mode production recommandé
- *   - Mock (dev/test)          — simule la création DNS sans appel réseau
+ *   - PowerDNS (via REST API)  - mode production recommandé
+ *   - Mock (dev/test)          - simule la création DNS sans appel réseau
  *
  * Le sous-domaine attribué est {org_slug}.palabre.com
  * Une entrée A pointe vers l'IP publique du Tenant_Server.

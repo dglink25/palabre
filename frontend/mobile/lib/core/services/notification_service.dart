@@ -65,7 +65,7 @@ class NotificationService {
       case 'new_message':
         await _showMessageNotification(
           title:   data['sender_name'] ?? 'Nouveau message',
-          body:    '1 nouveau message',   // Corps vide — contenu E2E
+          body:    '1 nouveau message',   // Corps vide - contenu E2E
           convId:  data['conv_id'] ?? '',
           payload: message.data,
         );
@@ -179,6 +179,6 @@ class NotificationService {
 
 @pragma('vm:entry-point')
 Future<void> _backgroundHandler(RemoteMessage message) async {
-  // Traitement minimal en background — pas d'accès au context Flutter
+  // Traitement minimal en background - pas d'accès au context Flutter
   // FCM affiche la notification système automatiquement
 }

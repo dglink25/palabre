@@ -68,7 +68,7 @@ class _PalabreAppState extends ConsumerState<PalabreApp>
         _backgroundSince = DateTime.now();
         // Suspendre les probes périodiques pour économiser la batterie
         detector.suspend();
-        // Ne PAS déconnecter le socket — "la ligne ne raccroche jamais"
+        // Ne PAS déconnecter le socket - "la ligne ne raccroche jamais"
 
       case AppLifecycleState.detached:
       case AppLifecycleState.hidden:

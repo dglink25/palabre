@@ -1,6 +1,6 @@
 defmodule MessageRouter.Application do
   @moduledoc """
-  Service de routage de messages Palabre — Phoenix/Elixir sur BEAM.
+  Service de routage de messages Palabre - Phoenix/Elixir sur BEAM.
 
   Ce service est LE point d'entrée temps réel de chaque client (web, mobile).
   Chaque connexion WebSocket est un processus Elixir léger (~4KB RAM).
@@ -8,12 +8,12 @@ defmodule MessageRouter.Application do
   Architecture :
     Application.start
       └── Supervisor (one_for_one)
-            ├── MessageRouter.Repo          — Ecto/PostgreSQL (persistance)
-            ├── MessageRouter.Redis         — Redix (file hors-ligne)
-            ├── MessageRouter.PubSub        — Phoenix.PubSub (fanout interne)
-            ├── MessageRouter.PresenceClient— Client HTTP vers service Présence
-            ├── MessageRouter.Endpoint      — Phoenix Endpoint (WebSocket + HTTP)
-            └── MessageRouter.Queue.Worker  — Livraison des messages en attente
+            ├── MessageRouter.Repo          - Ecto/PostgreSQL (persistance)
+            ├── MessageRouter.Redis         - Redix (file hors-ligne)
+            ├── MessageRouter.PubSub        - Phoenix.PubSub (fanout interne)
+            ├── MessageRouter.PresenceClient- Client HTTP vers service Présence
+            ├── MessageRouter.Endpoint      - Phoenix Endpoint (WebSocket + HTTP)
+            └── MessageRouter.Queue.Worker  - Livraison des messages en attente
 
   Flux d'un message :
     1. Client envoie message chiffré via WebSocket

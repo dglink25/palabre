@@ -327,7 +327,7 @@ export default function OnboardingWizard() {
           <div className="field">
             <label>Sexe <span style={{ color: '#EA4335' }}>*</span></label>
             <select value={step2.gender} onChange={(e) => setStep2({ ...step2, gender: e.target.value })}>
-              <option value="">— Choisir —</option>
+              <option value="">- Choisir -</option>
               <option value="male">Masculin</option>
               <option value="female">Féminin</option>
             </select>
@@ -416,7 +416,7 @@ export default function OnboardingWizard() {
             <RecapRow label="Ville" value={step1.city} missing={!step1.city} />
             <RecapRow label="Adresse" value={step1.address} missing={!step1.address} />
             <RecapRow label="Secteur" value={step1.sector} missing={!step1.sector} />
-            <RecapRow label="Numéro IFU" value={step1.ifuNumber || '—'} />
+            <RecapRow label="Numéro IFU" value={step1.ifuNumber || '-'} />
           </div>
 
           {/* Dirigeant */}

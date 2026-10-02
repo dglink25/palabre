@@ -1,5 +1,5 @@
 /**
- * SupportCallPanel — Appel audio du service client
+ * SupportCallPanel - Appel audio du service client
  * Gère l'initiation, la file d'attente, le hold et le raccrochage.
  */
 import { useState, useEffect, useRef } from 'react';
@@ -22,13 +22,13 @@ export default function SupportCallPanel({ session, activeCall, setActiveCall, q
   const audioRef                  = useRef(null);
   const peerConnRef               = useRef(null);
 
-  // Charger le statut du service — silencieux, sert juste à pré-afficher
+  // Charger le statut du service - silencieux, sert juste à pré-afficher
   // le délai estimé dans la file, PAS à bloquer le bouton d'appel.
   useEffect(() => {
     supportApi.getStatus().then(setStatus).catch(() => {});
   }, []);
 
-  // Musique d'attente — jouer/arrêter selon l'état de l'appel
+  // Musique d'attente - jouer/arrêter selon l'état de l'appel
   useEffect(() => {
     const shouldPlay = activeCall && ['queued', 'hold'].includes(activeCall.status);
     if (shouldPlay) {
@@ -129,7 +129,7 @@ export default function SupportCallPanel({ session, activeCall, setActiveCall, q
       });
       peerConnRef.current = pc;
 
-      // Audio only — pas de vidéo
+      // Audio only - pas de vidéo
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
       stream.getTracks().forEach(t => pc.addTrack(t, stream));
 
@@ -182,7 +182,7 @@ export default function SupportCallPanel({ session, activeCall, setActiveCall, q
         style={{ display: 'none' }}
       />
 
-      {/* Statut du service — affiché UNIQUEMENT après une tentative d'appel échouée */}
+      {/* Statut du service - affiché UNIQUEMENT après une tentative d'appel échouée */}
       {!activeCall && unavailable && (
         <div style={{
           padding: '10px 16px',
@@ -206,7 +206,7 @@ export default function SupportCallPanel({ session, activeCall, setActiveCall, q
           fontSize: 13,
           color: '#1A73E8',
         }}>
-          {status.queueLength} personne(s) en attente — délai estimé : ~{status.estimatedWaitMinutes} min
+          {status.queueLength} personne(s) en attente - délai estimé : ~{status.estimatedWaitMinutes} min
         </div>
       )}
 
@@ -230,7 +230,7 @@ export default function SupportCallPanel({ session, activeCall, setActiveCall, q
           </p>
           {queuePosition && (
             <p style={{ fontSize: 14, color: '#5F6368', margin: 0 }}>
-              Position : <strong>{queuePosition}</strong> — nous allons vous répondre dans quelques instants.
+              Position : <strong>{queuePosition}</strong> - nous allons vous répondre dans quelques instants.
             </p>
           )}
         </div>

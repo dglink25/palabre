@@ -2,23 +2,23 @@ defmodule MessageRouter.Channels.RoomChannel do
   use Phoenix.Channel
 
   @moduledoc """
-  Channel de groupe — "room:{room_id}".
+  Channel de groupe - "room:{room_id}".
 
   Chaque conversation de groupe a son propre channel.
   N'importe quel membre du groupe peut rejoindre (vérifié en base).
 
   Events entrants :
-    "msg:send"      — envoyer un message dans le groupe
-    "msg:ack_read"  — signaler la lecture
-    "typing:start"  — indicateur "en train d'écrire..."
-    "typing:stop"   — fin de saisie
+    "msg:send"      - envoyer un message dans le groupe
+    "msg:ack_read"  - signaler la lecture
+    "typing:start"  - indicateur "en train d'écrire..."
+    "typing:stop"   - fin de saisie
 
   Events sortants :
-    "msg:receive"   — nouveau message dans le groupe
-    "msg:read"      — quelqu'un a lu jusqu'à ce message
-    "typing"        — quelqu'un est en train d'écrire
-    "member:join"   — nouveau membre rejoint
-    "member:leave"  — membre quitte
+    "msg:receive"   - nouveau message dans le groupe
+    "msg:read"      - quelqu'un a lu jusqu'à ce message
+    "typing"        - quelqu'un est en train d'écrire
+    "member:join"   - nouveau membre rejoint
+    "member:leave"  - membre quitte
   """
 
   alias MessageRouter.{Router, Queue, Repo}

@@ -1,6 +1,6 @@
 # Frontend Web Palabre
 
-Application React (Vite) — interface web pour tous les types d'utilisateurs : super-administrateur, administrateur d'organisation et membres.
+Application React (Vite) - interface web pour tous les types d'utilisateurs : super-administrateur, administrateur d'organisation et membres.
 
 ## Contenu
 
@@ -75,9 +75,9 @@ cp docker/.env.example docker/.env
 ./palabre.sh start frontend
 ```
 
-## Configuration — .env
+## Configuration - .env
 
-### Obligatoire — URL de l'API
+### Obligatoire - URL de l'API
 
 ```env
 VITE_API_BASE_URL=http://localhost:4001/api/v1
@@ -88,7 +88,7 @@ En production :
 VITE_API_BASE_URL=https://api.votre-domaine.com/api/v1
 ```
 
-### Obligatoire — Firebase (connexion sociale)
+### Obligatoire - Firebase (connexion sociale)
 
 **Action manuelle requise.**
 
@@ -106,7 +106,7 @@ VITE_FIREBASE_APP_ID=1:123:web:abc...
 
 > Ces valeurs sont **publiques** (elles apparaissent dans le code JavaScript du navigateur). Ce ne sont pas des secrets. Le secret Firebase (clé de service) est uniquement dans `backend/.env`.
 
-### Optionnel — reCAPTCHA
+### Optionnel - reCAPTCHA
 
 **Action manuelle si activé.** Obtenez une clé sur https://www.google.com/recaptcha/admin (type v2 "Case à cocher").
 

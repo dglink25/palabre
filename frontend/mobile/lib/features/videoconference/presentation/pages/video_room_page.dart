@@ -11,7 +11,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../widgets/waiting_room_panel.dart';
 
-/// Écran de session vidéoconférence — plein écran.
+/// Écran de session vidéoconférence - plein écran.
 /// Équivalent de VideoRoomPage.jsx
 ///
 /// Architecture white-label :
@@ -128,7 +128,7 @@ class _VideoRoomPageState extends ConsumerState<VideoRoomPage> {
       });
 
       // Construire la page HTML qui charge Jitsi External API
-      // Le domain et roomToken ne sont JAMAIS visibles dans l'UI — uniquement dans la WebView
+      // Le domain et roomToken ne sont JAMAIS visibles dans l'UI - uniquement dans la WebView
       final html = _buildJitsiHtml(domain: domain, roomToken: roomToken, displayName: title);
 
       _webCtrl = WebViewController()

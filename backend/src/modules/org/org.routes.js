@@ -1,5 +1,5 @@
 /**
- * Routes de liaison organisation — disponibles pour TOUT utilisateur authentifié.
+ * Routes de liaison organisation - disponibles pour TOUT utilisateur authentifié.
  *
  * Deux flux :
  *
@@ -31,7 +31,7 @@ const authService = require('../auth/auth.service');
 
 const router = express.Router();
 
-// ── GET /org/me — infos complètes de l'organisation de l'admin connecté ──────
+// ── GET /org/me - infos complètes de l'organisation de l'admin connecté ──────
 
 router.get('/me', requireAuth, async (req, res, next) => {
   try {
@@ -198,7 +198,7 @@ router.post('/join', requireAuth, async (req, res, next) => {
       });
     }
 
-    // Vérifier le code d'invitation — OBLIGATOIRE, jamais contournable
+    // Vérifier le code d'invitation - OBLIGATOIRE, jamais contournable
     if (!org.join_code_hash) {
       return res.status(403).json({
         error: { code: 'JOIN_CODE_NOT_SET', message: 'Cette organisation n\'a pas encore genere de code d\'invitation. Demandez a votre administrateur de generer un code depuis son tableau de bord.' },
@@ -320,7 +320,7 @@ module.exports = router;
 // Appelé régulièrement par l'instance locale du tenant pour confirmer sa
 // présence et recevoir son statut officiel (actif / suspendu / archivé).
 // Ce mécanisme est la brique de contrôle centrale décrite en section 10.2
-// du cahier des charges — il fonctionne même quand l'org est suspendue.
+// du cahier des charges - il fonctionne même quand l'org est suspendue.
 
 const tenantLimiter = rateLimit({ windowMs: 60 * 1000, max: 60, standardHeaders: true, legacyHeaders: false });
 
@@ -370,7 +370,7 @@ router.post('/tenants/heartbeat', tenantLimiter, async (req, res, next) => {
       );
     }
 
-    // Retourner le statut officiel — l'agent tenant applique ce statut localement
+    // Retourner le statut officiel - l'agent tenant applique ce statut localement
     res.json({
       tenantId,
       status:     org.org_status,   // 'active' | 'suspended' | 'archived'

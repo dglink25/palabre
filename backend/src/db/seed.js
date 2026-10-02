@@ -1,5 +1,5 @@
 /**
- * Seeder de test — réinitialise la base et insère des données de démonstration
+ * Seeder de test - réinitialise la base et insère des données de démonstration
  * pour valider le workflow complet (étapes 1-10 du cahier des charges).
  *
  * Usage :
@@ -77,7 +77,7 @@ async function seed(client) {
   const superAdmin = saRows[0];
   console.log(`[seed] Super-admin : ${superAdmin.email} (id: ${superAdmin.id})`);
 
-  // ── 3. Demande soumise — organisation "DGLink Demo" ──────────────────────────
+  // ── 3. Demande soumise - organisation "DGLink Demo" ──────────────────────────
   const draftToken1 = generateDraftToken();
   const { rows: req1Rows } = await client.query(
     `INSERT INTO organization_requests
@@ -113,7 +113,7 @@ async function seed(client) {
   console.log(`[seed] Demande soumise : ${req1.id} (token: ${draftToken1})`);
   console.log(`       Lien suivi : ${process.env.FRONTEND_BASE_URL || 'http://localhost:3000'}/onboarding/status?id=${req1.id}&token=${draftToken1}`);
 
-  // ── 4. Demande approuvée — organisation "CarEasy Demo" ───────────────────────
+  // ── 4. Demande approuvée - organisation "CarEasy Demo" ───────────────────────
   const draftToken2  = generateDraftToken();
   const INVITE_CODE  = 'TESTCODE';
   const TTL_HOURS    = 72;
@@ -174,7 +174,7 @@ async function seed(client) {
   console.log(`       Code d'activation        : ${INVITE_CODE}`);
   console.log(`[seed] ============================================================\n`);
 
-  // ── 5. Demande rejetée — organisation "TestRejet" ────────────────────────────
+  // ── 5. Demande rejetée - organisation "TestRejet" ────────────────────────────
   const draftToken3 = generateDraftToken();
   const newDraftToken3 = generateDraftToken();
   await client.query(

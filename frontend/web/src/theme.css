@@ -1,4 +1,4 @@
-/* Charte graphique Palabre V2.0 — design tokens complets, zéro couleur en dur. */
+/* Charte graphique Palabre V2.0 - design tokens complets, zéro couleur en dur. */
 :root {
   /* ── Couleurs identité ── */
   --color-primary-blue:   #1A73E8;   /* Bleu Réseau Primaire - CTA, liens, navigation active */
@@ -13,7 +13,7 @@
   --color-text-secondary: #5F6368;   /* Gris Média - texte secondaire */
   --color-text-primary:   #202124;   /* Anthracite Sombre - texte principal */
 
-  /* ── Dérives (hover / fonds teintés — jamais d'autre teinte vive) ── */
+  /* ── Dérives (hover / fonds teintés - jamais d'autre teinte vive) ── */
   --color-primary-hover:  #1557b0;                 /* Bleu -10% luminosité */
   --color-primary-tint:   rgba(26,115,232,0.08);
   --color-success-tint:   rgba(52,168,83,0.08);
@@ -87,13 +87,13 @@ body {
   font-family: var(--font-stack);
   background-color: var(--color-offwhite);
   color: var(--color-text-primary);
-  font-size: var(--font-size-base); /* 16px min — app */
+  font-size: var(--font-size-base); /* 16px min - app */
   line-height: var(--line-height-relaxed);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Titres fluides — site public */
+/* Titres fluides - site public */
 h1 { font-size: var(--font-h1); font-weight: 800; color: var(--color-text-primary); margin: 0 0 var(--space-3) 0; line-height: var(--line-height-tight); }
 h2 { font-size: var(--font-h2); font-weight: 700; color: var(--color-text-primary); margin: 0 0 var(--space-3) 0; line-height: 1.3; }
 h3 { font-size: var(--font-h3); font-weight: 600; color: var(--color-text-primary); margin: 0 0 var(--space-3) 0; line-height: 1.4; }
@@ -1067,7 +1067,7 @@ tr:hover td { background-color: rgba(26,115,232,0.03); }
 }
 
 /* ═══════════════════════════════════════════════════════════
-   PAGES LÉGALES — design structuré
+   PAGES LÉGALES - design structuré
 ═══════════════════════════════════════════════════════════ */
 
 /* Remplacement du .legal-page générique */
@@ -1375,7 +1375,7 @@ tr:hover td { background-color: rgba(26,115,232,0.03); }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   SHELL — Espace connecté (sidebar + contenu)
+   SHELL - Espace connecté (sidebar + contenu)
    Remplace .app-shell / .sidebar / .main-content
 ═══════════════════════════════════════════════════════════════════════ */
 
@@ -1618,7 +1618,7 @@ tr:hover td { background-color: rgba(26,115,232,0.03); }
   animation: fadeIn 0.2s var(--ease);
 }
 
-/* Barre desktop — horloge en haut à droite (visible uniquement > 900px) */
+/* Barre desktop - horloge en haut à droite (visible uniquement > 900px) */
 .shell-desktopbar {
   display: flex;
   justify-content: flex-end;
@@ -1673,7 +1673,7 @@ tr:hover td { background-color: rgba(26,115,232,0.03); }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   DASHBOARD ADMIN — sans dégradé, design sobre et professionnel
+   DASHBOARD ADMIN - sans dégradé, design sobre et professionnel
 ═══════════════════════════════════════════════════════════════════════ */
 
 /* Les styles du dashboard sont en inline dans DashboardPage.jsx.
@@ -1688,7 +1688,7 @@ tr:hover td { background-color: rgba(26,115,232,0.03); }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   FOOTER PUBLIC — classes CSS (zéro style inline dans PublicFooter.jsx)
+   FOOTER PUBLIC - classes CSS (zéro style inline dans PublicFooter.jsx)
    Fond : var(--color-text-primary) = #202124 (anthracite sombre)
 ═══════════════════════════════════════════════════════════════════════ */
 
@@ -1790,7 +1790,7 @@ tr:hover td { background-color: rgba(26,115,232,0.03); }
   border-top: 1px solid rgba(255,255,255,0.10);
 }
 
-/* Barre copyright — fond bleu primaire (token) */
+/* Barre copyright - fond bleu primaire (token) */
 .pub-footer-bottom {
   background: var(--color-primary-blue);
   text-align: center;
@@ -1800,7 +1800,7 @@ tr:hover td { background-color: rgba(26,115,232,0.03); }
   color: rgba(255,255,255,0.92);
 }
 
-/* Responsive footer — breakpoints min-width (mobile-first) */
+/* Responsive footer - breakpoints min-width (mobile-first) */
 /* Mobile par défaut : 1 colonne */
 .pub-footer-grid {
   grid-template-columns: 1fr;
@@ -1816,7 +1816,7 @@ tr:hover td { background-color: rgba(26,115,232,0.03); }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   BLOCS DE CODE (pre, code) — responsive universel
+   BLOCS DE CODE (pre, code) - responsive universel
 ═══════════════════════════════════════════════════════════════════════ */
 pre {
   max-width: 100%;
@@ -1831,7 +1831,7 @@ code {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   RESPONSIVE GLOBAL — mobile-first compléments (tâche 16)
+   RESPONSIVE GLOBAL - mobile-first compléments (tâche 16)
 ═══════════════════════════════════════════════════════════════════════ */
 
 /* Cibles tactiles : boutons et liens nav ≥ 44×44px */
@@ -1848,14 +1848,14 @@ code {
   .auth-layout-topbar { padding: var(--space-3) var(--space-4); }
 }
 
-/* Hero responsive — déjà géré en mobile-first avec clamp() ci-dessus */
+/* Hero responsive - déjà géré en mobile-first avec clamp() ci-dessus */
 
-/* Feature grid — mobile-first */
+/* Feature grid - mobile-first */
 .feature-grid { grid-template-columns: 1fr; }
 @media (min-width: 640px) { .feature-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (min-width: 1024px) { .feature-grid { grid-template-columns: repeat(4, 1fr); } }
 
-/* Steps grid — mobile-first */
+/* Steps grid - mobile-first */
 .steps-grid { grid-template-columns: 1fr; }
 @media (min-width: 640px) { .steps-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (min-width: 1024px) { .steps-grid { grid-template-columns: repeat(4, 1fr); } }
@@ -1871,7 +1871,7 @@ html, body {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   RESPONSIVE PAGES APPLICATIVES — correctifs critiques mobile-first
+   RESPONSIVE PAGES APPLICATIVES - correctifs critiques mobile-first
    Cible les layouts inline non responsive dans ConversationsPage,
    AdminSupportPage, VideoConferencePage, etc.
 ═══════════════════════════════════════════════════════════════════════ */
@@ -1901,7 +1901,7 @@ html, body {
   }
 }
 
-/* ── Tables : toutes les tables applicatives — scroll horizontal ── */
+/* ── Tables : toutes les tables applicatives - scroll horizontal ── */
 /* Enveloppe scrollable automatique pour toutes les tables */
 table {
   display: block;
@@ -2005,15 +2005,15 @@ table thead, table tbody, table tfoot {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   CORRECTIONS SPÉCIFIQUES LAYOUTS 2 PANNEAUX — mobile-first
+   CORRECTIONS SPÉCIFIQUES LAYOUTS 2 PANNEAUX - mobile-first
 ═══════════════════════════════════════════════════════════════════════ */
 
-/* Sidebar chat (ChatPage, AdminSupportPage) — cachée sur mobile */
+/* Sidebar chat (ChatPage, AdminSupportPage) - cachée sur mobile */
 @media (max-width: 639px) {
   .chat-sidebar { display: none !important; }
 }
 
-/* ConversationsListPage : zone vide à droite — cachée sur mobile */
+/* ConversationsListPage : zone vide à droite - cachée sur mobile */
 @media (max-width: 639px) {
   .conv-empty-panel { display: none !important; }
 }

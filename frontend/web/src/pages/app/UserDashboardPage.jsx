@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/apiClient';
 
-/* Tokens CSS — référencés via les variables :root de theme.css.
+/* Tokens CSS - référencés via les variables :root de theme.css.
    Plus aucune couleur hexadécimale en dur dans ce composant. */
 const C = {
   blue:   'var(--color-primary-blue)',

@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// Page Sécurité — passkeys, 2FA, moyens de connexion.
+/// Page Sécurité - passkeys, 2FA, moyens de connexion.
 class SecurityPage extends ConsumerStatefulWidget {
   const SecurityPage({super.key});
 

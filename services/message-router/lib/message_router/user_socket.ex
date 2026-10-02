@@ -2,7 +2,7 @@ defmodule MessageRouter.UserSocket do
   use Phoenix.Socket
 
   @moduledoc """
-  Socket Phoenix — une connexion WebSocket par appareil.
+  Socket Phoenix - une connexion WebSocket par appareil.
 
   Authentification :
   Le client passe son access_token JWT lors du connect/0.
@@ -10,9 +10,9 @@ defmodule MessageRouter.UserSocket do
   Si valide, on stocke user_id, org_id, device_id dans les assigns du socket.
 
   Channels montés dynamiquement à la connexion :
-    "user:{user_id}"     — messages directs, notifications personnelles
-    "room:{room_id}"     — conversations de groupe
-    "presence:{org_id}"  — indicateurs de présence de l'organisation
+    "user:{user_id}"     - messages directs, notifications personnelles
+    "room:{room_id}"     - conversations de groupe
+    "presence:{org_id}"  - indicateurs de présence de l'organisation
   """
 
   channel "user:*",     MessageRouter.Channels.UserChannel

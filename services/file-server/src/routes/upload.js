@@ -9,11 +9,11 @@
  *   3. Inclure les métadonnées dans les champs du formulaire
  *
  * Form fields :
- *   file           — blob chiffré (binaire)
- *   mimeType       — type MIME ORIGINAL avant chiffrement ("image/jpeg", "video/mp4"...)
- *   originalSize   — taille originale avant chiffrement (bytes)
- *   mediaType      — "image" | "video" | "audio" | "document"
- *   thumbnail      — (optionnel) miniature chiffrée séparément (pour les images/vidéos)
+ *   file           - blob chiffré (binaire)
+ *   mimeType       - type MIME ORIGINAL avant chiffrement ("image/jpeg", "video/mp4"...)
+ *   originalSize   - taille originale avant chiffrement (bytes)
+ *   mediaType      - "image" | "video" | "audio" | "document"
+ *   thumbnail      - (optionnel) miniature chiffrée séparément (pour les images/vidéos)
  *
  * Réponse :
  *   {
@@ -43,12 +43,12 @@ const MAX_SIZES = {
   default:  16 * 1024 * 1024,
 };
 
-// Multer : stockage en mémoire (buffer) — on écrit nous-mêmes sur disque
+// Multer : stockage en mémoire (buffer) - on écrit nous-mêmes sur disque
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB max absolu
   fileFilter: (_req, file, cb) => {
-    // Accepter tous les types — le contenu est chiffré de toute façon
+    // Accepter tous les types - le contenu est chiffré de toute façon
     // On vérifie juste que le Content-Type est déclaré
     if (!file.mimetype) {
       return cb(new Error('Content-Type manquant.'));

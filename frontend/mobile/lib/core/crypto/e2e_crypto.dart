@@ -14,14 +14,14 @@ final e2eCryptoProvider = Provider<E2ECrypto>((ref) {
 /// Chiffrement E2E pour les messages et les médias.
 ///
 /// Messages : Signal Protocol (Double Ratchet)
-///   — géré par libsignal_protocol_dart
-///   — ce service expose une API simplifiée par-dessus
+///   - géré par libsignal_protocol_dart
+///   - ce service expose une API simplifiée par-dessus
 ///
 /// Médias : AES-256-CBC
-///   — le client génère une clé symétrique aléatoire
-///   — chiffre le fichier avec cette clé
-///   — envoie la clé chiffrée avec Signal dans le message
-///   — le serveur ne voit que le blob opaque
+///   - le client génère une clé symétrique aléatoire
+///   - chiffre le fichier avec cette clé
+///   - envoie la clé chiffrée avec Signal dans le message
+///   - le serveur ne voit que le blob opaque
 class E2ECrypto {
   E2ECrypto(this._storage);
 

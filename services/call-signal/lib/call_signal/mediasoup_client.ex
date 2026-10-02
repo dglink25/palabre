@@ -4,15 +4,15 @@ defmodule CallSignal.MediasoupClient do
 
   Mediasoup est un SFU (Selective Forwarding Unit) : chaque participant
   envoie son flux UNE FOIS au SFU, qui le redistribue à tous les autres.
-  Contrairement à un MCU, le SFU ne mixe pas les flux — chaque client
+  Contrairement à un MCU, le SFU ne mixe pas les flux - chaque client
   décode N flux entrants.
 
   API interne Mediasoup (port 3478) :
-    POST /rooms                 — créer une room
-    GET  /rooms/:roomId         — récupérer les paramètres d'une room
-    DELETE /rooms/:roomId       — fermer une room
-    POST /rooms/:roomId/offer   — soumettre une offre SDP d'un participant
-    POST /rooms/:roomId/ice     — soumettre un candidat ICE
+    POST /rooms                 - créer une room
+    GET  /rooms/:roomId         - récupérer les paramètres d'une room
+    DELETE /rooms/:roomId       - fermer une room
+    POST /rooms/:roomId/offer   - soumettre une offre SDP d'un participant
+    POST /rooms/:roomId/ice     - soumettre un candidat ICE
   """
 
   require Logger

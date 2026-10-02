@@ -1,6 +1,6 @@
 import Config
 
-# Valeurs statiques compilées — PAS de System.get_env ici.
+# Valeurs statiques compilées - PAS de System.get_env ici.
 # Toutes les variables d'environnement sont lues dans runtime.exs au démarrage.
 
 config :call_signal, CallSignal.Endpoint,

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-// ── Alert — déclenche un toast via le NotificationContext ────────────────────
+// ── Alert - déclenche un toast via le NotificationContext ────────────────────
 // Import dynamique pour éviter les dépendances circulaires
 let _notifyFn = null;
 export function __setNotifyFn(fn) { _notifyFn = fn; }
@@ -24,7 +24,7 @@ export function Alert({ variant = 'primary', children }) {
     _notifyFn(type, children);
   }, [children, variant]);
 
-  // Rendu invisible — le toast gère l'affichage
+  // Rendu invisible - le toast gère l'affichage
   return null;
 }
 

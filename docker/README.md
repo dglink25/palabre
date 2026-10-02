@@ -1,4 +1,4 @@
-# Docker — Orchestration Palabre
+# Docker - Orchestration Palabre
 
 Ce dossier contient uniquement l'orchestration Docker Compose. Il ne contient pas de code applicatif.
 
@@ -28,7 +28,7 @@ docker compose -f docker/docker-compose.yml ps
 docker compose -f docker/docker-compose.yml down
 ```
 
-## Configuration — docker/.env
+## Configuration - docker/.env
 
 Copiez `.env.example` en `.env` dans ce dossier :
 
@@ -49,7 +49,7 @@ En production :
 VITE_API_BASE_URL=https://api.votre-domaine.com/api/v1
 ```
 
-#### Firebase — frontend (action manuelle)
+#### Firebase - frontend (action manuelle)
 
 Ces valeurs viennent de la console Firebase → Paramètres du projet → Vos applications web. Elles sont **publiques** (pas des secrets).
 
@@ -75,10 +75,10 @@ openssl rand -hex 32    # pour TURN_SECRET
 # Secret partagé entre backend, presence, message-router, call-signal
 INTERNAL_SERVICES_SECRET=<valeur générée>
 
-# Cookie Erlang — doit être identique sur tous les noeuds BEAM
+# Cookie Erlang - doit être identique sur tous les noeuds BEAM
 ERLANG_COOKIE=<valeur générée>
 
-# Clé secrète Phoenix — min 64 caractères
+# Clé secrète Phoenix - min 64 caractères
 PHOENIX_SECRET_KEY_BASE=<valeur générée>
 
 # Secret TURN partagé avec coturn
@@ -88,7 +88,7 @@ TURN_SECRET=<valeur générée>
 #### IP publique coturn (production uniquement)
 
 ```env
-# Votre IP publique du VPS — laisser vide en développement local
+# Votre IP publique du VPS - laisser vide en développement local
 TURN_EXTERNAL_IP=203.0.113.42
 ```
 
@@ -147,4 +147,4 @@ docker volume rm palabre_postgres_data
 | call-signal | 4040 | 4040 | WebSocket/HTTP |
 | coturn | hôte direct | 3478, 5349, 49152-65535 | UDP/TCP |
 
-> Coturn utilise `network_mode: host` — il écoute directement sur les ports de la machine sans mapping. Assurez-vous que ces ports sont ouverts dans votre pare-feu en production.
+> Coturn utilise `network_mode: host` - il écoute directement sur les ports de la machine sans mapping. Assurez-vous que ces ports sont ouverts dans votre pare-feu en production.

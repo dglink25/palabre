@@ -1,5 +1,5 @@
 /**
- * Routes Signal Protocol — gestion des clés publiques E2E
+ * Routes Signal Protocol - gestion des clés publiques E2E
  *
  * Le serveur stocke UNIQUEMENT les clés publiques.
  * Les clés privées ne quittent jamais l'appareil.
