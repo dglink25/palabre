@@ -65,9 +65,15 @@ export default function StepUpConfirmModal() {
   if (!visible) return null;
 
   return (
-    <div className="modal-overlay">
+    <div
+      className="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="step-up-modal-title"
+      onKeyDown={e => { if (e.key === 'Escape') cancel(); }}
+    >
       <div className="modal-box">
-        <h2>Double vérification requise</h2>
+        <h2 id="step-up-modal-title">Double vérification requise</h2>
         <p className="text-secondary">
           Cette modification exige une confirmation. Un code a été envoyé à votre adresse e-mail.
         </p>

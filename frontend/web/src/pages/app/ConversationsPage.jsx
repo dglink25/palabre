@@ -66,10 +66,11 @@ export function ConversationsListPage() {
   };
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 56px)', background: 'var(--color-white)' }}>
-      {/* Panneau liste — style WhatsApp */}
+    <div style={{ display: 'flex', height: 'calc(100vh - 56px)', background: 'var(--color-white)', overflow: 'hidden' }}>
+      {/* Panneau liste — pleine largeur sur mobile, 360px fixe sur desktop */}
       <div style={{
-        width: 360, flexShrink: 0,
+        width: 'min(360px, 100%)',
+        flexShrink: 0,
         borderRight: '1px solid var(--color-border)',
         display: 'flex', flexDirection: 'column',
         background: 'var(--color-white)',
@@ -120,7 +121,7 @@ export function ConversationsListPage() {
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: 13, color: 'var(--color-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 200 }}>
+                  <span style={{ fontSize: 13, color: 'var(--color-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
                     {c.lastMessage || 'Aucun message'}
                   </span>
                   {c.unread > 0 && (
@@ -136,8 +137,8 @@ export function ConversationsListPage() {
         </div>
       </div>
 
-      {/* Zone vide */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f2f5' }}>
+      {/* Zone vide — cachée sur mobile quand la liste est visible */}
+      <div className="conv-empty-panel" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f2f5', minWidth: 0 }}>
         <div style={{ textAlign: 'center', color: 'var(--color-text-secondary)' }}>
           <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.8" style={{ opacity: 0.2, marginBottom: 16 }}>
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -312,15 +313,17 @@ export function ChatPage() {
   };
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 56px)' }}>
+    <div style={{ display: 'flex', height: 'calc(100vh - 56px)', overflow: 'hidden' }}>
 
-      {/* ── Liste latérale ── */}
+      {/* ── Liste latérale — cachée sur mobile (< 640px) ── */}
       <div style={{
-        width: 320, flexShrink: 0,
+        width: 'min(320px, 30%)',
+        flexShrink: 0,
         borderRight: '1px solid var(--color-border)',
         display: 'flex', flexDirection: 'column',
         background: 'var(--color-white)',
-      }}>
+        minWidth: 0,
+      }} className="chat-sidebar">
         <div style={{
           padding: '14px 16px', background: 'var(--color-offwhite)',
           borderBottom: '1px solid var(--color-border)',

@@ -1,166 +1,125 @@
+/**
+ * PublicFooter — Pied de page du site public Palabre.
+ * Toutes les couleurs utilisent les tokens CSS — zéro valeur en dur.
+ * Grille responsive : 4 col desktop → 2 col tablette → 1 col mobile.
+ */
 import { Link } from 'react-router-dom';
 
-const ARROW = (
+const ArrowIcon = () => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-    strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginRight: 6 }}>
+    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>
     <path d="M5 12h14M12 5l7 7-7 7"/>
   </svg>
 );
 
 function FooterLink({ to, href, children }) {
-  const style = {
-    display: 'inline-flex', alignItems: 'center',
-    color: 'rgba(255,255,255,0.72)',
-    textDecoration: 'none',
-    fontSize: 14,
-    lineHeight: 1.5,
-    transition: 'color 0.15s',
-    padding: '3px 0',
-  };
-  const hoverOn  = e => e.currentTarget.style.color = '#fff';
-  const hoverOff = e => e.currentTarget.style.color = 'rgba(255,255,255,0.72)';
-
+  const cls = 'pub-footer-link';
   if (href) return (
-    <a href={href} target="_blank" rel="noreferrer"
-      style={style} onMouseEnter={hoverOn} onMouseLeave={hoverOff}>
-      {ARROW}{children}
+    <a href={href} className={cls} target="_blank" rel="noreferrer noopener">
+      <ArrowIcon />{children}
     </a>
   );
-  return (
-    <Link to={to} style={style} onMouseEnter={hoverOn} onMouseLeave={hoverOff}>
-      {ARROW}{children}
-    </Link>
-  );
+  return <Link to={to} className={cls}><ArrowIcon />{children}</Link>;
 }
-
-const DARK = '#111827';   // fond principal du footer
-const BLUE = '#1A73E8';   // barre du bas — bleu Palabre exact
 
 export default function PublicFooter() {
   return (
-    <footer style={{ background: DARK, color: '#fff', marginTop: 'auto' }}>
+    <footer className="pub-footer" role="contentinfo">
 
       {/* ── Grille principale ── */}
-      <div style={{
-        maxWidth: 1160, margin: '0 auto',
-        padding: '56px 32px 40px 32px',
-        display: 'grid',
-        gridTemplateColumns: '2fr 1fr 1fr 1fr',
-        gap: '40px 32px',
-      }}>
+      <div className="pub-footer-grid">
 
         {/* Colonne marque */}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-            <img src="/logo.png" alt="Palabre" width="32" height="32"
-              style={{ borderRadius: 6 }} />
-            <span style={{ fontWeight: 800, fontSize: 20, letterSpacing: 1, color: '#fff' }}>
-              PALABRE
-            </span>
+        <div className="pub-footer-brand">
+          <div className="pub-footer-brand-logo">
+            <img src="/logo.png" alt="" aria-hidden="true" width="32" height="32" loading="lazy" />
+            <span>PALABRE</span>
           </div>
-          <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 14, lineHeight: 1.75, marginBottom: 20, maxWidth: 300 }}>
-            Plateforme de communication chiffree de bout en bout pour les organisations d'Afrique francophone.
+          <p>
+            Plateforme de communication chiffrée de bout en bout pour les organisations d'Afrique francophone.
           </p>
-
-          {/* Contact */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'rgba(255,255,255,0.65)', fontSize: 13 }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              Cotonou, Benin
+          <div className="pub-footer-contact">
+            <span className="pub-footer-contact-item">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+              </svg>
+              Cotonou, Bénin
             </span>
-            <a href="mailto:contact@palabre.app"
-              style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'rgba(255,255,255,0.65)', fontSize: 13, textDecoration: 'none' }}
-              onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-              onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.65)'}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <a href="mailto:contact@palabre.app" className="pub-footer-contact-item pub-footer-link">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
               contact@palabre.app
             </a>
           </div>
         </div>
 
         {/* Menu */}
-        <div>
-          <h4 style={{ fontWeight: 700, fontSize: 13, textTransform: 'uppercase', letterSpacing: '1px', color: '#fff', marginBottom: 18, marginTop: 0 }}>
-            Menu
-          </h4>
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div className="pub-footer-col">
+          <h4>Menu</h4>
+          <ul>
             <li><FooterLink to="/">Accueil</FooterLink></li>
             <li><FooterLink to="/onboarding/new">Inscrire mon organisation</FooterLink></li>
             <li><FooterLink to="/login">Se connecter</FooterLink></li>
             <li><FooterLink to="/activate">Activer mon compte</FooterLink></li>
-            <li><FooterLink to="/recovery">Recuperer mon compte</FooterLink></li>
+            <li><FooterLink to="/recovery">Récupérer mon compte</FooterLink></li>
           </ul>
         </div>
 
-        {/* Formations / Fonctionnalites */}
-        <div>
-          <h4 style={{ fontWeight: 700, fontSize: 13, textTransform: 'uppercase', letterSpacing: '1px', color: '#fff', marginBottom: 18, marginTop: 0 }}>
-            Fonctionnalites
-          </h4>
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {/* Fonctionnalités */}
+        <div className="pub-footer-col">
+          <h4>Fonctionnalités</h4>
+          <ul>
             <li><FooterLink to="/">Messagerie E2E</FooterLink></li>
-            <li><FooterLink to="/">Appels audio et video</FooterLink></li>
+            <li><FooterLink to="/">Appels audio et vidéo</FooterLink></li>
             <li><FooterLink to="/">Organisations multi-tenant</FooterLink></li>
             <li><FooterLink to="/">Tunnel VPN WireGuard</FooterLink></li>
             <li><FooterLink to="/">Chiffrement Signal</FooterLink></li>
           </ul>
         </div>
 
-        {/* Reseaux sociaux + Légal */}
-        <div>
-          <h4 style={{ fontWeight: 700, fontSize: 13, textTransform: 'uppercase', letterSpacing: '1px', color: '#fff', marginBottom: 18, marginTop: 0 }}>
-            Liens utiles
-          </h4>
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {/* Liens utiles + Réseaux */}
+        <div className="pub-footer-col">
+          <h4>Liens utiles</h4>
+          <ul>
             <li><FooterLink to="/terms">Conditions d'utilisation</FooterLink></li>
-            <li><FooterLink to="/privacy">Politique de confidentialite</FooterLink></li>
+            <li><FooterLink to="/privacy">Politique de confidentialité</FooterLink></li>
           </ul>
 
-          <h4 style={{ fontWeight: 700, fontSize: 13, textTransform: 'uppercase', letterSpacing: '1px', color: '#fff', marginBottom: 14, marginTop: 28 }}>
-            Nos reseaux
-          </h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {[
-              { label: 'Facebook',  href: 'https://facebook.com', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg> },
-              { label: 'YouTube',   href: 'https://youtube.com',  icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#111827"/></svg> },
-              { label: 'LinkedIn',  href: 'https://linkedin.com', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg> },
-            ].map(({ label, href, icon }) => (
-              <a key={label} href={href} target="_blank" rel="noreferrer"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'rgba(255,255,255,0.72)', fontSize: 14, textDecoration: 'none', transition: 'color 0.15s' }}
-                onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.72)'}>
-                <span style={{ color: 'rgba(255,255,255,0.5)' }}>{icon}</span>
-                {label}
-              </a>
-            ))}
+          <h4 style={{ marginTop: 'var(--space-8)' }}>Nos réseaux</h4>
+          <div className="pub-footer-social">
+            <a href="https://facebook.com" className="pub-footer-link" target="_blank" rel="noreferrer noopener" aria-label="Palabre sur Facebook">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+              </svg>
+              Facebook
+            </a>
+            <a href="https://youtube.com" className="pub-footer-link" target="_blank" rel="noreferrer noopener" aria-label="Palabre sur YouTube">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/>
+                <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="var(--color-text-primary)"/>
+              </svg>
+              YouTube
+            </a>
+            <a href="https://linkedin.com" className="pub-footer-link" target="_blank" rel="noreferrer noopener" aria-label="Palabre sur LinkedIn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+                <rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/>
+              </svg>
+              LinkedIn
+            </a>
           </div>
         </div>
       </div>
 
       {/* ── Séparateur ── */}
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }} />
+      <div className="pub-footer-sep" aria-hidden="true" />
 
-      {/* ── Barre de copyright — fond bleu Palabre exact ── */}
-      <div style={{
-        background: BLUE,
-        textAlign: 'center',
-        padding: '14px 24px',
-        fontSize: 14,
-        color: 'rgba(255,255,255,0.9)',
-        fontWeight: 500,
-      }}>
-        &copy; {new Date().getFullYear()} Palabre &mdash; Tous droits reserves.
+      {/* ── Barre copyright — fond bleu primaire (token) ── */}
+      <div className="pub-footer-bottom">
+        &copy; {new Date().getFullYear()} Palabre &mdash; Tous droits réservés.
       </div>
-
-      {/* ── Responsive ── */}
-      <style>{`
-        @media (max-width: 860px) {
-          .palabre-footer-grid { grid-template-columns: 1fr 1fr !important; }
-        }
-        @media (max-width: 540px) {
-          .palabre-footer-grid { grid-template-columns: 1fr !important; padding: 32px 20px 28px !important; }
-        }
-      `}</style>
     </footer>
   );
 }

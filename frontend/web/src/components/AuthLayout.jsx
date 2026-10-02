@@ -16,20 +16,24 @@ export default function AuthLayout({ children, cardWidth = 420 }) {
 
   return (
     <div className="auth-layout">
+      {/* Topbar */}
       <div className="auth-layout-topbar">
-        <a href="/" className="brand-inline light">
-          <img src="/logo.png" alt="Palabre" />
+        <a href="/" className="brand-inline light" aria-label="Palabre — retour à l'accueil">
+          <img src="/logo.png" alt="" aria-hidden="true" width="30" height="30" />
           <span>PALABRE</span>
         </a>
         <button className="btn btn-outline-light" onClick={() => navigate('/')}>
           Retour à l'accueil
         </button>
       </div>
+
+      {/* Corps : carte + illustration */}
       <div className="auth-layout-body">
         <div className="auth-layout-card" style={{ maxWidth: cardWidth }}>
           {children}
         </div>
-        <div className="auth-layout-illustration">
+        {/* Illustration masquée sur mobile (< 640px) via CSS */}
+        <div className="auth-layout-illustration" aria-hidden="true">
           <AuthIllustration />
         </div>
       </div>

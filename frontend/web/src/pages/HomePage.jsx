@@ -63,7 +63,7 @@ const IconVideo = () => (
 const FEATURES = [
   { Icon: IconMsg,     title: 'Messagerie instantanée',     text: 'Conversations individuelles et de groupe chiffrées de bout en bout, avec historique persistant et partage de fichiers.', color: 'var(--color-primary-blue)' },
   { Icon: IconPhone,   title: 'Appels audio & vidéo',       text: 'Appels HD sur réseau VoIP souverain. Aucune donnée ne transite par des serveurs tiers.',                                  color: 'var(--color-success-green)' },
-  { Icon: IconVideo,   title: 'Vidéoconférence jusqu\'à 300 participants', text: 'Réunions instantanées ou planifiées, partage d\'écran, enregistrement et salle d\'attente. Accessible même hors réseau interne.', color: '#7c3aed' },
+  { Icon: IconVideo,   title: 'Vidéoconférence jusqu\'à 300 participants', text: 'Réunions instantanées ou planifiées, partage d\'écran, enregistrement et salle d\'attente. Accessible même hors réseau interne.', color: 'var(--color-primary-blue)' },
   { Icon: IconHeadset, title: "Centre d'appels intégré",    text: "File d'attente, SVI configurable et assistance IA pour votre support client ou opérationnel.",                             color: 'var(--color-warning-amber)' },
   { Icon: IconShield,  title: 'Sécurité de niveau entreprise', text: "Passkeys, double vérification, VPN par organisation, journal d'audit complet et contrôle total de vos données.",      color: 'var(--color-alert-red)' },
 ];
@@ -130,12 +130,14 @@ export default function HomePage() {
   return (
     <div>
       {/* ── Hero ── */}
-      <section className="hero fade-in">
-        <img src="/logo.png" alt="Palabre" />
-        <h1>La plateforme de communication souveraine pour votre organisation</h1>
+      <section className="hero fade-in" aria-label="Présentation de Palabre">
+        <img src="/logo.png" alt="" aria-hidden="true" width="96" height="96" />
+        <h1 style={{ fontSize: 'var(--font-h1)' }}>
+          La plateforme de communication souveraine pour votre organisation
+        </h1>
         <p>
-          Messagerie, téléphonie et centre d'appels réunis dans un seul système, heberge et controle par
-          vous, pense pour le Benin et l'Afrique francophone.
+          Messagerie, téléphonie et centre d'appels réunis dans un seul système, hébergé et contrôlé par
+          vous, pensé pour le Bénin et l'Afrique francophone.
         </p>
         <div className="cta-row">
           {user ? (
@@ -145,14 +147,14 @@ export default function HomePage() {
           )}
           <Link to="/onboarding/new" className="btn btn-secondary">Inscrire mon organisation</Link>
           <Link to="/videoconference" className="btn btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-            <IconVideo />
+            <IconVideo aria-hidden="true" />
             Créer une réunion
           </Link>
         </div>
       </section>
 
       {/* ── Chiffres clés ── */}
-      <section ref={statsRef} className="stats-band reveal-item">
+      <section ref={statsRef} className="stats-band reveal-item" aria-label="Chiffres clés">
         {STATS.map((s) => (
           <div key={s.label} className="stat-item">
             <span className="stat-value">{s.value}</span>
@@ -162,8 +164,10 @@ export default function HomePage() {
       </section>
 
       {/* ── Fonctionnalités ── */}
-      <section style={{ padding: '0 0 48px 0' }}>
-        <h2 className="section-title" style={{ paddingTop: 48 }}>Tout ce dont votre organisation a besoin</h2>
+      <section aria-label="Fonctionnalités" style={{ padding: 'var(--space-12) 0 var(--space-12) 0' }}>
+        <h2 className="section-title" style={{ fontSize: 'var(--font-h2)', paddingTop: 'var(--space-12)' }}>
+          Tout ce dont votre organisation a besoin
+        </h2>
         <div className="feature-grid">
           {FEATURES.map((f, i) => (
             <FeatureCard key={f.title} {...f} delay={i * 80} />
@@ -172,8 +176,8 @@ export default function HomePage() {
       </section>
 
       {/* ── Comment ça marche ── */}
-      <section className="steps-section" style={{ background: 'var(--color-offwhite)', borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)' }}>
-        <h2 className="section-title" style={{ paddingTop: 48 }}>Comment ça marche</h2>
+      <section className="steps-section" aria-label="Comment ça marche" style={{ background: 'var(--color-offwhite)', borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)' }}>
+        <h2 className="section-title" style={{ fontSize: 'var(--font-h2)', paddingTop: 'var(--space-12)' }}>Comment ça marche</h2>
         <div className="steps-grid">
           {STEPS.map((s, i) => (
             <StepCard key={s.n} {...s} delay={i * 100} />
@@ -182,8 +186,8 @@ export default function HomePage() {
       </section>
 
       {/* ── Bloc confiance / sécurité ── */}
-      <section style={{ maxWidth: 960, margin: '0 auto', padding: '56px 24px' }}>
-        <h2 className="section-title" style={{ textAlign: 'left', padding: 0, marginBottom: 32 }}>
+      <section aria-label="Sécurité et souveraineté" style={{ maxWidth: 960, margin: '0 auto', padding: 'var(--space-16) var(--space-6)' }}>
+        <h2 className="section-title" style={{ fontSize: 'var(--font-h2)', textAlign: 'left', padding: 0, marginBottom: 'var(--space-8)' }}>
           Vos données, sous votre contrôle
         </h2>
         <div className="trust-grid">
@@ -197,8 +201,8 @@ export default function HomePage() {
       </section>
 
       {/* ── CTA final ── */}
-      <section ref={ctaBandRef} className="cta-band reveal-item">
-        <h2>Prêt à centraliser la communication de votre organisation ?</h2>
+      <section ref={ctaBandRef} className="cta-band reveal-item" aria-label="Appel à l'action">
+        <h2 style={{ fontSize: 'var(--font-h2)' }}>Prêt à centraliser la communication de votre organisation ?</h2>
         <p>La demande d'inscription prend quelques minutes et peut être reprise à tout moment.</p>
         <Link to="/onboarding/new" className="btn btn-block-inline">Inscrire mon organisation</Link>
       </section>

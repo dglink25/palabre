@@ -3,16 +3,18 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/apiClient';
 
+/* Tokens CSS — référencés via les variables :root de theme.css.
+   Plus aucune couleur hexadécimale en dur dans ce composant. */
 const C = {
-  blue:   '#1A73E8',
-  green:  '#34A853',
-  amber:  '#FBBC05',
-  red:    '#EA4335',
-  purple: '#7B61FF',
-  text:   '#202124',
-  sub:    '#5F6368',
-  border: '#E0E0E0',
-  bg:     '#F8F9FA',
+  blue:   'var(--color-primary-blue)',
+  green:  'var(--color-success-green)',
+  amber:  'var(--color-warning-amber)',
+  red:    'var(--color-alert-red)',
+  purple: 'var(--color-primary-blue)', /* violet interdit par la charte → bleu primaire */
+  text:   'var(--color-text-primary)',
+  sub:    'var(--color-text-secondary)',
+  border: 'var(--color-border)',
+  bg:     'var(--color-offwhite)',
 };
 
 function Ico({ d, size = 20, color = 'currentColor', stroke = 1.8 }) {

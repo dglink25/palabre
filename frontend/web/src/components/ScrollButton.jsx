@@ -2,12 +2,8 @@ import { useEffect, useState } from 'react';
 
 /**
  * Bouton flottant de défilement bidirectionnel.
- * Affiche TOUJOURS les deux flèches (haut + bas).
- * Couleur : #EA4335 (rouge) comme dans la référence.
- * Un clic :
- *   - si on est en bas   → remonte en haut
- *   - si on est en haut  → descend en bas
- *   - entre les deux     → remonte en haut
+ * Couleur : bleu primaire (var(--color-primary-blue)) — charte Palabre.
+ * Positionné à droite, décalé pour ne pas chevaucher le SupportWidget.
  */
 export default function ScrollButton() {
   const [visible,  setVisible]  = useState(false);
@@ -48,12 +44,20 @@ export default function ScrollButton() {
           to   { opacity:1; transform:scale(1)   translateY(0);    }
         }
         @keyframes sbPulse {
-          0%,100% { box-shadow: 0 4px 18px rgba(234,67,53,0.50); }
-          50%      { box-shadow: 0 6px 28px rgba(234,67,53,0.75); }
+          0%,100% { box-shadow: 0 4px 18px rgba(26,115,232,0.50); }
+          50%      { box-shadow: 0 6px 28px rgba(26,115,232,0.75); }
+        }
+        .scroll-btn:focus-visible {
+          outline: 3px solid var(--color-primary-blue);
+          outline-offset: 2px;
+        }
+        @media (max-width: 640px) {
+          .scroll-btn { display: none !important; }
         }
       `}</style>
 
       <button
+        className="scroll-btn"
         onClick={handleClick}
         onMouseDown={() => setPressed(true)}
         onMouseUp={() => setPressed(false)}
@@ -69,8 +73,8 @@ export default function ScrollButton() {
           height:         48,
           borderRadius:   '50%',
           border:         'none',
-          background:     '#EA4335',
-          color:          '#fff',
+          background:     'var(--color-primary-blue)',
+          color:          'var(--color-white)',
           cursor:         'pointer',
           display:        'flex',
           flexDirection:  'column',
@@ -81,22 +85,23 @@ export default function ScrollButton() {
           animation:      'sbIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both, sbPulse 2.8s ease-in-out 1s infinite',
           transform:      pressed ? 'scale(0.92)' : 'scale(1)',
           transition:     'transform 0.12s',
-          outline:        'none',
           userSelect:     'none',
         }}
       >
         {/* Flèche haut */}
         <svg width="14" height="10" viewBox="0 0 14 10" fill="none"
-          stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+          aria-hidden="true">
           <polyline points="1,8 7,2 13,8"/>
         </svg>
 
         {/* Séparateur central */}
-        <div style={{ width: 18, height: 1.5, background: 'rgba(255,255,255,0.45)', borderRadius: 1 }} />
+        <div style={{ width: 18, height: 1.5, background: 'rgba(255,255,255,0.45)', borderRadius: 1 }} aria-hidden="true" />
 
         {/* Flèche bas */}
         <svg width="14" height="10" viewBox="0 0 14 10" fill="none"
-          stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+          aria-hidden="true">
           <polyline points="1,2 7,8 13,2"/>
         </svg>
       </button>

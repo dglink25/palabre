@@ -25,10 +25,10 @@ export default function CookieBanner() {
   if (!visible) return null;
 
   return (
-    <div className="cookie-banner">
+    <div className="cookie-banner" role="region" aria-label="Information sur les cookies" aria-live="polite">
       <p>
         Palabre utilise uniquement du stockage local strictement nécessaire au fonctionnement du service
-        (maintien de votre session, identifiant d'appareil) - aucun cookie de suivi ni publicitaire.{' '}
+        (maintien de votre session, identifiant d'appareil) — aucun cookie de suivi ni publicitaire.{' '}
         <Link to="/privacy">En savoir plus</Link>.
       </p>
       <div className="actions">

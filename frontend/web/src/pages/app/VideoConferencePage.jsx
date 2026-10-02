@@ -145,11 +145,11 @@ export default function VideoConferencePage() {
                 background: 'var(--color-white)', border: '1px solid var(--color-border)',
                 borderRadius: 12, overflow: 'hidden',
               }}>
-                <div style={{ padding: '10px 20px', borderBottom: '1px solid var(--color-border)', display: 'grid', gridTemplateColumns: '1fr 160px 80px 80px 80px', gap: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', color: 'var(--color-text-secondary)' }}>
+                <div className="history-row" style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', color: 'var(--color-text-secondary)', fontSize: 12, borderBottom: '1px solid var(--color-border)' }}>
                   <span>Réunion</span>
-                  <span>Date</span>
-                  <span>Durée</span>
-                  <span>Participants</span>
+                  <span className="hide-mobile">Date</span>
+                  <span className="hide-mobile">Durée</span>
+                  <span className="hide-mobile">Participants</span>
                   <span>Enreg.</span>
                 </div>
                 {data.history.map(r => (
@@ -199,11 +199,7 @@ function HistoryRow({ room }) {
   };
 
   return (
-    <div style={{
-      display: 'grid', gridTemplateColumns: '1fr 160px 80px 80px 80px',
-      gap: 8, padding: '12px 20px', borderBottom: '1px solid var(--color-border)',
-      alignItems: 'center',
-    }}
+    <div className="history-row"
     onMouseEnter={e => e.currentTarget.style.background = 'var(--color-offwhite)'}
     onMouseLeave={e => e.currentTarget.style.background = ''}>
       <div>
@@ -212,9 +208,9 @@ function HistoryRow({ room }) {
           {room.hostName && `Par ${room.hostName}`}
         </div>
       </div>
-      <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{fmt(room.startedAt)}</div>
-      <div style={{ fontSize: 13 }}>{dur(room.durationMin)}</div>
-      <div style={{ fontSize: 13 }}>{room.participantCount ?? '-'}</div>
+      <div className="hide-mobile" style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{fmt(room.startedAt)}</div>
+      <div className="hide-mobile" style={{ fontSize: 13 }}>{dur(room.durationMin)}</div>
+      <div className="hide-mobile" style={{ fontSize: 13 }}>{room.participantCount ?? '-'}</div>
       <div style={{ fontSize: 13 }}>
         {room.recordingAvailable
           ? <span style={{ color: 'var(--color-success-green)', fontWeight: 600 }}>✓</span>

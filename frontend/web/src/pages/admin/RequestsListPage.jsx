@@ -119,12 +119,13 @@ export default function RequestsListPage() {
         <>
           {/* Table card */}
           <div style={{
-            background: '#fff',
-            border: '1px solid #E0E0E0',
+            background: 'var(--color-white)',
+            border: '1px solid var(--color-border)',
             borderRadius: 10,
             overflow: 'hidden',
           }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 480 }}>
               <thead>
                 <tr style={{ background: '#F8F9FA' }}>
                   <th style={{ padding: '10px 16px', fontSize: 11, fontWeight: 700, color: '#5F6368', textTransform: 'uppercase', letterSpacing: '0.6px', textAlign: 'left', borderBottom: '1px solid #E0E0E0' }}>
@@ -216,6 +217,7 @@ export default function RequestsListPage() {
                 )}
               </tbody>
             </table>
+            </div>
           </div>
 
           {/* Pagination */}

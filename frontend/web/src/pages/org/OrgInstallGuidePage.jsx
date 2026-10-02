@@ -43,7 +43,12 @@ function CopyBlock({ code, label }) {
         <pre style={{
           background: '#1e1e2e', color: '#cdd6f4',
           margin: 0, padding: '14px 16px',
-          fontSize: 14, lineHeight: 1.8, overflowX: 'auto',
+          fontSize: 14, lineHeight: 1.8,
+          overflowX: 'auto',
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-all',
+          maxWidth: '100%',
+          boxSizing: 'border-box',
           fontFamily: "'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace",
         }}>
           {code}
@@ -167,7 +172,7 @@ sudo ufw status`} />
         </div>
       </StepCard>
 
-      <StepCard n={2} icon={ICO.docker} color="#2496ED"
+      <StepCard n={2} icon={ICO.docker} color="var(--color-primary-blue)"
         title="Installez Docker et Docker Compose"
         desc="Docker est le seul prerequis logiciel. Le tenant Palabre s'execute entierement dans des conteneurs.">
         <CopyBlock label="Installation Docker (Ubuntu/Debian)" code={`# Telecharger et executer le script d'installation officiel
@@ -240,7 +245,7 @@ chmod +x setup.sh
         </div>
       </StepCard>
 
-      <StepCard n={5} icon={ICO.shield} color="#7B61FF"
+      <StepCard n={5} icon={ICO.shield} color="var(--color-primary-blue)"
         title="Verifiez la connexion du tunnel VPN"
         desc="Une fois le tunnel etabli, verifiez que votre serveur communique bien avec le serveur central.">
         <CopyBlock label="Verification des logs de l'agent" code={`# Voir les logs de l'agent de liaison

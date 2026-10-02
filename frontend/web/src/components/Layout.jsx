@@ -113,8 +113,9 @@ function SideNavItem({ to, iconKey, label, end = false }) {
   return (
     <NavLink to={to} end={end}
       className={({ isActive }) => `snav-link${isActive ? ' snav-active' : ''}`}
+      aria-current={({ isActive }) => isActive ? 'page' : undefined}
     >
-      <Ico path={ICONS[iconKey]} size={17} />
+      <Ico path={ICONS[iconKey]} size={17} aria-hidden="true" />
       <span className="snav-label">{label}</span>
     </NavLink>
   );
@@ -227,16 +228,19 @@ export default function Layout() {
     <div className="shell">
 
       {/* ── Sidebar ── */}
-      <aside className={`shell-sidebar${open ? ' shell-sidebar-open' : ''}`}>
+      <aside
+        className={`shell-sidebar${open ? ' shell-sidebar-open' : ''}`}
+        aria-label="Navigation principale"
+      >
 
         {/* Logo — cliquable vers accueil */}
-        <Link to="/" className="shell-logo" onClick={() => setOpen(false)}>
-          <img src="/logo.png" alt="Palabre" width="32" height="32" />
+        <Link to="/" className="shell-logo" onClick={() => setOpen(false)} aria-label="Palabre — retour à l'accueil">
+          <img src="/logo.png" alt="" width="32" height="32" aria-hidden="true" />
           <span>PALABRE</span>
         </Link>
 
         {/* Navigation */}
-        <nav className="shell-nav">{navTree}</nav>
+        <nav className="shell-nav" role="navigation" aria-label="Menu principal">{navTree}</nav>
 
         {/* Indicateur mode réseau (Direct / Relay) */}
         <NetworkModeIndicator />
@@ -245,14 +249,14 @@ export default function Layout() {
         <div className="shell-user">
           <div className="shell-user-avatar">
             {user?.photoUrl
-              ? <img src={user.photoUrl} alt="" />
-              : <span>{userInitial}</span>}
+              ? <img src={user.photoUrl} alt={`Photo de profil de ${userName}`} />
+              : <span aria-hidden="true">{userInitial}</span>}
           </div>
           <div className="shell-user-info">
             <div className="shell-user-name">{userName}</div>
             <div className="shell-user-role">{roleLabel}</div>
           </div>
-          <button className="shell-logout-btn" onClick={logout} title="Se deconnecter">
+          <button className="shell-logout-btn" onClick={logout} title="Se déconnecter" aria-label="Se déconnecter">
             <Ico path={ICONS.logout} size={16} />
           </button>
         </div>
@@ -270,12 +274,12 @@ export default function Layout() {
         </div>
 
         {/* Topbar mobile */}
-        <header className="shell-topbar">
-          <button className="shell-hamburger" onClick={() => setOpen(v => !v)}>
-            <Ico path={open ? ICONS.close : ICONS.menu} size={22} />
+        <header className="shell-topbar" role="banner">
+          <button className="shell-hamburger" onClick={() => setOpen(v => !v)} aria-label={open ? 'Fermer le menu' : 'Ouvrir le menu'} aria-expanded={open}>
+            <Ico path={open ? ICONS.close : ICONS.menu} size={22} aria-hidden="true" />
           </button>
-          <Link to="/" className="shell-topbar-logo">
-            <img src="/logo.png" alt="Palabre" width="24" height="24" />
+          <Link to="/" className="shell-topbar-logo" aria-label="Palabre — accueil">
+            <img src="/logo.png" alt="" width="24" height="24" aria-hidden="true" />
             <span>PALABRE</span>
           </Link>
           {/* Horloge temps réel — visible sur toutes les pages */}
@@ -285,14 +289,14 @@ export default function Layout() {
           <div className="shell-topbar-user">
             <div className="shell-user-avatar shell-user-avatar-sm">
               {user?.photoUrl
-                ? <img src={user.photoUrl} alt="" />
-                : <span>{userInitial}</span>}
+                ? <img src={user.photoUrl} alt={`Photo de ${userName}`} />
+                : <span aria-hidden="true">{userInitial}</span>}
             </div>
           </div>
         </header>
 
         {/* Contenu */}
-        <main className="shell-main fade-in">
+        <main className="shell-main fade-in" role="main" id="main-content">
           <Outlet />
         </main>
       </div>

@@ -285,7 +285,7 @@ export default function AdminSupportPage() {
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
           {/* Panneau gauche — liste des sessions */}
-          <aside style={{ width: 300, borderRight: '1px solid #E0E0E0', overflowY: 'auto', flexShrink: 0 }}>
+          <aside className="admin-support-aside" style={{ width: 300, borderRight: '1px solid var(--color-border)', overflowY: 'auto', flexShrink: 0 }}>
             {loading ? (
               <div style={{ padding: 24, textAlign: 'center', color: '#9AA0A6', fontSize: 13 }}>Chargement…</div>
             ) : sessions.length === 0 ? (
