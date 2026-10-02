@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../../lib/apiClient';
-import { Alert, Badge, Spinner } from '../../components/ui';
+import { Alert, Badge, Spinner, useConfirm } from '../../components/ui';
+import { useNotification } from '../../context/NotificationContext';
 import { friendlyMessage } from '../../lib/errorMessages';
 
 const STATUS_VARIANT = { draft: 'neutral', submitted: 'primary', rejected: 'warning', approved: 'success' };
@@ -35,6 +36,9 @@ export default function RequestsListPage() {
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState('');
 
+  const { notify } = useNotification();
+  const { confirm, ConfirmModal } = useConfirm();
+
   const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
 
   const load = useCallback(() => {
@@ -59,6 +63,7 @@ export default function RequestsListPage() {
 
   return (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
+      <ConfirmModal />
       {/* Page header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
@@ -70,17 +75,44 @@ export default function RequestsListPage() {
             {status === 'submitted' ? ' en attente d\'instruction' : ''}
           </p>
         </div>
-        <button
-          className="btn btn-secondary btn-sm"
-          onClick={load}
-          disabled={loading}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
-        >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
-          </svg>
-          Actualiser
-        </button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={load}
+            disabled={loading}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+            </svg>
+            Actualiser
+          </button>
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={async () => {
+              const ok = await confirm({
+                title: 'Purger les brouillons vides',
+                message: 'Supprimer tous les brouillons sans nom créés il y a plus d\'1h ? Cette action est irréversible.',
+                confirmLabel: 'Supprimer',
+                danger: true,
+              });
+              if (!ok) return;
+              try {
+                const result = await api.delete('/onboarding/admin/requests/drafts/purge');
+                notify.success(`${result.deleted} brouillon(s) supprimé(s).`);
+                load();
+              } catch (e) {
+                notify.error(friendlyMessage(e));
+              }
+            }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--color-alert-red)', borderColor: 'var(--color-alert-red)' }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+            </svg>
+            Purger les brouillons vides
+          </button>
+        </div>
       </div>
 
       {/* Filter tabs */}

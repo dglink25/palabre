@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useNotification } from '../../context/NotificationContext';
+import { useConfirm } from '../../components/ui';
 import {
   getRoom, joinRoom, leaveRoom, endRoom,
   startRecording, stopRecording, inviteUsers
@@ -30,6 +32,8 @@ export default function VideoRoomPage() {
   const { roomId }   = useParams();
   const { user }     = useAuth();
   const navigate     = useNavigate();
+  const { notify }   = useNotification();
+  const { confirm, ConfirmModal } = useConfirm();
 
   const [room,         setRoom]        = useState(null);
   const [joinState,    setJoinState]   = useState('loading'); // loading|waiting|admitted|error
@@ -90,12 +94,18 @@ export default function VideoRoomPage() {
   }
 
   async function handleEndRoom() {
-    if (!window.confirm('Terminer la réunion pour tous les participants ?')) return;
+    const ok = await confirm({
+      title: 'Terminer la réunion',
+      message: 'Cela mettra fin à la réunion pour tous les participants. Cette action est irréversible.',
+      confirmLabel: 'Terminer la réunion',
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await endRoom(roomId);
       navigate(-1);
     } catch (err) {
-      alert(err.message);
+      notify.error(err.message);
     }
   }
 
@@ -104,12 +114,14 @@ export default function VideoRoomPage() {
       if (recording) {
         await stopRecording(roomId);
         setRecording(false);
+        notify.success('Enregistrement arrêté.');
       } else {
         await startRecording(roomId);
         setRecording(true);
+        notify.success('Enregistrement démarré.');
       }
     } catch (err) {
-      alert(err.message);
+      notify.error(err.message);
     }
   }
 
@@ -120,8 +132,9 @@ export default function VideoRoomPage() {
       await inviteUsers(roomId, emails);
       setInviteQuery('');
       setShowInvite(false);
+      notify.success('Invitations envoyées.');
     } catch (err) {
-      alert(err.message);
+      notify.error(err.message);
     }
   }
 
@@ -130,21 +143,27 @@ export default function VideoRoomPage() {
   // ── États de chargement / attente ────────────────────────────────────────
   if (joinState === 'loading') {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '70vh', flexDirection: 'column', gap: 16 }}>
-        <div className="spinner" />
-        <div style={{ color: 'var(--color-text-secondary)' }}>Connexion à la réunion…</div>
-      </div>
+      <>
+        <ConfirmModal />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '70vh', flexDirection: 'column', gap: 16 }}>
+          <div className="spinner" />
+          <div style={{ color: 'var(--color-text-secondary)' }}>Connexion à la réunion…</div>
+        </div>
+      </>
     );
   }
 
   if (joinState === 'error') {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '70vh', flexDirection: 'column', gap: 16, textAlign: 'center' }}>
-        <div style={{ fontSize: 40 }}>⚠️</div>
-        <div style={{ fontWeight: 700, fontSize: 18 }}>Accès impossible</div>
-        <div style={{ color: 'var(--color-text-secondary)', maxWidth: 380 }}>{errorMsg}</div>
-        <button className="btn btn-secondary" onClick={() => navigate(-1)}>Retour</button>
-      </div>
+      <>
+        <ConfirmModal />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '70vh', flexDirection: 'column', gap: 16, textAlign: 'center' }}>
+          <div style={{ fontSize: 40 }}>⚠️</div>
+          <div style={{ fontWeight: 700, fontSize: 18 }}>Accès impossible</div>
+          <div style={{ color: 'var(--color-text-secondary)', maxWidth: 380 }}>{errorMsg}</div>
+          <button className="btn btn-secondary" onClick={() => navigate(-1)}>Retour</button>
+        </div>
+      </>
     );
   }
 

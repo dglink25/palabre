@@ -10,12 +10,22 @@ import { validateE164 } from '../../lib/phoneValidation';
 import AuthLayout from '../../components/AuthLayout';
 
 const DRAFT_TOKEN_PREFIX = 'palabre_onboarding_draft_';
+// Clé pour mémoriser le dernier brouillon en cours sur cet appareil
+const LAST_DRAFT_KEY = 'palabre_onboarding_last_draft';
 
 function saveDraftToken(id, token) {
   localStorage.setItem(DRAFT_TOKEN_PREFIX + id, token);
+  // Mémoriser aussi le dernier ID de brouillon pour la reprise
+  localStorage.setItem(LAST_DRAFT_KEY, id);
 }
 function loadDraftToken(id) {
   return localStorage.getItem(DRAFT_TOKEN_PREFIX + id);
+}
+function getLastDraftId() {
+  return localStorage.getItem(LAST_DRAFT_KEY);
+}
+function clearLastDraft() {
+  localStorage.removeItem(LAST_DRAFT_KEY);
 }
 
 const STEP_LABELS = ['Organisation', 'Dirigeant', 'Documents', 'Récapitulatif'];
@@ -107,6 +117,7 @@ export default function OnboardingWizard() {
     async function init() {
       try {
         if (requestId) {
+          // Reprise d'un brouillon via URL (?id=xxx)
           const token = loadDraftToken(requestId);
           if (!token) {
             setError('Jeton de brouillon introuvable sur cet appareil pour cette demande.');
@@ -120,6 +131,34 @@ export default function OnboardingWizard() {
           });
           hydrate(data);
         } else {
+          // Vérifier si un brouillon existe déjà sur cet appareil
+          const lastId    = getLastDraftId();
+          const lastToken = lastId ? loadDraftToken(lastId) : null;
+
+          if (lastId && lastToken) {
+            // Tenter de reprendre le brouillon existant
+            try {
+              const data = await api.get(`/onboarding/requests/${lastId}`, {
+                auth: false,
+                headers: { 'X-Draft-Token': lastToken },
+              });
+              // Ne reprendre que si le brouillon n'est pas encore soumis
+              if (data.status === 'draft') {
+                setDraftToken(lastToken);
+                setParams({ id: lastId }, { replace: true });
+                hydrate(data);
+                setLoading(false);
+                return;
+              }
+              // Brouillon soumis/approuvé → en créer un nouveau
+              clearLastDraft();
+            } catch {
+              // Brouillon introuvable (expiré ou supprimé) → créer un nouveau
+              clearLastDraft();
+            }
+          }
+
+          // Créer un nouveau brouillon seulement si aucun n'existe
           const created = await api.post('/onboarding/requests', undefined, { auth: false });
           saveDraftToken(created.id, created.draftToken);
           setDraftToken(created.draftToken);
@@ -205,6 +244,8 @@ export default function OnboardingWizard() {
         { captchaToken },
         { auth: false, headers }
       );
+      // Brouillon soumis → effacer la référence locale pour ne pas le réutiliser
+      clearLastDraft();
       navigate(`/onboarding/status?id=${requestId}&token=${draftToken}`);
     } catch (e) {
       if (e.missingFields && e.missingFields.length > 0) {

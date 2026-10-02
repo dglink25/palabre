@@ -594,4 +594,25 @@ router.post('/admin/requests/:id/send-guide', requireAuth, requireSuperAdmin, as
   } catch (err) { next(err); }
 });
 
+/**
+ * DELETE /admin/requests/drafts/purge
+ * Supprime les brouillons vides (status='draft', sans nom d'organisation,
+ * créés il y a plus de 1h). Accessible au super-admin uniquement.
+ */
+router.delete('/admin/requests/drafts/purge', requireAuth, requireSuperAdmin, async (req, res, next) => {
+  try {
+    const { pool } = require('../../config/db');
+    const { rows } = await pool.query(
+      `DELETE FROM organization_requests
+       WHERE status = 'draft'
+         AND (step1_organization IS NULL
+              OR step1_organization->>'name' IS NULL
+              OR trim(step1_organization->>'name') = '')
+         AND created_at < now() - INTERVAL '1 hour'
+       RETURNING id`
+    );
+    res.json({ deleted: rows.length, ids: rows.map(r => r.id) });
+  } catch (err) { next(err); }
+});
+
 module.exports = router;

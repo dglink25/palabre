@@ -6,6 +6,8 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { supportApi, supportWs } from '../../lib/supportApi';
+import { useNotification } from '../../context/NotificationContext';
+import { useConfirm } from '../../components/ui';
 
 // ── Icônes ────────────────────────────────────────────────────────────────────
 const Ico = ({ d, size = 16 }) => (
@@ -62,6 +64,8 @@ function decode(ciphertext) {
 }
 
 export default function AdminSupportPage() {
+  const { notify } = useNotification();
+  const { confirm, ConfirmModal } = useConfirm();
   const [sessions, setSessions]     = useState([]);
   const [queueStatus, setQueueStatus] = useState(null);
   const [holdCalls, setHoldCalls]   = useState([]);
@@ -162,14 +166,24 @@ export default function AdminSupportPage() {
   // ── Résoudre session ──────────────────────────────────────────────────────
   const resolveSession = async () => {
     if (!selected) return;
-    if (!window.confirm('Marquer cette session comme résolue ?')) return;
+    const ok = await confirm({
+      title: 'Résoudre la session',
+      message: 'Marquer cette session comme résolue ? Le client sera notifié.',
+      confirmLabel: 'Résoudre',
+      danger: false,
+    });
+    if (!ok) return;
     setActionLoading(true);
     try {
       await supportApi.admin.resolve(selected.id);
       setSelected(s => s ? { ...s, status: 'resolved' } : s);
+      notify.success('Session marquée comme résolue.');
       load();
-    } catch (e) { setError(e.message); }
-    finally { setActionLoading(false); }
+    } catch (e) {
+      notify.error(e.message);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   // ── Envoyer un message ────────────────────────────────────────────────────
@@ -203,6 +217,7 @@ export default function AdminSupportPage() {
   // ── Rendu ─────────────────────────────────────────────────────────────────
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <ConfirmModal />
       {/* En-tête */}
       <div style={{ padding: '16px 24px', borderBottom: '1px solid #E0E0E0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>Service client</h1>
