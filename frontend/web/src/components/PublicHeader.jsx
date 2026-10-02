@@ -12,6 +12,24 @@ const IconBuilding = () => (
     <rect x="3" y="3" width="18" height="18" rx="1"/><path d="M9 3v18M3 9h6M3 15h6M15 9h6M15 15h6"/>
   </svg>
 );
+
+const IconVideo = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <rect x="3" y="5" width="13" height="14" rx="2" />
+    <path d="m16 10 5-3v10l-5-3z" />
+  </svg>
+);
+
 const IconUser = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
@@ -68,10 +86,14 @@ export default function PublicHeader() {
               aria-current={({ isActive }) => isActive ? 'page' : undefined}>
               <IconHome /> Accueil
             </NavLink>
-            <NavLink to="/onboarding/new" className={({ isActive }) => 'pub-nav-link' + (isActive ? ' active' : '')}
-              aria-current={({ isActive }) => isActive ? 'page' : undefined}>
-              <IconBuilding /> Inscrire mon organisation
+            <NavLink
+              to="/videoconference"
+              className={({ isActive }) => 'pub-nav-link' + (isActive ? ' active' : '')}
+              aria-current={({ isActive }) => (isActive ? 'page' : undefined)}
+            >
+              <IconVideo aria-hidden="true" /> Organiser une réunion
             </NavLink>
+
           </nav>
 
           {/* Actions desktop */}

@@ -118,7 +118,7 @@ export default function PublicFooter() {
 
       {/* ── Barre copyright - fond bleu primaire (token) ── */}
       <div className="pub-footer-bottom">
-        &copy; {new Date().getFullYear()} Palabre &mdash; Tous droits réservés.
+        &copy; {new Date().getFullYear()} Palabre - Tous droits réservés.
       </div>
     </footer>
   );
