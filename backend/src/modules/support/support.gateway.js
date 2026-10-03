@@ -25,8 +25,12 @@ let adminWs   = null;      // Connexion WebSocket du super-admin
 
 // ── Attacher la gateway au serveur HTTP ───────────────────────────────────────
 
-function attachSupportGateway(server) {
-  const wss = new WebSocketServer({ server, path: '/support/socket' });
+function attachSupportGateway(server, opts = {}) {
+  const wssOpts = opts.noServer
+    ? { noServer: true }
+    : { server, path: '/support/socket' };
+
+  const wss = new WebSocketServer(wssOpts);
 
   wss.on('connection', async (ws, req) => {
     // ── Authentification JWT ──────────────────────────────────────────────

@@ -31,11 +31,12 @@ const connections = new Map();
  * Attache le gateway WebSocket au serveur HTTP existant.
  * @param {http.Server} server - instance créée par app.listen()
  */
-function attachTunnelGateway(server) {
-  const wss = new WebSocket.Server({
-    server,
-    path: '/tunnel/socket',
-  });
+function attachTunnelGateway(server, opts = {}) {
+  const wssOpts = opts.noServer
+    ? { noServer: true }
+    : { server, path: '/tunnel/socket' };
+
+  const wss = new WebSocket.Server(wssOpts);
 
   console.log('[tunnel-gateway] WebSocket gateway démarré sur /tunnel/socket');
 
