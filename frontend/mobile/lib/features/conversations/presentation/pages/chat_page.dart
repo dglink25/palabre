@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/storage/local_database.dart';
 import '../../../../core/services/socket_service.dart';
 import '../../../../core/providers/auth_provider.dart';
+import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/message_input.dart';
@@ -20,6 +21,8 @@ class ChatPage extends ConsumerStatefulWidget {
 
 class _ChatPageState extends ConsumerState<ChatPage> {
   final _scrollCtrl = ScrollController();
+  String? _peerName;
+  String? _peerId;
 
   @override
   void initState() {
@@ -28,6 +31,48 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     ref.read(localDbProvider).clearUnread(widget.conversationId);
     // S'abonner aux messages entrants
     ref.read(socketServiceProvider).onMessage('receive', _onMessageReceived);
+    // Charger les infos de la conversation
+    _loadConversationInfo();
+  }
+
+  Future<void> _loadConversationInfo() async {
+    try {
+      final data = await ref.read(apiClientProvider)
+          .get<Map<String, dynamic>>('/conversations/${widget.conversationId}');
+      if (mounted) {
+        setState(() {
+          _peerName = data['name'] as String?;
+          _peerId   = data['peerId'] as String?;
+        });
+      }
+    } catch (_) {
+      // Fallback : afficher un nom générique
+    }
+  }
+
+  Future<void> _startCall(BuildContext context, String callType) async {
+    if (_peerId == null) return;
+    try {
+      final data = await ref.read(apiClientProvider).post<Map<String, dynamic>>(
+        '/calls',
+        data: {'calleeId': _peerId, 'callType': callType},
+      );
+      final callId = data['callId'] as String;
+      if (context.mounted) {
+        context.push('/call/$callId', extra: {
+          'initiator': true,
+          'peer_id':   _peerId,
+          'peer_name': _peerName ?? 'Contact',
+          'call_type': callType,
+        });
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Impossible de démarrer l\'appel : $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -121,18 +166,34 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           CircleAvatar(
             radius: 18,
             backgroundColor: AppTheme.primaryBlue.withOpacity(0.12),
-            child: const Icon(Icons.person, size: 20, color: AppTheme.primaryBlue),
+            child: Text(
+              (_peerName ?? '?').substring(0, 1).toUpperCase(),
+              style: const TextStyle(
+                fontSize: 16, fontWeight: FontWeight.w600,
+                color: AppTheme.primaryBlue,
+              ),
+            ),
           ),
           const SizedBox(width: 10),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(widget.conversationId.substring(0, 8),
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            Text(
+              _peerName ?? 'Conversation',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
             const Text('En ligne', style: TextStyle(fontSize: 12, color: AppTheme.successGreen)),
           ]),
         ]),
         actions: [
-          IconButton(icon: const Icon(Icons.videocam_outlined), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.call_outlined), onPressed: () {}),
+          if (_peerId != null) ...[
+            IconButton(
+              icon: const Icon(Icons.videocam_outlined),
+              onPressed: () => _startCall(context, 'video'),
+            ),
+            IconButton(
+              icon: const Icon(Icons.call_outlined),
+              onPressed: () => _startCall(context, 'audio'),
+            ),
+          ],
         ],
       ),
       body: Column(

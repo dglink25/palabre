@@ -27,6 +27,8 @@ require('dotenv').config();
 
 const axios  = require('axios');
 const WebSocket = require('ws');
+const fs     = require('fs');
+const path   = require('path');
 
 // ── Configuration ─────────────────────────────────────────────────────────────
 
@@ -39,9 +41,37 @@ const HEARTBEAT_INTERVAL   = parseInt(process.env.HEARTBEAT_INTERVAL_MS || '3000
 const RECONNECT_BASE_DELAY = 1000;   // 1s  → backoff exponentiel jusqu'à 30s
 const RECONNECT_MAX_DELAY  = 30000;  // 30s max
 
+// Chemin du fichier de persistance de la file hors-ligne (sur volume Docker)
+const DATA_DIR      = process.env.AGENT_DATA_DIR || '/data/agent';
+const QUEUE_FILE    = path.join(DATA_DIR, 'pending_queue.json');
+
 if (!TENANT_ID || !CONTROL_TOKEN) {
   console.error('[agent] ERREUR : ORG_ID et CONTROL_TOKEN sont obligatoires dans .env');
   process.exit(1);
+}
+
+// ── Persistance de la file hors-ligne ─────────────────────────────────────────
+
+function loadQueue() {
+  try {
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+    if (fs.existsSync(QUEUE_FILE)) {
+      const raw = fs.readFileSync(QUEUE_FILE, 'utf8');
+      return JSON.parse(raw);
+    }
+  } catch (e) {
+    console.error('[agent] Impossible de lire la file persistée :', e.message);
+  }
+  return [];
+}
+
+function saveQueue(queue) {
+  try {
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(QUEUE_FILE, JSON.stringify(queue, null, 2), 'utf8');
+  } catch (e) {
+    console.error('[agent] Impossible de persister la file :', e.message);
+  }
 }
 
 // ── État global ────────────────────────────────────────────────────────────────
@@ -50,7 +80,7 @@ const state = {
   tunnelUp:      false,   // Le tunnel WireGuard vers le central est opérationnel
   orgStatus:     'unknown', // 'active' | 'suspended' | 'archived'
   directives:    { allowConnections: true, allowOutboundCalls: true, messagingMode: 'full' },
-  pendingSync:   [],      // Messages en attente de sync vers le central
+  pendingSync:   loadQueue(),  // Chargé depuis le disque au démarrage
   ws:            null,    // WebSocket vers le central
   reconnectDelay: RECONNECT_BASE_DELAY,
 };
@@ -74,7 +104,7 @@ async function sendHeartbeat() {
         controlToken: CONTROL_TOKEN,
         // Déclarer l'URL publique de cet agent pour le routage inter-organisations
         agentUrl:     process.env.AGENT_PUBLIC_URL || null,
-        agentVersion: require('../../package.json').version,
+        agentVersion: require('../package.json').version,
       },
       { timeout: 10000 }
     );
@@ -125,6 +155,7 @@ async function syncPendingMessages() {
 
   const toSync = [...state.pendingSync];
   state.pendingSync = [];
+  saveQueue(state.pendingSync); // Vider sur disque immédiatement
 
   for (const msg of toSync) {
     try {
@@ -136,12 +167,14 @@ async function syncPendingMessages() {
     } catch (e) {
       log('warn', 'Echec sync message - requeue', e.message);
       state.pendingSync.unshift(msg); // Remettre en tête de file
+      saveQueue(state.pendingSync);   // Persister immédiatement
       break; // Arrêter si le central est encore inaccessible
     }
   }
 
   if (state.pendingSync.length === 0) {
     log('ok', 'Synchronisation complete');
+    saveQueue([]); // Vider le fichier sur disque
   } else {
     log('warn', `${state.pendingSync.length} message(s) restent en attente`);
   }
@@ -281,6 +314,7 @@ const server = http.createServer(async (req, res) => {
         if (!state.tunnelUp) {
           // Tunnel down - mettre en file pour sync ultérieure
           state.pendingSync.push(msg);
+          saveQueue(state.pendingSync); // Persister sur disque immédiatement
           log('info', `Message ${msg.id} mis en file (tunnel hors ligne) - total : ${state.pendingSync.length}`);
           res.writeHead(202);
           res.end(JSON.stringify({ queued: true, pending: state.pendingSync.length }));

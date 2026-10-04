@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/storage/local_database.dart';
+import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class CallsPage extends ConsumerWidget {
@@ -16,7 +18,11 @@ class CallsPage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Appels'),
         actions: [
-          IconButton(icon: const Icon(Icons.call_outlined), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.call_outlined),
+            tooltip: 'Nouveau contact',
+            onPressed: () => context.push('/contacts'),
+          ),
         ],
       ),
       body: StreamBuilder<List<CallHistoryData>>(
@@ -50,12 +56,37 @@ class CallsPage extends ConsumerWidget {
   }
 }
 
-class _CallTile extends StatelessWidget {
+class _CallTile extends ConsumerWidget {
   const _CallTile({required this.call});
   final CallHistoryData call;
 
+  Future<void> _startCall(BuildContext context, WidgetRef ref, String callType) async {
+    // Initier l'appel via le backend, puis naviguer vers CallScreen
+    try {
+      final data = await ref.read(apiClientProvider).post<Map<String, dynamic>>(
+        '/calls',
+        data: {'calleeId': call.peerId, 'callType': callType},
+      );
+      final callId = data['callId'] as String;
+      if (context.mounted) {
+        context.push('/call/$callId', extra: {
+          'initiator': true,
+          'peer_id':   call.peerId,
+          'peer_name': call.peerName,
+          'call_type': callType,
+        });
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Impossible de démarrer l\'appel : $e')),
+        );
+      }
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isMissed  = call.status == CallStatus.missed;
     final isIncoming = call.direction == CallDirection.incoming;
     final isVideo    = call.type == CallType.video;
@@ -102,7 +133,8 @@ class _CallTile extends StatelessWidget {
           isVideo ? Icons.videocam_outlined : Icons.call_outlined,
           color: AppTheme.primaryBlue,
         ),
-        onPressed: () {},
+        tooltip: isVideo ? 'Rappel vidéo' : 'Rappel audio',
+        onPressed: () => _startCall(context, ref, isVideo ? 'video' : 'audio'),
       ),
     );
   }

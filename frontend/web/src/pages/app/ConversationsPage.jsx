@@ -385,62 +385,6 @@ export function ChatPage() {
     }
   }, [messages]); // eslint-disable-line
 
-  // ── Envoi ─────────────────────────────────────────────────────────────────
-  async function send(e) {
-    e.preventDefault();
-    if (!text.trim()) return;
-    const content = text.trim();
-    setText('');
-    inputRef.current?.focus();
-
-    const msgId = `msg_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-    const optimistic = {
-      id: msgId, from: user?.id, content,
-      sentAt: new Date().toISOString(), isMine: true, status: 'sending',
-    };
-    setMessages(prev => [...prev, optimistic]);
-
-    // Tenter l'envoi via WebSocket Phoenix (temps réel)
-    const ws = wsRef.current;
-    const wsSent = ws?.readyState === WebSocket.OPEN;
-    if (wsSent) {
-      ws.send(JSON.stringify({
-        topic: `user:${user.id}`,
-        event: 'msg:send',
-        payload: {
-          id:         msgId,
-          to:         convInfo?.peerId,
-          ciphertext: content,       // En prod : chiffrer avec Signal avant envoi
-          type:       'text',
-          timestamp:  Date.now(),
-        },
-        ref: msgId,
-      }));
-      // Message considéré "envoyé" — le Phoenix ack confirmera
-      setMessages(prev => prev.map(m =>
-        m.id === msgId ? { ...m, status: 'sent' } : m
-      ));
-    }
-
-    // Toujours persister via REST pour la durabilité et l'historique
-    try {
-      const sent = await api.post(`/conversations/${id}/messages`, { content });
-      setMessages(prev => prev.map(m =>
-        // Remplacer le message optimiste par la version serveur (avec vrai ID si différent)
-        m.id === msgId ? { ...sent, isMine: true } : m
-      ));
-    } catch (err) {
-      if (!wsSent) {
-        // Ni WS ni REST → marquer comme échoué
-        setMessages(prev => prev.map(m =>
-          m.id === msgId ? { ...m, status: 'failed' } : m
-        ));
-        notify.error(friendlyMessage(err));
-      }
-      // Si WS a fonctionné mais REST échoue, le message est quand même livré
-    }
-  }
-
   // ── Upload fichier / média ────────────────────────────────────────────────
   async function sendFile(file) {
     if (!file || !convInfo?.peerId) return;

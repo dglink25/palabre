@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { listRooms, cancelRoom } from '../../lib/videoconferenceApi';
+import { useNotification } from '../../context/NotificationContext';
+import { listRooms } from '../../lib/videoconferenceApi';
 import CreateRoomModal from '../../components/videoconference/CreateRoomModal';
 import RoomCard from '../../components/videoconference/RoomCard';
 
@@ -30,10 +31,10 @@ function formatDuration(min) {
 export default function VideoConferencePage() {
   const { user }   = useAuth();
   const navigate   = useNavigate();
+  const { notify } = useNotification();
   const [data,     setData]     = useState({ rooms: [], history: [] });
   const [loading,  setLoading]  = useState(true);
   const [showCreate, setShowCreate] = useState(false);
-  const [error,    setError]    = useState('');
 
   const isAdmin = user?.role === 'org_admin' || user?.isSuperAdmin;
 
@@ -42,11 +43,11 @@ export default function VideoConferencePage() {
       const res = await listRooms();
       setData(res || { rooms: [], history: [] });
     } catch (err) {
-      setError(err.message || 'Erreur de chargement.');
+      notify.error(err.message || 'Erreur de chargement des réunions.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [notify]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -82,12 +83,6 @@ export default function VideoConferencePage() {
           </button>
         </div>
       </div>
-
-      {error && (
-        <div style={{ padding: '12px 16px', background: 'rgba(234,67,53,0.08)', color: 'var(--color-alert-red)', borderRadius: 8, marginBottom: 20, fontSize: 14 }}>
-          {error}
-        </div>
-      )}
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: 60, color: 'var(--color-text-secondary)' }}>

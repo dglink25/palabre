@@ -53,8 +53,8 @@ app.use('/api/v1/sessions', sessionRoutes);
 app.use('/api/v1/onboarding', onboardingRoutes);
 app.use('/api/v1/messaging/signal', signalRoutes);
 app.use('/api/v1/conversations', conversationsRoutes);
-app.use('/api/v1/contacts', (req, res, next) => {
-  // Alias vers /conversations/contacts/list
+// Alias /contacts → /conversations/contacts/list (pour les appels depuis CallsPage, ChatPage, etc.)
+app.get('/api/v1/contacts', (req, res, next) => {
   req.url = '/contacts/list';
   conversationsRoutes(req, res, next);
 });

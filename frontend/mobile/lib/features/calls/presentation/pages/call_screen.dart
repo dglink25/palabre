@@ -4,6 +4,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/services/socket_service.dart';
+import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_theme.dart';
 
 /// Écran d'appel plein écran - audio ou vidéo.
@@ -36,6 +37,7 @@ class _CallScreenState extends ConsumerState<CallScreen> {
   bool _isMuted    = false;
   bool _isSpeaker  = true;
   bool _isVideo    = false;
+  bool _videoOff   = false;
   bool _isRinging  = true;
   bool _callActive = false;
   String _peerName = 'Appel...';
@@ -72,18 +74,34 @@ class _CallScreenState extends ConsumerState<CallScreen> {
       });
     }
 
+    // Activer le haut-parleur immédiatement (audio sort par le haut-parleur par défaut)
+    if (_isSpeaker) {
+      await Helper.setSpeakerphoneOn(true);
+    }
+
+    // Récupérer les credentials TURN dynamiques depuis le backend
+    List<Map<String, dynamic>> iceServers = [
+      {'urls': 'stun:stun.l.google.com:19302'},
+    ];
+    try {
+      final data = await ref.read(apiClientProvider)
+          .get<Map<String, dynamic>>('/calls/turn-credentials');
+      final servers = data['iceServers'] as List<dynamic>?;
+      if (servers != null) {
+        iceServers = servers.cast<Map<String, dynamic>>();
+      }
+    } catch (_) {
+      // Fallback TURN local si le backend est inaccessible
+      iceServers.add({
+        'urls':       'turn:${widget.extra?['turn_url'] ?? 'localhost:3478'}',
+        'username':   widget.extra?['turn_user'] ?? 'palabre',
+        'credential': widget.extra?['turn_pass'] ?? 'palabre',
+      });
+    }
+
     // Créer la PeerConnection
     _pc = await createPeerConnection({
-      'iceServers': [
-        // STUN gratuit Google (fallback)
-        {'urls': 'stun:stun.l.google.com:19302'},
-        // TURN auto-hébergé Coturn (via VPN ou public)
-        {
-          'urls': 'turn:${widget.extra?['turn_url'] ?? 'turn:localhost:3478'}',
-          'username':   widget.extra?['turn_user'] ?? 'palabre',
-          'credential': widget.extra?['turn_pass'] ?? 'palabre',
-        },
-      ],
+      'iceServers':        iceServers,
       'iceTransportPolicy': 'all',
     });
 
@@ -201,6 +219,20 @@ class _CallScreenState extends ConsumerState<CallScreen> {
     _localStream?.getVideoTracks().forEach((t) => Helper.switchCamera(t));
   }
 
+  Future<void> _toggleSpeaker() async {
+    final next = !_isSpeaker;
+    await Helper.setSpeakerphoneOn(next);
+    setState(() => _isSpeaker = next);
+  }
+
+  Future<void> _toggleVideoOff() async {
+    if (!_isVideo) return;
+    final tracks = _localStream?.getVideoTracks() ?? [];
+    final next = !_videoOff;
+    for (final t in tracks) { t.enabled = !next; }
+    setState(() => _videoOff = next);
+  }
+
   @override
   void dispose() {
     _localRenderer.dispose();
@@ -297,15 +329,15 @@ class _CallScreenState extends ConsumerState<CallScreen> {
                 _ControlButton(
                   icon:  _isSpeaker ? Icons.volume_up : Icons.volume_off,
                   label: 'Haut-parleur',
-                  color: Colors.white24,
-                  onTap: () => setState(() => _isSpeaker = !_isSpeaker),
+                  color: _isSpeaker ? Colors.white24 : AppTheme.alertRed.withOpacity(0.8),
+                  onTap: _toggleSpeaker,
                 ),
                 if (_isVideo)
                   _ControlButton(
-                    icon:  Icons.videocam_off,
-                    label: 'Vidéo',
-                    color: Colors.white24,
-                    onTap: () {},
+                    icon:  _videoOff ? Icons.videocam_off : Icons.videocam,
+                    label: _videoOff ? 'Vidéo off' : 'Vidéo',
+                    color: _videoOff ? AppTheme.alertRed.withOpacity(0.8) : Colors.white24,
+                    onTap: _toggleVideoOff,
                   ),
               ],
             ),
