@@ -62,6 +62,9 @@ export default function VideoRoomPage() {
       if (result.status === 'admitted') {
         setSessionToken(result.sessionToken);
         setJoinState('admitted');
+        // Recharger la room pour avoir le statut mis à jour (scheduled → active)
+        const updated = await getRoom(roomId).catch(() => r);
+        setRoom(updated);
       } else {
         setJoinState('waiting');
         // Polling pour détecter l'admission

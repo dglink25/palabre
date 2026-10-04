@@ -36,13 +36,24 @@ router.get('/client-sdk', async (req, res) => {
   const fetch  = require('node-fetch');
   const domain = process.env.JITSI_DOMAIN || 'meet.jit.si';
 
-  // Essayer les URLs dans l'ordre (domaine configuré en premier, puis fallback public)
-  const sources = [
-    `https://${domain}/libs/external_api.min.js`,
-    `https://${domain}/external_api.js`,
-    `https://meet.jit.si/libs/external_api.min.js`,
-    `https://meet.jit.si/external_api.js`,
-  ];
+  // Si le domaine est local/auto-hébergé (pas JaaS ni meet.jit.si),
+  // on ne tente QUE ce domaine → 100% LAN sans dépendance internet.
+  // Sinon, on essaie le domaine configuré puis le fallback public JaaS.
+  const isLocalDomain = !domain.endsWith('.jit.si') && !domain.endsWith('.8x8.vc');
+
+  const sources = isLocalDomain
+    ? [
+        `https://${domain}/libs/external_api.min.js`,
+        `https://${domain}/external_api.js`,
+        `http://${domain}/libs/external_api.min.js`,
+        `http://${domain}/external_api.js`,
+      ]
+    : [
+        `https://${domain}/libs/external_api.min.js`,
+        `https://${domain}/external_api.js`,
+        `https://meet.jit.si/libs/external_api.min.js`,
+        `https://meet.jit.si/external_api.js`,
+      ];
 
   for (const url of sources) {
     try {

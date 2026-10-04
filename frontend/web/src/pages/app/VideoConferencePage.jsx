@@ -53,11 +53,9 @@ export default function VideoConferencePage() {
 
   function handleCreated(room) {
     setShowCreate(false);
-    if (room.status === 'active') {
-      navigate(`/app/videoconference/${room.id}`);
-    } else {
-      load();
-    }
+    // Naviguer vers la room quelle que soit son statut (actif ou planifié)
+    // L'hôte doit toujours pouvoir rejoindre/gérer sa propre room
+    navigate(`/app/videoconference/${room.id}`);
   }
 
   const active    = data.rooms.filter(r => r.status === 'active');

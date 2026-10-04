@@ -3,23 +3,6 @@ import { resolveSession } from '../../lib/videoconferenceApi';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4001/api/v1';
 
-/**
- * VideoConferenceGateway
- *
- * Composant central d'encapsulation Jitsi - WHITE-LABEL TOTAL.
- * - Le nom de salle Jitsi (jitsi_room_name) n'apparaît JAMAIS ici.
- * - Le domaine Jitsi n'est pas hardcodé dans ce fichier.
- * - Le SDK Jitsi est chargé via le proxy backend (/api/v1/videoconference/client-sdk).
- * - L'iframe est pilotée exclusivement via JitsiMeetExternalAPI.
- *
- * Props :
- *   roomId        - UUID Palabre de la room
- *   sessionToken  - JWT Palabre de session (jamais un token JaaS)
- *   displayName   - Nom de l'utilisateur à afficher
- *   isModerator   - true si hôte/modérateur
- *   onLeave       - callback quand l'utilisateur quitte
- *   onError       - callback(message) en cas d'erreur fatale
- */
 export default function VideoConferenceGateway({ roomId, sessionToken, displayName, isModerator, onLeave, onError }) {
   const containerRef = useRef(null);
   const apiRef       = useRef(null);
@@ -39,7 +22,6 @@ export default function VideoConferenceGateway({ roomId, sessionToken, displayNa
           sdkLoaded = true;
         } catch (proxyErr) {
           console.warn('[VideoConferenceGateway] proxy SDK failed, trying direct load:', proxyErr.message);
-          // Résoudre la config d'abord pour obtenir le domaine
         }
 
         if (!mounted) return;
@@ -50,11 +32,17 @@ export default function VideoConferenceGateway({ roomId, sessionToken, displayNa
         if (!mounted) return;
 
         // Si le proxy a échoué, essayer le chargement direct depuis le domaine Jitsi résolu
+        // Fonctionne 100% LAN si JITSI_DOMAIN pointe vers le serveur local
         if (!sdkLoaded && config.domain) {
           try {
             await loadSdkDirect(`https://${config.domain}/libs/external_api.min.js`);
           } catch {
-            await loadSdkDirect(`https://${config.domain}/external_api.js`);
+            try {
+              await loadSdkDirect(`https://${config.domain}/external_api.js`);
+            } catch {
+              // Tentative HTTP (pour serveur local sans TLS)
+              await loadSdkDirect(`http://${config.domain}/external_api.js`);
+            }
           }
         }
 
