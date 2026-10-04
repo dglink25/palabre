@@ -1,6 +1,6 @@
-# Palabre - Plateforme de communication sécurisée
+# Palabre — Plateforme de communication sécurisée
 
-Palabre est une plateforme de communication d'entreprise chiffrée de bout en bout (protocole Signal), conçue pour des organisations qui souhaitent héberger leur propre instance (tenant local) connectée à un serveur central en production.
+Plateforme de communication d'entreprise chiffrée (infrastructure E2E Signal Protocol), conçue pour des organisations qui hébergent leur propre instance (tenant local) connectée à un serveur central.
 
 ---
 
@@ -9,14 +9,11 @@ Palabre est une plateforme de communication d'entreprise chiffrée de bout en bo
 1. [Architecture](#architecture)
 2. [Prérequis](#prérequis)
 3. [Démarrage rapide](#démarrage-rapide)
-4. [Configuration manuelle](#configuration-manuelle)
-5. [Commandes palabre.sh](#commandes-palabresh)
-6. [Services](#services)
-7. [Frontend web](#frontend-web)
-8. [Application mobile](#application-mobile)
-9. [Rôles et flux utilisateurs](#rôles-et-flux-utilisateurs)
-10. [Migrations base de données](#migrations-base-de-données)
-11. [Variables d'environnement](#variables-denvironnement)
+4. [Configuration manuelle obligatoire](#configuration-manuelle-obligatoire)
+5. [Configuration manuelle optionnelle](#configuration-manuelle-optionnelle)
+6. [Commandes palabre.sh](#commandes-palabresh)
+7. [Migrations base de données](#migrations-base-de-données)
+8. [Variables d'environnement — récapitulatif](#variables-denvironnement--récapitulatif)
 
 ---
 
@@ -24,64 +21,46 @@ Palabre est une plateforme de communication d'entreprise chiffrée de bout en bo
 
 ```
 palabre/
-├── backend/              API REST Node.js/Express - auth, onboarding, org, sessions
+├── backend/              API REST Node.js/Express
 ├── services/
-│   ├── presence/         Service de présence temps réel (Erlang/OTP + ETS + Mnesia)
-│   ├── message-router/   Routeur WebSocket E2E (Elixir/Phoenix Channels)
-│   ├── file-server/      Transfert de fichiers chiffré côté client (Node.js)
-│   └── call-signal/      Signaling WebRTC 1:1 et groupe (Elixir/Phoenix)
-├── coturn/               Serveur STUN/TURN (coturn) pour les appels WebRTC
+│   ├── presence/         Présence temps réel (Erlang/OTP)
+│   ├── message-router/   WebSocket E2E (Elixir/Phoenix Channels)
+│   ├── file-server/      Fichiers chiffrés (Node.js)
+│   └── call-signal/      Signaling WebRTC (Elixir/Phoenix)
+├── coturn/               Serveur STUN/TURN (Coturn)
 ├── frontend/
-│   ├── web/              Application React (Vite) - admin, org-admin, membres
-│   └── mobile/           Application Flutter multiplateforme
-├── mediasoup/            SFU audio/vidéo (placeholder)
-├── asterisk/             Passerelle téléphonie PBX (placeholder)
-├── ai/                   STT / TTS / LLM hébergés localement (placeholder)
-├── wireguard/            VPN tenant-to-server (placeholder, géré par le backend)
-├── docker/
-│   ├── docker-compose.yml
-│   └── .env.example
-├── palabre.sh            Script de gestion des services
-└── README.md             Ce fichier
+│   ├── web/              React/Vite (admin, org-admin, membres)
+│   └── mobile/           Flutter (Android + iOS)
+├── tenant/               Stack tenant local (WireGuard + services)
+├── ai/                   STT / TTS / LLM locaux
+├── docker/               Docker Compose central
+└── palabre.sh            Script de gestion
 ```
 
-### Profils Docker Compose
+### Ports exposés (serveur central)
 
-| Profil | Services inclus |
-|--------|----------------|
-| `core` | postgres, redis, backend, presence, message-router, file-server, call-signal, coturn |
-| `frontend` | frontend-web |
-| `telephony` | mediasoup, asterisk |
-| `realtime` | presence, message-router, file-server, call-signal, coturn |
-| `all` | tout ce qui précède |
-
-### Ports exposés
-
-| Service | Port hôte | Port conteneur |
-|---------|-----------|----------------|
-| postgres | 5433 | 5432 |
-| redis | 6380 | 6379 |
-| backend API | 4001 | 4000 |
-| frontend web | 3000 | 3000 |
-| presence | 4010 | 4010 |
-| message-router | 4020 | 4020 |
-| file-server | 4030 | 4030 |
-| call-signal | 4040 | 4040 |
-| coturn STUN/TURN | hôte direct | 3478/udp, 5349/tcp |
+| Service | Port hôte |
+|---------|-----------|
+| postgres | 5433 |
+| redis | 6380 |
+| backend API | 4001 |
+| frontend web | 3000 |
+| presence | 4010 |
+| message-router WebSocket | 4020 |
+| file-server | 4030 |
+| call-signal | 4040 |
+| coturn STUN/TURN | 3478/udp, 5349/tcp |
 
 ---
 
 ## Prérequis
 
-| Outil | Version minimale | Installation |
-|-------|-----------------|--------------|
-| Docker | 24+ | https://docs.docker.com/engine/install/ |
-| Docker Compose | v2 (intégré à Docker) | inclus dans Docker Desktop / Engine |
-| Git | quelconque | package manager système |
+| Outil | Version min. |
+|-------|-------------|
+| Docker | 24+ |
+| Docker Compose | v2 (inclus dans Docker) |
+| Git | quelconque |
 
-> Pas besoin de Node.js, Elixir ou Erlang sur la machine hôte. Tout s'exécute dans des conteneurs.
-
-Vérification :
 ```bash
 docker --version
 docker compose version
@@ -91,177 +70,229 @@ docker compose version
 
 ## Démarrage rapide
 
-### 1. Cloner le dépôt
 ```bash
-git clone <url-du-depot> palabre
-cd palabre
-```
+git clone <url> palabre && cd palabre
 
-### 2. Configurer les variables d'environnement
-
-**Backend** (obligatoire) :
-```bash
+# 1. Copier et remplir les variables (voir section ci-dessous)
 cp backend/.env.example backend/.env
-# Editez backend/.env - voir section "Configuration manuelle" ci-dessous
-```
-
-**Docker Compose** (variables de build frontend + services temps réel) :
-```bash
 cp docker/.env.example docker/.env
-# Editez docker/.env
-```
 
-### 3. Démarrer le système central
-```bash
+# 2. Démarrer les services centraux
 ./palabre.sh start core
-```
 
-Cela démarre : postgres, redis, backend, presence, message-router, file-server, call-signal, coturn.
-
-### 4. Lancer les migrations
-```bash
+# 3. Lancer toutes les migrations (inclut la 013 — infra clés E2E)
 ./palabre.sh migrate
-```
 
-### 5. Démarrer le frontend web
-```bash
+# 4. Démarrer le frontend
 ./palabre.sh start frontend
 ```
 
-L'application est disponible sur **http://localhost:3000**
-L'API sur **http://localhost:4001/api/v1**
-La documentation Swagger sur **http://localhost:4001/docs**
+Application : **http://localhost:3000**  
+API : **http://localhost:4001/api/v1**  
+Swagger : **http://localhost:4001/docs**
 
 ---
 
-## Configuration manuelle
+## Configuration manuelle obligatoire
 
-Toutes les configurations ci-dessous sont **manuelles** - elles ne peuvent pas être générées automatiquement car elles nécessitent des comptes ou des services externes.
+### 1. Firebase — authentification fédérée + notifications push
 
-### backend/.env - configurations requises
+Utilisé pour : connexions Google/GitHub/Facebook/Apple, vérification des tokens mobiles, et notifications push FCM.
 
-#### 1. Clé Firebase (authentification fédérée Google, GitHub, etc.)
+**Étapes :**
 
-**Pourquoi :** le backend vérifie les tokens Firebase des connexions sociales.
-
-**Comment :**
-1. Allez sur https://console.firebase.google.com
-2. Créez un projet (ou utilisez un existant)
-3. Paramètres du projet → Comptes de service → Générer une nouvelle clé privée
-4. Téléchargez le fichier JSON
-5. Placez-le dans `backend/secrets/` (ex. `backend/secrets/firebase-service-account.json`)
-6. Dans `backend/.env`, vérifiez :
+1. Créez un projet sur https://console.firebase.google.com
+2. Authentication → Sign-in method → activez : **Google, GitHub, Facebook, Apple**
+3. Paramètres du projet → Comptes de service → **Générer une nouvelle clé privée**
+4. Téléchargez le JSON → placez-le dans `backend/secrets/`
+5. Dans `backend/.env` :
 ```env
-FIREBASE_SERVICE_ACCOUNT_PATH=/run/secrets/firebase-service-account.json
+FIREBASE_SERVICE_ACCOUNT_PATH=/run/secrets/nom-du-fichier.json
 ```
 
-> Le dossier `backend/secrets/` est ignoré par git (voir `.gitignore`) et monté en lecture seule dans le conteneur.
+**Pour le frontend web — FCM (notifications push) :**
 
-#### 2. Clé API Convessa (OTP WhatsApp)
+6. Paramètres du projet → Cloud Messaging → **Certificats Push Web**
+7. Cliquez sur **"Générer une paire de clés"** → copiez la clé VAPID
+8. Dans `frontend/web/.env` :
+```env
+VITE_FIREBASE_API_KEY=AIzaSy...
+VITE_FIREBASE_AUTH_DOMAIN=votre-projet.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=votre-projet
+VITE_FIREBASE_APP_ID=1:xxx:web:xxx
+VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
+VITE_FIREBASE_VAPID_KEY=BNxxxxxxxxxxxxxxxx   # ← OBLIGATOIRE pour les notifications web
+```
 
-**Pourquoi :** envoi des codes OTP par WhatsApp pour la connexion sans mot de passe.
+> Sans `VITE_FIREBASE_VAPID_KEY`, les notifications push ne fonctionnent pas dans le navigateur.
 
-**Comment :** obtenez votre clé sur https://convessa.epac-uac-optica-chapter.bj
+**Pour le mobile Flutter :**
+
+9. Projet Firebase → Ajouter une application Android → package `com.palabre.app`
+10. Téléchargez `google-services.json` → placez dans `frontend/mobile/android/app/`
+11. Projet Firebase → Ajouter une application iOS → bundle `com.palabre.app`
+12. Téléchargez `GoogleService-Info.plist` → placez dans `frontend/mobile/ios/Runner/`
+
+> iOS uniquement : importez votre certificat APNs `.p8` dans Firebase Console → Paramètres → Cloud Messaging.
+
+---
+
+### 2. Fichiers audio (sonnerie + musique d'attente)
+
+Le système nécessite deux fichiers audio :
+
+**a) Sonnerie d'appel entrant (web)**
+
+Placez un fichier MP3 dans :
+```
+frontend/web/public/audio/ringtone.mp3
+```
+Format recommandé : MP3, 5–15 secondes, en boucle propre.  
+Téléchargement libre : https://mixkit.co/free-sound-effects/ring/
+
+**b) Musique d'attente (service client)**
+
+Placez un fichier MP3 dans le volume Docker ou montage :
+```
+backend/.env :  SUPPORT_HOLD_MUSIC_PATH=/audio/hold-music.mp3
+```
+En dev local, créez `backend/uploads/audio/hold-music.mp3`.
+
+---
+
+### 3. Secrets cryptographiques
+
+Générez chaque valeur avec `openssl rand -hex 32` (ou `64` pour `PHOENIX_SECRET_KEY_BASE`) :
+
+```bash
+openssl rand -hex 32   # → JWT_ACCESS_SECRET
+openssl rand -hex 32   # → JWT_REFRESH_SECRET
+openssl rand -hex 32   # → SUPER_ADMIN_STEP_SECRET
+openssl rand -hex 32   # → CONFIRMATION_TOKEN_SECRET
+openssl rand -hex 32   # → INTERNAL_SERVICES_SECRET
+openssl rand -hex 32   # → ERLANG_COOKIE
+openssl rand -hex 64   # → PHOENIX_SECRET_KEY_BASE (minimum 64 caractères)
+openssl rand -hex 32   # → TURN_SECRET
+```
+
+> `INTERNAL_SERVICES_SECRET`, `ERLANG_COOKIE`, `PHOENIX_SECRET_KEY_BASE` et `TURN_SECRET` doivent être **identiques** dans `backend/.env` et `docker/.env`.
+
+---
+
+### 4. Convessa — OTP WhatsApp
+
+Obtenez votre clé sur https://convessa.epac-uac-optica-chapter.bj :
+
 ```env
 CONVESSA_API_KEY=pk_convessa_xxxxxx
 CONVESSA_API_URL=https://convessa.epac-uac-optica-chapter.bj
 ```
 
-#### 3. Serveur SMTP (emails)
+---
 
-**Pourquoi :** envoi des codes d'activation, notifications d'onboarding, codes super-admin.
+### 5. SMTP — envoi d'emails
 
-**Option Gmail :**
-1. Activez l'authentification à 2 facteurs sur votre compte Gmail
-2. Allez dans Sécurité → Mots de passe des applications
-3. Générez un mot de passe pour "Courrier"
+**Gmail avec mot de passe d'application :**
+
+1. Activez la 2FA sur https://myaccount.google.com/security
+2. Sécurité → Mots de passe des applications → "Palabre"
+3. Copiez le mot de passe de 16 caractères
+
 ```env
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=465
 MAIL_USERNAME=votre@gmail.com
-MAIL_PASSWORD=votre_mot_de_passe_application_16_caracteres
+MAIL_PASSWORD=xxxx xxxx xxxx xxxx
 MAIL_FROM=Palabre <votre@gmail.com>
 ```
 
-#### 4. Secrets JWT
+---
 
-**Pourquoi :** signent les tokens d'accès et de rafraîchissement.
-
-Générez des valeurs aléatoires solides :
-```bash
-# Commande pour générer chaque secret
-openssl rand -hex 32
-```
-```env
-JWT_ACCESS_SECRET=<valeur_generee_1>
-JWT_REFRESH_SECRET=<valeur_generee_2>
-```
-
-#### 5. Secret super-admin et confirmation
-
-```bash
-openssl rand -hex 32   # pour SUPER_ADMIN_STEP_SECRET
-openssl rand -hex 32   # pour CONFIRMATION_TOKEN_SECRET
-```
-```env
-SUPER_ADMIN_EMAIL=votre@email.com
-SUPER_ADMIN_STEP_SECRET=<valeur_generee>
-CONFIRMATION_TOKEN_SECRET=<valeur_generee>
-```
-
-#### 6. Secrets services temps réel
-
-```bash
-openssl rand -hex 32   # INTERNAL_SERVICES_SECRET
-openssl rand -hex 32   # ERLANG_COOKIE
-openssl rand -hex 64   # PHOENIX_SECRET_KEY_BASE (min 64 chars)
-openssl rand -hex 32   # TURN_SECRET
-```
-```env
-INTERNAL_SERVICES_SECRET=<valeur>
-ERLANG_COOKIE=<valeur>
-PHOENIX_SECRET_KEY_BASE=<valeur_min_64_chars>
-TURN_SECRET=<valeur>
-```
-
-#### 7. Passkeys WebAuthn
+### 6. Passkeys WebAuthn
 
 ```env
 PASSKEY_RP_NAME=Palabre
-PASSKEY_RP_ID=localhost          # nom d'hôte SANS port
-PASSKEY_ORIGIN=http://localhost:3000   # URL exacte du frontend
+PASSKEY_RP_ID=localhost              # développement
+PASSKEY_ORIGIN=http://localhost:3000
+
+# Production :
+# PASSKEY_RP_ID=palabre.mondomaine.com
+# PASSKEY_ORIGIN=https://palabre.mondomaine.com
 ```
 
-> En production, remplacez `localhost` par votre domaine. Ex : `PASSKEY_RP_ID=palabre.mondomaine.com`
-
-#### 8. reCAPTCHA (optionnel)
-
-Obtenez une clé sur https://www.google.com/recaptcha/admin (type v2 checkbox) :
-```env
-RECAPTCHA_SECRET_KEY=<votre_cle>
-```
-Laissez vide pour désactiver le CAPTCHA (développement local).
+> Changer `PASSKEY_RP_ID` invalide tous les passkeys existants des utilisateurs.
 
 ---
 
-### docker/.env - configurations requises
+### 7. Vidéoconférence — Jitsi
 
-#### Variables Firebase pour le frontend
-
-Récupérées dans la Console Firebase → Paramètres du projet → Applications web :
-```env
-VITE_FIREBASE_API_KEY=AIzaSy...
-VITE_FIREBASE_AUTH_DOMAIN=votre-projet.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=votre-projet
-VITE_FIREBASE_APP_ID=1:123:web:abc
-```
-
-#### IP publique pour Coturn (production uniquement)
+**Option A — Serveur Jitsi auto-hébergé (recommandé, fonctionne sans internet)**
 
 ```env
-TURN_EXTERNAL_IP=203.0.113.42   # votre IP publique du VPS
+JITSI_DOMAIN=meet.votre-domaine.com    # IP ou nom DNS de votre serveur Jitsi
+JITSI_JWT_SECRET=<openssl rand -hex 32>
+VIDEO_SESSION_JWT_TTL_SECONDS=86400
 ```
-En développement local, laissez vide.
+
+> Si `JITSI_DOMAIN` ne finit pas par `.jit.si` ni `.8x8.vc`, le backend ne tente **jamais** de charger le SDK depuis internet — 100% LAN.
+
+**Option B — JaaS 8x8 (cloud, nécessite internet)**
+
+Obtenez vos credentials sur https://jaas.8x8.vc :
+
+```env
+JAAS_APP_ID=vpaas-magic-cookie-xxxxxx
+JAAS_KEY_ID=vpaas-magic-cookie-xxxxxx/xxxxxx
+JAAS_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+JITSI_DOMAIN=8x8.vc
+```
+
+---
+
+### 8. Tenant — TURN local et données persistantes
+
+Dans `tenant/.env` (généré par `setup.sh`) :
+
+```env
+TURN_SECRET=<identique au serveur central>
+TURN_REALM=local.palabre.app
+TURN_EXTERNAL_IP=      # IP publique si derrière NAT (laisser vide en LAN pur)
+AGENT_DATA_DIR=/data/agent   # Volume Docker pour la file hors-ligne
+```
+
+> `AGENT_DATA_DIR` est le dossier où l'agent persiste sa file de messages hors-ligne sur disque. Il doit correspondre au volume monté dans `docker-compose.yml`.
+
+---
+
+## Configuration manuelle optionnelle
+
+### reCAPTCHA
+
+Obtenez une clé sur https://www.google.com/recaptcha/admin (type v2 checkbox) :
+
+```env
+# backend/.env
+RECAPTCHA_SECRET_KEY=6Lc...
+
+# frontend/web/.env
+VITE_RECAPTCHA_SITE_KEY=6Lc...
+```
+
+Laissez vide en développement pour désactiver.
+
+---
+
+### DNS PowerDNS (provisionnement tenant automatique)
+
+Si vous avez un serveur PowerDNS pour créer automatiquement les sous-domaines tenant :
+
+```env
+DNS_PROVIDER=powerdns     # 'mock' par défaut
+POWERDNS_API_URL=http://pdns-server:8053
+POWERDNS_API_KEY=<votre-cle>
+PALABRE_BASE_DOMAIN=palabre.com
+DNS_TTL=300
+```
 
 ---
 
@@ -269,135 +300,47 @@ En développement local, laissez vide.
 
 ```bash
 # Démarrage
-./palabre.sh start core          # Système central complet (hors frontend)
+./palabre.sh start core          # Postgres, Redis, Backend, services temps réel, TURN
 ./palabre.sh start frontend      # Frontend web
 ./palabre.sh start all           # Tout
-./palabre.sh start telephony     # Mediasoup + Asterisk
-./palabre.sh start realtime      # Services temps réel uniquement
-./palabre.sh start <service>     # Un service précis (ex: backend, redis)
 
 # Arrêt
-./palabre.sh stop core           # Arrêter le système central
-./palabre.sh stop all            # Tout arrêter (docker compose down)
+./palabre.sh stop all
 
-# Redémarrage (rebuild inclus)
-./palabre.sh restart core
-
-# Logs en direct
+# Logs
 ./palabre.sh logs backend
 ./palabre.sh logs message-router
-./palabre.sh logs presence
 
-# Etat
-./palabre.sh status              # Liste tous les conteneurs et leur état
+# État
+./palabre.sh status
 
 # Base de données
-./palabre.sh migrate             # Exécuter toutes les migrations SQL
-
-# Shell dans un conteneur
-./palabre.sh shell backend       # /bin/sh dans palabre-backend
-./palabre.sh shell postgres      # /bin/sh dans palabre-postgres
+./palabre.sh migrate             # Toutes les migrations (001 → 013)
 ```
-
----
-
-## Services
-
-Voir les READMEs individuels :
-
-- [backend/README.md](backend/README.md) - API Node.js/Express
-- [services/presence/README.md](services/presence/README.md) - Présence Erlang
-- [services/message-router/README.md](services/message-router/README.md) - WebSocket Elixir
-- [services/file-server/README.md](services/file-server/README.md) - Fichiers chiffrés
-- [services/call-signal/README.md](services/call-signal/README.md) - Signaling WebRTC
-- [coturn/README.md](coturn/README.md) - Serveur STUN/TURN
-
----
-
-## Frontend web
-
-Application React (Vite) - `frontend/web/`
-
-Démarrage en développement (sans Docker) :
-```bash
-cd frontend/web
-cp .env.example .env   # renseigner VITE_API_BASE_URL et VITE_FIREBASE_*
-npm install
-npm run dev            # http://localhost:3000
-```
-
-Démarrage via Docker :
-```bash
-./palabre.sh start frontend
-```
-
-Interfaces disponibles :
-- Super-administrateur → `/admin`
-- Administrateur d'organisation → `/org/dashboard`
-- Membre → `/app`
-- Sans organisation → `/org/join`
-
----
-
-## Application mobile
-
-Application Flutter - `frontend/mobile/`
-
-```bash
-cd frontend/mobile
-flutter pub get
-flutter run              # sur émulateur ou appareil connecté
-```
-
-L'application est universelle (un seul APK/IPA). L'utilisateur lie son organisation au premier lancement en scannant le QR code ou en saisissant l'identifiant + code fournis par l'admin.
-
----
-
-## Rôles et flux utilisateurs
-
-| Rôle | Redirection après connexion | Accès |
-|------|-----------------------------|-------|
-| `super_admin` | `/admin` | Gestion globale, dossiers, installation |
-| `org_admin` | `/org/dashboard` | Dashboard org, VPN, invitations, guide install |
-| `org_member` | `/app` | Messages, appels, contacts |
-| Aucune org | `/org/join` | Rejoindre une organisation |
-
-### Activation d'un compte org_admin
-
-1. Super-admin approuve le dossier → email/WhatsApp avec identifiant org + code d'activation
-2. Admin va sur `/activate` → saisit l'identifiant org et le code
-3. Choisit son moyen de connexion (téléphone, email, ou Google)
-4. Redirected vers `/org/dashboard`
-
-### Rejoindre une organisation (membre)
-
-1. Connexion → redirigé vers `/org/join`
-2. Soit saisie manuelle (identifiant + code invitation), soit scan du QR code
-3. Confirmé → redirigé vers `/app`
 
 ---
 
 ## Migrations base de données
 
-Les migrations sont dans `backend/migrations/`, numérotées séquentiellement :
-
 | Fichier | Contenu |
 |---------|---------|
-| `001_core_identity_auth.sql` | Users, sessions, devices, OAuth, recovery |
+| `001_core_identity_auth.sql` | Users, sessions, devices, OAuth |
 | `002_platform_entities.sql` | Organizations, roles, memberships |
-| `003_auth_extra_and_onboarding.sql` | OTP, invitations, onboarding requests |
+| `003_auth_extra_and_onboarding.sql` | OTP, invitations, onboarding |
 | `004_super_admin.sql` | Compte super-administrateur |
 | `005_passkeys.sql` | Passkeys WebAuthn |
-| `006_messaging.sql` | Conversations, messages E2E |
-| `007_org_join.sql` | Code d'invitation org, rôle org_member |
+| `006_messaging.sql` | Conversations, messages, tables clés Signal |
+| `007_org_join.sql` | Codes d'invitation org |
+| `008_tenant_agents.sql` | Agents tenant (heartbeat, directives) |
+| `009_videoconference.sql` | Rooms, participants, invitations vidéo |
+| `010_tenant_provisioning.sql` | Provisionnement DNS + tunnel |
+| `011_customer_support.sql` | Service client (file, sessions) |
+| `012_p2p_calls.sql` | Appels P2P WebRTC (historique) |
+| `013_e2e_key_infrastructure.sql` | Infra clés Signal (sessions, rotations, vue stock) |
 
-Exécution :
 ```bash
-# Via palabre.sh (recommandé - le backend doit tourner)
+# Appliquer toutes les migrations
 ./palabre.sh migrate
-
-# Ou directement
-docker exec palabre-backend node src/db/migrate.js
 
 # Reset complet (SUPPRIME toutes les données)
 docker exec palabre-backend node src/db/reset.js
@@ -405,25 +348,62 @@ docker exec palabre-backend node src/db/reset.js
 
 ---
 
-## Variables d'environnement
+## Variables d'environnement — récapitulatif
 
-### Résumé - ce qui est obligatoire vs optionnel
+### backend/.env
 
-| Variable | Fichier | Obligatoire | Génération |
-|----------|---------|-------------|------------|
-| `FIREBASE_SERVICE_ACCOUNT_PATH` | backend/.env | Oui | Manuel (console Firebase) |
-| `CONVESSA_API_KEY` | backend/.env | Oui | Manuel (compte Convessa) |
-| `MAIL_PASSWORD` | backend/.env | Oui | Manuel (mot de passe app Gmail) |
-| `JWT_ACCESS_SECRET` | backend/.env | Oui | `openssl rand -hex 32` |
-| `JWT_REFRESH_SECRET` | backend/.env | Oui | `openssl rand -hex 32` |
-| `SUPER_ADMIN_STEP_SECRET` | backend/.env | Oui | `openssl rand -hex 32` |
-| `CONFIRMATION_TOKEN_SECRET` | backend/.env | Oui | `openssl rand -hex 32` |
-| `INTERNAL_SERVICES_SECRET` | backend/.env + docker/.env | Oui | `openssl rand -hex 32` |
-| `ERLANG_COOKIE` | backend/.env + docker/.env | Oui | `openssl rand -hex 32` |
-| `PHOENIX_SECRET_KEY_BASE` | backend/.env + docker/.env | Oui | `openssl rand -hex 64` |
-| `TURN_SECRET` | backend/.env + docker/.env | Oui | `openssl rand -hex 32` |
-| `VITE_FIREBASE_*` | docker/.env | Oui | Manuel (console Firebase) |
-| `TURN_EXTERNAL_IP` | docker/.env | Production seulement | IP publique du VPS |
-| `RECAPTCHA_SECRET_KEY` | backend/.env | Non | Manuel (Google reCAPTCHA) |
+| Variable | Obligatoire | Comment l'obtenir |
+|----------|-------------|-------------------|
+| `FIREBASE_SERVICE_ACCOUNT_PATH` | Oui | Console Firebase → Comptes de service |
+| `CONVESSA_API_KEY` | Oui | Compte Convessa |
+| `MAIL_PASSWORD` | Oui | Mot de passe app Gmail |
+| `JWT_ACCESS_SECRET` | Oui | `openssl rand -hex 32` |
+| `JWT_REFRESH_SECRET` | Oui | `openssl rand -hex 32` |
+| `SUPER_ADMIN_STEP_SECRET` | Oui | `openssl rand -hex 32` |
+| `CONFIRMATION_TOKEN_SECRET` | Oui | `openssl rand -hex 32` |
+| `INTERNAL_SERVICES_SECRET` | Oui | `openssl rand -hex 32` |
+| `ERLANG_COOKIE` | Oui | `openssl rand -hex 32` |
+| `PHOENIX_SECRET_KEY_BASE` | Oui | `openssl rand -hex 64` |
+| `TURN_SECRET` | Oui | `openssl rand -hex 32` |
+| `JITSI_DOMAIN` | Oui | Nom DNS de votre serveur Jitsi |
+| `JITSI_JWT_SECRET` | Si Jitsi self-hosted | `openssl rand -hex 32` |
+| `JAAS_APP_ID` + `JAAS_KEY_ID` + `JAAS_PRIVATE_KEY` | Si JaaS 8x8 | Console JaaS |
+| `RECAPTCHA_SECRET_KEY` | Non | Google reCAPTCHA v2 |
+| `POWERDNS_API_KEY` | Non (si DNS_PROVIDER=powerdns) | Serveur PowerDNS |
 
-> **Règle importante :** `INTERNAL_SERVICES_SECRET`, `ERLANG_COOKIE` et `PHOENIX_SECRET_KEY_BASE` doivent avoir la **même valeur** dans `backend/.env` et `docker/.env`.
+### frontend/web/.env
+
+| Variable | Obligatoire | Comment l'obtenir |
+|----------|-------------|-------------------|
+| `VITE_FIREBASE_API_KEY` | Oui | Console Firebase → Paramètres du projet |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Oui | idem |
+| `VITE_FIREBASE_PROJECT_ID` | Oui | idem |
+| `VITE_FIREBASE_APP_ID` | Oui | idem |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Oui | idem |
+| `VITE_FIREBASE_VAPID_KEY` | Oui | Firebase → Cloud Messaging → Certificats Push Web |
+| `VITE_RECAPTCHA_SITE_KEY` | Non | Google reCAPTCHA v2 |
+
+### frontend/mobile (--dart-define au build)
+
+| Variable | Obligatoire | Valeur exemple |
+|----------|-------------|----------------|
+| `API_BASE_URL` | Oui | `https://api.votre-domaine.com/api/v1` |
+| `MESSAGE_ROUTER_URL` | Oui | `wss://votre-domaine.com:4020/socket/websocket` |
+| `CALL_SIGNAL_URL` | Oui | `wss://votre-domaine.com:4040/signal/websocket` |
+| `FILE_SERVER_URL` | Oui | `https://files.votre-domaine.com` |
+
+Fichiers à placer manuellement :
+- `frontend/mobile/android/app/google-services.json`
+- `frontend/mobile/ios/Runner/GoogleService-Info.plist`
+
+### tenant/.env (généré par setup.sh)
+
+| Variable | Obligatoire | Note |
+|----------|-------------|------|
+| `ORG_ID` | Oui | Fourni dans le QR code d'approbation |
+| `CONTROL_TOKEN` | Oui | Fourni dans le QR code d'approbation |
+| `WG_PRIVATE_KEY` + `WG_PUBLIC_KEY` | Oui | Fournis dans le QR code |
+| `TURN_SECRET` | Oui | Même valeur que le serveur central |
+| `AGENT_DATA_DIR` | Oui | `/data/agent` (volume Docker) |
+| `TURN_EXTERNAL_IP` | Si NAT | IP publique du serveur tenant |
+| `AGENT_PUBLIC_URL` | Si routage inter-org | URL accessible depuis le central |

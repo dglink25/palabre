@@ -1,151 +1,175 @@
-# Frontend Web Palabre
+# Frontend Web Palabre — React/Vite
 
-Application React (Vite) - interface web pour tous les types d'utilisateurs : super-administrateur, administrateur d'organisation et membres.
+Interface web pour tous les types d'utilisateurs : super-administrateur, administrateur d'organisation, membres.
 
-## Contenu
-
-```
-frontend/web/
-├── public/
-│   └── logo.png              Logo Palabre (favicon + header)
-├── src/
-│   ├── App.jsx               Routeur principal (routes par rôle)
-│   ├── theme.css             Charte graphique complète
-│   ├── components/
-│   │   ├── Layout.jsx        Sidebar + topbar responsive
-│   │   ├── RouteGuards.jsx   Guards par rôle (SuperAdmin, OrgAdmin, Member)
-│   │   ├── AuthLayout.jsx    Layout page de connexion
-│   │   ├── PublicLayout.jsx  Layout pages publiques
-│   │   ├── PhoneInput.jsx    Sélecteur téléphone + pays
-│   │   ├── SocialButton.jsx  Boutons connexion sociale (SVG inline)
-│   │   └── ui.jsx            Alert, Spinner, Badge
-│   ├── context/
-│   │   └── AuthContext.jsx   Session, profil, heartbeat
-│   ├── lib/
-│   │   ├── apiClient.js      Client HTTP + refresh JWT auto
-│   │   ├── firebase.js       SDK Firebase (chargé en CDN, pas npm)
-│   │   ├── webauthn.js       Passkeys (API native navigator.credentials)
-│   │   ├── errorMessages.js  Traduction codes erreur API → messages FR
-│   │   └── device.js         Fingerprint appareil
-│   └── pages/
-│       ├── auth/             Connexion, 2FA, récupération
-│       ├── onboarding/       Wizard inscription org, statut, activation
-│       ├── admin/            Dashboard super-admin, dossiers
-│       ├── org/              Dashboard org-admin, VPN, invitations
-│       ├── app/              Espace membre : accueil, discussions, appels, contacts
-│       ├── profile/          Profil utilisateur
-│       ├── security/         Passkeys, 2FA, moyens de connexion
-│       └── sessions/         Sessions actives, révocation
-├── .env.example
-├── Dockerfile
-├── package.json
-└── vite.config.js
-```
+---
 
 ## Prérequis
 
 - Node.js 20+
 - npm 10+
 
-## Démarrage en développement (sans Docker)
+---
+
+## Démarrage
+
+### Développement local (sans Docker)
 
 ```bash
 cd frontend/web
-
-# 1. Copier et configurer les variables
 cp .env.example .env
-
-# 2. Installer les dépendances
+# Remplir .env (voir section ci-dessous)
 npm install
-
-# 3. Démarrer le serveur de développement
-npm run dev
+npm run dev       # http://localhost:3000
 ```
 
-L'application démarre sur **http://localhost:3000**
-
-> Le backend doit être en cours d'exécution (`./palabre.sh start core` depuis la racine).
-
-## Démarrage via Docker
+### Via Docker (recommandé)
 
 ```bash
 # Depuis la racine du projet
-cp docker/.env.example docker/.env
-# Editez docker/.env (variables VITE_*)
 ./palabre.sh start frontend
 ```
 
-## Configuration - .env
+---
 
-### Obligatoire - URL de l'API
+## Configuration — frontend/web/.env
+
+### 1. URL de l'API (obligatoire)
 
 ```env
 VITE_API_BASE_URL=http://localhost:4001/api/v1
+
+# Production :
+# VITE_API_BASE_URL=https://api.votre-domaine.com/api/v1
 ```
 
-En production :
+### 2. WebSocket temps réel (obligatoire)
+
 ```env
-VITE_API_BASE_URL=https://api.votre-domaine.com/api/v1
+VITE_MESSAGE_ROUTER_URL=ws://localhost:4020
+VITE_WS_BASE_URL=ws://localhost:4001
+
+# Production :
+# VITE_MESSAGE_ROUTER_URL=wss://votre-domaine.com:4020
+# VITE_WS_BASE_URL=wss://votre-domaine.com
 ```
 
-### Obligatoire - Firebase (connexion sociale)
+### 3. Firebase — connexion sociale (obligatoire)
 
-**Action manuelle requise.**
+Ces valeurs sont **publiques** (apparaissent dans le JS du navigateur). Pas des secrets.
 
-1. Allez sur https://console.firebase.google.com
-2. Sélectionnez votre projet
-3. Paramètres du projet (icône engrenage) → Vos applications → application Web
-4. Copiez les valeurs `firebaseConfig`
+1. Console Firebase → Paramètres du projet → Vos applications → **Application Web**
+2. Copiez `firebaseConfig`
 
 ```env
 VITE_FIREBASE_API_KEY=AIzaSy...
 VITE_FIREBASE_AUTH_DOMAIN=votre-projet.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=votre-projet
-VITE_FIREBASE_APP_ID=1:123:web:abc...
+VITE_FIREBASE_APP_ID=1:xxx:web:xxx
+VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
 ```
 
-> Ces valeurs sont **publiques** (elles apparaissent dans le code JavaScript du navigateur). Ce ne sont pas des secrets. Le secret Firebase (clé de service) est uniquement dans `backend/.env`.
+### 4. Notifications push web — VAPID Key (obligatoire pour FCM web)
 
-### Optionnel - reCAPTCHA
+Sans cette clé, les notifications push ne fonctionnent pas dans le navigateur.
 
-**Action manuelle si activé.** Obtenez une clé sur https://www.google.com/recaptcha/admin (type v2 "Case à cocher").
+1. Console Firebase → Paramètres du projet → **Cloud Messaging**
+2. Section "Certificats Push Web" → **Générer une paire de clés**
+3. Copiez la clé publique
+
+```env
+VITE_FIREBASE_VAPID_KEY=BNxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+> Cette clé est différente de `VITE_FIREBASE_API_KEY`. Elle est spécifique aux notifications web.
+
+### 5. reCAPTCHA (optionnel)
 
 ```env
 VITE_RECAPTCHA_SITE_KEY=6Lc...
 ```
 
-Laissez vide pour désactiver le CAPTCHA (développement local). Le backend doit aussi avoir `RECAPTCHA_SECRET_KEY` configuré si vous l'activez.
+Obtenez une clé sur https://www.google.com/recaptcha/admin (type v2 "Case à cocher").  
+Laissez vide pour désactiver en développement.
+
+---
+
+## Fichiers à placer manuellement
+
+### Sonnerie d'appel entrant
+
+```
+frontend/web/public/audio/ringtone.mp3
+```
+
+Format : MP3, 5–15 secondes, boucle propre.  
+Téléchargements libres : https://mixkit.co/free-sound-effects/ring/
+
+Sans ce fichier, les appels entrants arrivent sans son (la bannière s'affiche mais silencieuse).
+
+### Service Worker FCM (déjà présent)
+
+```
+frontend/web/public/firebase-messaging-sw.js
+```
+
+Ce fichier est déjà dans le repo. Il gère les notifications en arrière-plan. **Ne pas le supprimer.**
+
+### Logo
+
+```
+frontend/web/public/logo.png
+```
+
+Pour remplacer : déposez un PNG carré. Copiez aussi dans `backend/src/brand/logo.png` pour les emails.
+
+---
+
+## Chiffrement E2E — aucune configuration manuelle
+
+Les clés Signal sont générées **automatiquement** au premier login via WebCrypto API :
+
+- Clé d'identité ECDH P-256 → stockée dans IndexedDB (non-extractable)
+- 100 one-time prekeys + 1 signed prekey → clés publiques uploadées au backend
+- Sessions AES-256-GCM dérivées localement → messages chiffrés avant envoi
+- Déchiffrement automatique à la réception et au chargement de l'historique
+
+**Fallback transparent :** si le pair n'a pas encore de clés (première connexion), le message passe en clair — l'app ne bloque jamais.
+
+Vérifiez que la migration `013_e2e_key_infrastructure.sql` a été exécutée :
+```bash
+./palabre.sh migrate
+```
+
+---
 
 ## Interfaces par rôle
 
-| Rôle | Route d'accueil | Accès |
-|------|----------------|-------|
-| Super-administrateur | `/admin` | Dashboard, dossiers onboarding, guide installation |
-| Administrateur d'organisation | `/org/dashboard` | Org, VPN, invitations membres, guide install |
-| Membre (org lié) | `/app` | Messages, appels, contacts |
-| Utilisateur sans org | `/org/join` | Rejoindre une organisation |
+| Rôle | Route | Description |
+|------|-------|-------------|
+| Super-admin | `/admin` | Dossiers, guide installation, gestion globale |
+| Org-admin | `/org/dashboard` | Dashboard org, VPN, invitations |
+| Membre | `/app` | Messages, appels, contacts |
+| Sans org | `/org/join` | Rejoindre une organisation |
+
+---
 
 ## Scripts npm
 
 ```bash
-npm run dev        # Serveur de développement (hot reload)
-npm run build      # Build de production (dist/)
-npm run preview    # Prévisualiser le build de production
+npm run dev       # Serveur de développement (hot reload)
+npm run build     # Build production → dist/
+npm run preview   # Prévisualiser le build
 ```
 
-## Logo
+---
 
-Le fichier `public/logo.png` est utilisé pour :
-- Le favicon du navigateur
-- Le header de l'application
-- Les emails envoyés par le backend (copie dans `backend/src/brand/logo.png`)
+## Notes importantes
 
-Pour remplacer le logo : déposez un nouveau fichier PNG carré aux deux emplacements en conservant le nom `logo.png`. Aucune autre modification n'est nécessaire.
+**Firebase SDK** — chargé depuis CDN au runtime (pas npm). Connexion réseau requise en développement.
 
-## Notes sur Firebase
+**Passkeys** — liées à l'origine exacte du frontend. Si vous changez le port ou domaine, les passkeys existants ne fonctionnent plus. `PASSKEY_ORIGIN` dans `backend/.env` doit correspondre exactement.
 
-Le SDK Firebase est chargé **depuis le CDN Google au runtime** (pas via npm). Cela évite l'installation des 20+ sous-paquets `@firebase/*` inutiles (Firestore, Analytics, etc.) alors que seul Firebase Auth est utilisé. La connexion réseau au CDN est requise en développement.
+**Vidéoconférence** — le SDK Jitsi est chargé via le proxy backend (`/api/v1/videoconference/client-sdk`). Si `JITSI_DOMAIN` est un serveur local, aucun trafic internet n'est requis pour la vidéo.
 
-## Notes sur les Passkeys
-
-WebAuthn lie chaque passkey à une origine précise. Si vous changez le port ou le domaine du frontend, les passkeys existants cesseront de fonctionner. La variable `PASSKEY_ORIGIN` dans `backend/.env` doit correspondre exactement à l'URL du frontend (ex. `http://localhost:3000`).
+**Notifications push** — nécessitent HTTPS en production. En développement localhost fonctionne car WebCrypto et Service Workers sont autorisés sur `http://localhost`.
