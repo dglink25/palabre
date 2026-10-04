@@ -224,4 +224,39 @@ router.get('/recovery-methods', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// ── POST /me/fcm-token — enregistrer un token FCM pour les notifications push ──
+router.post('/fcm-token', requireAuth, async (req, res, next) => {
+  try {
+    const { token, platform = 'web' } = req.body;
+    if (!token) return res.status(400).json({ error: { code: 'TOKEN_REQUIRED', message: 'Token FCM requis.' } });
+
+    // Stocker dans les préférences utilisateur (upsert)
+    await pool.query(
+      `UPDATE users
+       SET preferences = preferences || jsonb_build_object('fcmTokens',
+           COALESCE(preferences->'fcmTokens', '[]'::jsonb) || jsonb_build_array(
+             jsonb_build_object('token', $1::text, 'platform', $2::text, 'updatedAt', now()::text)
+           )
+         ),
+         updated_at = now()
+       WHERE id = $3`,
+      [token, platform, req.user.id]
+    );
+
+    res.json({ ok: true });
+  } catch (err) { next(err); }
+});
+
+// ── DELETE /me/fcm-token — supprimer le token FCM (déconnexion) ───────────────
+router.delete('/fcm-token', requireAuth, async (req, res, next) => {
+  try {
+    // Vider tous les tokens FCM (déconnexion totale)
+    await pool.query(
+      `UPDATE users SET preferences = preferences - 'fcmTokens', updated_at = now() WHERE id = $1`,
+      [req.user.id]
+    );
+    res.json({ ok: true });
+  } catch (err) { next(err); }
+});
+
 module.exports = router;

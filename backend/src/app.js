@@ -15,6 +15,7 @@ const onboardingRoutes = require('./modules/onboarding/onboarding.routes');
 const signalRoutes = require('./modules/messaging/signal.routes');
 const conversationsRoutes = require('./modules/messaging/conversations.routes');
 const turnRoutes   = require('./modules/calls/turn.routes');
+const callsRoutes  = require('./modules/calls/calls.routes');
 const orgRoutes    = require('./modules/org/org.routes');
 
 const tenantRoutes = require('./modules/tenant/tenant.routes');
@@ -58,6 +59,7 @@ app.use('/api/v1/contacts', (req, res, next) => {
   conversationsRoutes(req, res, next);
 });
 app.use('/api/v1/calls', turnRoutes);
+app.use('/api/v1/calls', callsRoutes);
 app.use('/api/v1/org', orgRoutes);
 // Routes internes multi-tenant (appelées uniquement par les agents tenant)
 app.use('/api/v1/internal', tenantRoutes);

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { api } from '../lib/apiClient';
 import { getAccessToken, setTokens, clearTokens, onTokensChanged } from '../lib/tokenStore';
+import { registerFcmToken, unregisterFcmToken, onForegroundMessage } from '../lib/fcm';
 
 const AuthContext = createContext(null);
 
@@ -8,6 +9,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const heartbeatRef = useRef(null);
+  const fcmUnsubRef  = useRef(null);
 
   const loadProfile = useCallback(async () => {
     if (!getAccessToken()) {
@@ -31,8 +33,7 @@ export function AuthProvider({ children }) {
     return unsubscribe;
   }, [loadProfile]);
 
-  // Présence temps réel (voir presence.service.js côté backend) : tant que
-  // ce heartbeat part régulièrement, la session reste "en ligne".
+  // Présence temps réel
   useEffect(() => {
     if (!user) {
       clearInterval(heartbeatRef.current);
@@ -44,6 +45,29 @@ export function AuthProvider({ children }) {
     return () => clearInterval(heartbeatRef.current);
   }, [user]);
 
+  // Enregistrement FCM après connexion
+  useEffect(() => {
+    if (!user) return;
+
+    // Enregistrer le token FCM (non bloquant — peut échouer si refusé)
+    registerFcmToken().catch(() => {});
+
+    // Écoute des messages FCM au premier plan
+    onForegroundMessage(({ title, body, data }) => {
+      // Afficher une notification native si l'onglet est actif
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title || 'Palabre', {
+          body:  body || '',
+          icon:  '/logo.png',
+          tag:   data?.conversationId || 'palabre',
+          data,
+        });
+      }
+    }).then(unsub => { fcmUnsubRef.current = unsub; }).catch(() => {});
+
+    return () => { fcmUnsubRef.current?.(); };
+  }, [user?.id]); // eslint-disable-line
+
   const applySession = useCallback((sessionResult) => {
     setTokens({ accessToken: sessionResult.accessToken, refreshToken: sessionResult.refreshToken });
     setUser(sessionResult.user);
@@ -51,6 +75,7 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(async () => {
     try { await api.post('/auth/logout'); } catch { /* déconnexion locale malgré tout */ }
+    unregisterFcmToken().catch(() => {});
     clearTokens();
     setUser(null);
   }, []);

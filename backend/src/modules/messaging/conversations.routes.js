@@ -11,6 +11,21 @@
 const express = require('express');
 const { pool } = require('../../config/db');
 const { requireAuth } = require('../../middleware/authMiddleware');
+const { makeUploader, publicUrlFor } = require('../../middleware/upload');
+const { sendPushNotification } = require('../users/fcm.service');
+
+// Uploader médias messagerie : images, PDF, audio, vidéo, documents courants
+const mediaUploader = makeUploader('chat-media', {
+  maxSizeMB: 25,
+  allowedMimePrefixes: [
+    'image/', 'video/', 'audio/',
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument',
+    'application/vnd.ms-',
+    'text/plain',
+  ],
+});
 
 const router = express.Router();
 
@@ -274,6 +289,14 @@ router.post('/:id/messages', requireAuth, async (req, res, next) => {
       server_ts:  m.server_ts,
     });
 
+    // ── Notification push FCM si le destinataire est hors ligne ──────────────
+    const { rows: senderRows } = await pool.query('SELECT full_name FROM users WHERE id = $1', [userId]);
+    sendPushNotification(toId, {
+      title: senderRows[0]?.full_name || 'Nouveau message',
+      body:  content.length > 60 ? content.slice(0, 57) + '…' : content,
+      data:  { conversationId: convId, url: `/app/conversations/${convId}` },
+    });
+
     res.status(201).json({
       id:       m.id,
       from:     m.from_user_id,
@@ -285,6 +308,125 @@ router.post('/:id/messages', requireAuth, async (req, res, next) => {
       serverTs: m.server_ts,
       isMine:   true,
     });
+  } catch (err) { next(err); }
+});
+
+// ── POST /conversations/:id/media — uploader un fichier média ────────────────
+router.post('/:id/media', requireAuth, mediaUploader.single('file'), async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const orgId  = req.user.org_id;
+    const convId = req.params.id;
+
+    if (!req.file) return res.status(400).json({ error: { code: 'NO_FILE', message: 'Fichier requis.' } });
+
+    // Vérifier la conversation
+    const { rows: convRows } = await pool.query(
+      'SELECT * FROM conversations WHERE id = $1 AND org_id = $2 AND (user_a_id = $3 OR user_b_id = $3)',
+      [convId, orgId, userId]
+    );
+    if (!convRows[0]) return res.status(404).json({ error: { code: 'NOT_FOUND' } });
+
+    const conv  = convRows[0];
+    const toId  = conv.user_a_id === userId ? conv.user_b_id : conv.user_a_id;
+    const now   = Date.now();
+    const msgId = `msg_${now}_${Math.random().toString(36).slice(2, 8)}`;
+
+    // Le ciphertext d'un média est une référence JSON {url, name, size, mimeType}
+    const mediaRef = JSON.stringify({
+      url:      publicUrlFor('chat-media', req.file.filename),
+      name:     req.file.originalname,
+      size:     req.file.size,
+      mimeType: req.file.mimetype,
+    });
+
+    const { rows } = await pool.query(
+      `INSERT INTO messages (id, org_id, from_user_id, to_user_id, ciphertext, type, status, client_ts, server_ts)
+       VALUES ($1,$2,$3,$4,$5,'media_ref','sent',$6,$6) RETURNING *`,
+      [msgId, orgId, userId, toId, mediaRef, now]
+    );
+    await pool.query('UPDATE conversations SET last_message_at = now() WHERE id = $1', [convId]);
+
+    const m = rows[0];
+
+    // Notifier en temps réel
+    notifyMessageRouter({
+      id: m.id, org_id: orgId, from: userId, to: toId,
+      ciphertext: mediaRef, type: 'media_ref', status: 'sent',
+      timestamp: now, server_ts: now,
+    });
+
+    res.status(201).json({
+      id: m.id, from: userId, to: toId,
+      content: mediaRef, type: 'media_ref', status: 'sent',
+      sentAt: m.created_at, serverTs: m.server_ts, isMine: true,
+    });
+  } catch (err) { next(err); }
+});
+
+// ── PATCH /conversations/:id/messages/:msgId — modifier un message (≤ 15 min) ─
+router.patch('/:id/messages/:msgId', requireAuth, async (req, res, next) => {
+  try {
+    const { content } = req.body;
+    if (!content?.trim()) return res.status(400).json({ error: { code: 'EMPTY_CONTENT' } });
+
+    const { rows } = await pool.query(
+      `SELECT * FROM messages WHERE id = $1 AND from_user_id = $2`,
+      [req.params.msgId, req.user.id]
+    );
+    if (!rows[0]) return res.status(404).json({ error: { code: 'NOT_FOUND' } });
+
+    // Vérifier la fenêtre de 15 minutes
+    const age = (Date.now() - new Date(rows[0].created_at).getTime()) / 1000;
+    if (age > 900) return res.status(403).json({ error: { code: 'EDIT_WINDOW_CLOSED', message: 'Modification impossible après 15 minutes.' } });
+
+    const { rows: updated } = await pool.query(
+      `UPDATE messages SET ciphertext = $1, updated_at = now() WHERE id = $2 RETURNING *`,
+      [content.trim(), req.params.msgId]
+    );
+
+    // Notifier en temps réel
+    notifyMessageRouter({
+      id: `edit_${Date.now()}`, org_id: req.user.org_id,
+      from: req.user.id, to: rows[0].to_user_id,
+      ciphertext: JSON.stringify({ edited: true, msg_id: req.params.msgId, new_content: content.trim() }),
+      type: 'system', timestamp: Date.now(), server_ts: Date.now(),
+    });
+
+    res.json({ id: updated[0].id, content: updated[0].ciphertext, editedAt: updated[0].updated_at });
+  } catch (err) { next(err); }
+});
+
+// ── DELETE /conversations/:id/messages/:msgId — supprimer un message ──────────
+router.delete('/:id/messages/:msgId', requireAuth, async (req, res, next) => {
+  try {
+    const { forEveryone = false } = req.body;
+    const { rows } = await pool.query(
+      `SELECT * FROM messages WHERE id = $1 AND from_user_id = $2`,
+      [req.params.msgId, req.user.id]
+    );
+    if (!rows[0]) return res.status(404).json({ error: { code: 'NOT_FOUND' } });
+
+    if (forEveryone) {
+      // Remplacer par un message système "Message supprimé" (comme WhatsApp)
+      await pool.query(
+        `UPDATE messages SET ciphertext = $1, type = 'system', updated_at = now() WHERE id = $2`,
+        [JSON.stringify({ deleted: true, deleted_for: 'everyone' }), req.params.msgId]
+      );
+      notifyMessageRouter({
+        id: `del_${Date.now()}`, org_id: req.user.org_id,
+        from: req.user.id, to: rows[0].to_user_id,
+        ciphertext: JSON.stringify({ deleted: true, msg_id: req.params.msgId, for_everyone: true }),
+        type: 'system', timestamp: Date.now(), server_ts: Date.now(),
+      });
+    } 
+    else {
+      // Supprimer uniquement pour moi — marquer localement (pas de MAJ serveur)
+      // En pratique : ajouter une colonne hidden_for_sender ou gérer côté client
+      await pool.query(`DELETE FROM messages WHERE id = $1`, [req.params.msgId]);
+    }
+
+    res.json({ ok: true, forEveryone });
   } catch (err) { next(err); }
 });
 

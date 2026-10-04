@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
+import { useConfirm } from '../../components/ui';
 import { api } from '../../lib/apiClient';
 import { Spinner } from '../../components/ui';
 import { friendlyMessage } from '../../lib/errorMessages';
@@ -37,6 +38,60 @@ function Tick({ status }) {
   if (status === 'sending') return <span style={{ color: 'var(--color-text-secondary)', fontSize: 13 }}>○</span>;
   if (status === 'failed') return <span style={{ color: 'var(--color-alert-red)', fontSize: 13 }}>✕</span>;
   return <span style={{ color: 'var(--color-text-secondary)', fontSize: 13 }}>✓</span>;
+}
+
+// ── Rendu d'un contenu média dans une bulle ──────────────────────────────────
+function MediaContent({ content, mine }) {
+  let ref = null;
+  try { ref = JSON.parse(content); } catch { return <span>{content}</span>; }
+  if (!ref || !ref.url) return <span style={{ opacity: 0.6, fontSize: 12 }}>Fichier joint</span>;
+
+  const { url, name, mimeType } = ref;
+
+  if (mimeType?.startsWith('image/')) {
+    return (
+      <a href={url} target="_blank" rel="noreferrer" style={{ display: 'block' }}>
+        <img src={url} alt={name} style={{ maxWidth: 220, maxHeight: 200, borderRadius: 8, display: 'block' }} />
+      </a>
+    );
+  }
+  if (mimeType?.startsWith('video/')) {
+    return <video src={url} controls style={{ maxWidth: 220, borderRadius: 8, display: 'block' }} />;
+  }
+  if (mimeType?.startsWith('audio/')) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0' }}>
+        <span style={{ fontSize: 16 }}>🎵</span>
+        <audio src={url} controls style={{ height: 32, maxWidth: 180 }} />
+      </div>
+    );
+  }
+  // Document ou autre fichier
+  return (
+    <a href={url} target="_blank" rel="noreferrer noopener" style={{
+      display: 'flex', alignItems: 'center', gap: 8,
+      color: mine ? '#fff' : 'var(--color-primary-blue)',
+      textDecoration: 'none', fontSize: 13,
+    }}>
+      <span style={{ fontSize: 20 }}>📎</span>
+      <span style={{ wordBreak: 'break-all' }}>{name || 'Fichier'}</span>
+    </a>
+  );
+}
+
+// ── Contenu d'une bulle (texte ou système) ────────────────────────────────────
+function BubbleContent({ m, mine }) {
+  if (m.type === 'media_ref') return <MediaContent content={m.content} mine={mine} />;
+  if (m.type === 'system') {
+    let sys = null;
+    try { sys = JSON.parse(m.content); } catch { sys = null; }
+    if (sys?.deleted) return <span style={{ fontStyle: 'italic', opacity: 0.65, fontSize: 13 }}>Ce message a été supprimé</span>;
+    return <span style={{ fontStyle: 'italic', fontSize: 13 }}>{m.content}</span>;
+  }
+  if (m.editedAt) {
+    return <>{m.content} <span style={{ fontSize: 10, opacity: 0.6 }}>modifié</span></>;
+  }
+  return <>{m.content || <span style={{ opacity: 0.6, fontSize: 12 }}>Message chiffré</span>}</>;
 }
 
 // ── Liste des conversations ───────────────────────────────────────────────────
@@ -155,15 +210,21 @@ export function ChatPage() {
   const { id }  = useParams();
   const { user } = useAuth();
   const { notify } = useNotification();
+  const { confirm, ConfirmModal } = useConfirm();
   const navigate = useNavigate();
   const [messages,  setMessages]  = useState([]);
   const [text,      setText]      = useState('');
   const [loading,   setLoading]   = useState(true);
   const [convInfo,  setConvInfo]  = useState(null);
   const [convs,     setConvs]     = useState([]);
-  const bottomRef = useRef(null);
-  const wsRef     = useRef(null);
-  const inputRef  = useRef(null);
+  const [editingId, setEditingId] = useState(null);  // ID du message en édition
+  const [editText,  setEditText]  = useState('');
+  const [recording, setRecording] = useState(false);  // enregistrement audio
+  const bottomRef  = useRef(null);
+  const wsRef      = useRef(null);
+  const inputRef   = useRef(null);
+  const fileRef    = useRef(null);
+  const mediaRecRef = useRef(null);  // MediaRecorder
 
   // ── Charger données initiales ─────────────────────────────────────────────
   useEffect(() => {
@@ -307,10 +368,22 @@ export function ChatPage() {
     };
   }, [user?.id]); // eslint-disable-line
 
-  // ── Scroll en bas ─────────────────────────────────────────────────────────
+  // ── Scroll en bas + accusé de lecture automatique ───────────────────────
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    // Envoyer l'accusé de lecture pour le dernier message reçu
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    const lastReceived = [...messages].reverse().find(m => !m.isMine && m.from !== user?.id && m.status !== 'read');
+    if (lastReceived && convInfo?.peerId) {
+      ws.send(JSON.stringify({
+        topic:   `user:${user.id}`,
+        event:   'msg:ack_read',
+        payload: { msg_id: lastReceived.id, from: convInfo.peerId },
+        ref:     `ack_${Date.now()}`,
+      }));
+    }
+  }, [messages]); // eslint-disable-line
 
   // ── Envoi ─────────────────────────────────────────────────────────────────
   async function send(e) {
@@ -368,55 +441,167 @@ export function ChatPage() {
     }
   }
 
+  // ── Upload fichier / média ────────────────────────────────────────────────
+  async function sendFile(file) {
+    if (!file || !convInfo?.peerId) return;
+    const msgId = `msg_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const optimistic = {
+      id: msgId, from: user?.id, type: 'media_ref',
+      content: JSON.stringify({ url: URL.createObjectURL(file), name: file.name, mimeType: file.type }),
+      sentAt: new Date().toISOString(), isMine: true, status: 'sending',
+    };
+    setMessages(prev => [...prev, optimistic]);
+
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const sent = await api.upload(`/conversations/${id}/media`, form);
+      setMessages(prev => prev.map(m => m.id === msgId ? { ...sent, isMine: true } : m));
+    } catch (err) {
+      setMessages(prev => prev.map(m => m.id === msgId ? { ...m, status: 'failed' } : m));
+      notify.error(friendlyMessage(err));
+    }
+  }
+
+  // ── Enregistrement audio ──────────────────────────────────────────────────
+  async function toggleRecord() {
+    if (recording) {
+      // Arrêter l'enregistrement
+      mediaRecRef.current?.stop();
+      setRecording(false);
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const rec    = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      const chunks = [];
+      rec.ondataavailable = e => chunks.push(e.data);
+      rec.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop());
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        const file = new File([blob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
+        await sendFile(file);
+      };
+      rec.start();
+      mediaRecRef.current = rec;
+      setRecording(true);
+    } catch {
+      notify.error('Impossible d\'accéder au microphone.');
+    }
+  }
+
+  // ── Modifier un message ───────────────────────────────────────────────────
+  function startEdit(m) {
+    setEditingId(m.id);
+    setEditText(m.content || '');
+  }
+
+  async function saveEdit() {
+    if (!editText.trim() || !editingId) return;
+    try {
+      const updated = await api.patch(`/conversations/${id}/messages/${editingId}`, { content: editText.trim() });
+      setMessages(prev => prev.map(m => m.id === editingId ? { ...m, content: updated.content, editedAt: updated.editedAt } : m));
+      setEditingId(null); setEditText('');
+    } catch (err) { notify.error(friendlyMessage(err)); }
+  }
+
+  // ── Supprimer un message ──────────────────────────────────────────────────
+  async function deleteMessage(m, forEveryone) {
+    const ok = await confirm({
+      title: forEveryone ? 'Supprimer pour tout le monde' : 'Supprimer pour moi',
+      message: forEveryone
+        ? 'Ce message sera supprimé pour vous et votre interlocuteur.'
+        : 'Ce message sera supprimé uniquement pour vous.',
+      confirmLabel: 'Supprimer',
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await api.delete(`/conversations/${id}/messages/${m.id}`, { forEveryone });
+      if (forEveryone) {
+        setMessages(prev => prev.map(x => x.id === m.id
+          ? { ...x, type: 'system', content: JSON.stringify({ deleted: true }) }
+          : x
+        ));
+      } else {
+        setMessages(prev => prev.filter(x => x.id !== m.id));
+      }
+    } catch (err) { notify.error(friendlyMessage(err)); }
+  }
+
+  // ── Envoi texte ───────────────────────────────────────────────────────────
+  async function send(e) {
+    e.preventDefault();
+    if (!text.trim()) return;
+    const content = text.trim();
+    setText('');
+    inputRef.current?.focus();
+
+    const msgId = `msg_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    setMessages(prev => [...prev, {
+      id: msgId, from: user?.id, content, type: 'text',
+      sentAt: new Date().toISOString(), isMine: true, status: 'sending',
+    }]);
+
+    const ws = wsRef.current;
+    const wsSent = ws?.readyState === WebSocket.OPEN;
+    if (wsSent) {
+      ws.send(JSON.stringify({
+        topic: `user:${user.id}`, event: 'msg:send',
+        payload: { id: msgId, to: convInfo?.peerId, ciphertext: content, type: 'text', timestamp: Date.now() },
+        ref: msgId,
+      }));
+      setMessages(prev => prev.map(m => m.id === msgId ? { ...m, status: 'sent' } : m));
+    }
+
+    try {
+      const sent = await api.post(`/conversations/${id}/messages`, { content });
+      setMessages(prev => prev.map(m => m.id === msgId ? { ...sent, isMine: true } : m));
+    } catch (err) {
+      if (!wsSent) {
+        setMessages(prev => prev.map(m => m.id === msgId ? { ...m, status: 'failed' } : m));
+        notify.error(friendlyMessage(err));
+      }
+    }
+  }
+
   const fmt = (d) => {
     if (!d) return '';
     return new Date(d).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   };
 
+  // ── Rendu ──────────────────────────────────────────────────────────────────
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 56px)', overflow: 'hidden' }}>
+      <ConfirmModal />
 
-      {/* ── Liste latérale - cachée sur mobile (< 640px) ── */}
+      {/* Input fichier caché */}
+      <input ref={fileRef} type="file" style={{ display: 'none' }}
+        accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip"
+        onChange={e => { if (e.target.files[0]) sendFile(e.target.files[0]); e.target.value = ''; }} />
+
+      {/* ── Liste latérale ── */}
       <div style={{
-        width: 'min(320px, 30%)',
-        flexShrink: 0,
+        width: 'min(320px, 30%)', flexShrink: 0,
         borderRight: '1px solid var(--color-border)',
         display: 'flex', flexDirection: 'column',
-        background: 'var(--color-white)',
-        minWidth: 0,
+        background: 'var(--color-white)', minWidth: 0,
       }} className="chat-sidebar">
-        <div style={{
-          padding: '14px 16px', background: 'var(--color-offwhite)',
-          borderBottom: '1px solid var(--color-border)',
-          display: 'flex', alignItems: 'center', gap: 10,
-        }}>
+        <div style={{ padding: '14px 16px', background: 'var(--color-offwhite)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={() => navigate('/app/conversations')}
-            style={{ border: 'none', background: 'none', cursor: 'pointer', padding: '4px 8px', color: 'var(--color-text-secondary)', fontSize: 18 }}>
-            ←
-          </button>
+            style={{ border: 'none', background: 'none', cursor: 'pointer', padding: '4px 8px', color: 'var(--color-text-secondary)', fontSize: 18 }}>←</button>
           <span style={{ fontWeight: 700, fontSize: 16 }}>Messages</span>
         </div>
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {convs.map(c => (
-            <div key={c.id}
-              onClick={() => navigate(`/app/conversations/${c.id}`)}
-              style={{
-                padding: '10px 14px',
-                borderBottom: '1px solid var(--color-border)',
-                cursor: 'pointer',
-                background: c.id === id ? 'rgba(26,115,232,0.08)' : '',
-                display: 'flex', alignItems: 'center', gap: 10,
-                transition: 'background 0.1s',
-              }}
+            <div key={c.id} onClick={() => navigate(`/app/conversations/${c.id}`)}
+              style={{ padding: '10px 14px', borderBottom: '1px solid var(--color-border)', cursor: 'pointer', background: c.id === id ? 'rgba(26,115,232,0.08)' : '', display: 'flex', alignItems: 'center', gap: 10, transition: 'background 0.1s' }}
               onMouseEnter={e => { if (c.id !== id) e.currentTarget.style.background = 'var(--color-offwhite)'; }}
-              onMouseLeave={e => { if (c.id !== id) e.currentTarget.style.background = ''; }}
-            >
+              onMouseLeave={e => { if (c.id !== id) e.currentTarget.style.background = ''; }}>
               <Avatar name={c.name} size={38} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: c.id === id ? 700 : 500, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</div>
-                <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {c.lastMessage || ''}
-                </div>
+                <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.lastMessage || ''}</div>
               </div>
             </div>
           ))}
@@ -427,11 +612,7 @@ export function ChatPage() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f0f2f5' }}>
 
         {/* Header */}
-        <div style={{
-          padding: '10px 16px', background: 'var(--color-offwhite)',
-          borderBottom: '1px solid var(--color-border)',
-          display: 'flex', alignItems: 'center', gap: 12,
-        }}>
+        <div style={{ padding: '10px 16px', background: 'var(--color-offwhite)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: 12 }}>
           {convInfo && <Avatar name={convInfo.name} size={40} online={convInfo.online} />}
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: 15 }}>{convInfo?.name || '...'}</div>
@@ -439,40 +620,51 @@ export function ChatPage() {
               {convInfo?.online ? 'En ligne' : 'Hors ligne'}
             </div>
           </div>
-          {/* Boutons appel */}
           <Link to={`/app/calls?peer=${convInfo?.peerId}&type=audio`}
-            style={{ padding: '7px', borderRadius: '50%', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', display: 'flex' }}
-            title="Appel audio">
+            style={{ padding: 7, borderRadius: '50%', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', display: 'flex' }} title="Appel audio">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 11.9 19.79 19.79 0 0 1 1.61 3.27 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
           </Link>
           <Link to={`/app/calls?peer=${convInfo?.peerId}&type=video`}
-            style={{ padding: '7px', borderRadius: '50%', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', display: 'flex' }}
-            title="Appel video">
+            style={{ padding: 7, borderRadius: '50%', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', display: 'flex' }} title="Appel vidéo">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
           </Link>
         </div>
 
-        {/* Messages */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {/* Zone messages */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
           {loading ? (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Spinner /></div>
           ) : messages.map(m => {
             const mine = m.isMine || m.from === user?.id;
+            const isDeleted = (() => { try { return JSON.parse(m.content)?.deleted; } catch { return false; } })();
+
             return (
-              <div key={m.id} style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start' }}>
+              <div key={m.id} style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start' }}
+                onMouseEnter={e => { if (!isDeleted) e.currentTarget.querySelector?.('.msg-actions')?.style && (e.currentTarget.querySelector('.msg-actions').style.opacity = '1'); }}
+                onMouseLeave={e => { e.currentTarget.querySelector?.('.msg-actions')?.style && (e.currentTarget.querySelector('.msg-actions').style.opacity = '0'); }}>
+
+                {/* Actions (modifier / supprimer) — affichées au survol */}
+                {mine && !isDeleted && (
+                  <div className="msg-actions" style={{ display: 'flex', alignItems: 'center', gap: 4, marginRight: 6, opacity: 0, transition: 'opacity 0.15s' }}>
+                    {m.type === 'text' && (
+                      <button onClick={() => startEdit(m)} title="Modifier" style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 14, padding: 4, color: 'var(--color-text-secondary)' }}>✏️</button>
+                    )}
+                    <button onClick={() => deleteMessage(m, false)} title="Supprimer pour moi" style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 14, padding: 4, color: 'var(--color-text-secondary)' }}>🗑️</button>
+                    <button onClick={() => deleteMessage(m, true)} title="Supprimer pour tout le monde" style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 11, padding: 4, color: 'var(--color-alert-red)' }}>✕✕</button>
+                  </div>
+                )}
+
                 <div style={{
-                  maxWidth: '65%', padding: '8px 12px',
+                  maxWidth: '65%', padding: m.type === 'media_ref' ? '6px 8px' : '8px 12px',
                   background: mine ? 'var(--color-primary-blue)' : '#fff',
                   color: mine ? '#fff' : 'var(--color-text-primary)',
                   borderRadius: mine ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
                   boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
                   fontSize: 14, lineHeight: 1.5,
                 }}>
-                  <div>{m.content || m.decryptedText || <span style={{ opacity: 0.6, fontSize: 12 }}>Message chiffre</span>}</div>
+                  <BubbleContent m={m} mine={mine} />
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, marginTop: 3 }}>
-                    <span style={{ fontSize: 11, opacity: mine ? 0.75 : 0.5 }}>
-                      {fmt(m.sentAt || m.created_at)}
-                    </span>
+                    <span style={{ fontSize: 11, opacity: mine ? 0.75 : 0.5 }}>{fmt(m.sentAt || m.created_at)}</span>
                     {mine && <Tick status={m.status} />}
                   </div>
                 </div>
@@ -482,39 +674,43 @@ export function ChatPage() {
           <div ref={bottomRef} />
         </div>
 
-        {/* Saisie */}
+        {/* Zone d'édition */}
+        {editingId && (
+          <div style={{ padding: '8px 16px', background: 'rgba(26,115,232,0.06)', borderTop: '1px solid var(--color-primary-blue)', display: 'flex', gap: 8, alignItems: 'center' }}>
+            <span style={{ fontSize: 12, color: 'var(--color-primary-blue)', fontWeight: 600 }}>Modifier :</span>
+            <input value={editText} onChange={e => setEditText(e.target.value)}
+              style={{ flex: 1, padding: '6px 10px', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 14 }}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); saveEdit(); } if (e.key === 'Escape') { setEditingId(null); } }} />
+            <button onClick={saveEdit} className="btn btn-sm">Enregistrer</button>
+            <button onClick={() => setEditingId(null)} className="btn btn-sm btn-secondary">✕</button>
+          </div>
+        )}
+
+        {/* Zone de saisie */}
         <form onSubmit={send} style={{
-          padding: '10px 16px', background: 'var(--color-offwhite)',
+          padding: '10px 12px', background: 'var(--color-offwhite)',
           borderTop: '1px solid var(--color-border)',
-          display: 'flex', gap: 10, alignItems: 'center',
+          display: 'flex', gap: 8, alignItems: 'center',
         }}>
-          <input
-            ref={inputRef}
-            value={text}
-            onChange={e => setText(e.target.value)}
-            placeholder="Ecrire un message..."
-            style={{
-              flex: 1, padding: '10px 16px',
-              border: '1px solid var(--color-border)',
-              borderRadius: 24, fontSize: 15, outline: 'none',
-              background: '#fff',
-              transition: 'border-color 0.15s',
-            }}
+          {/* Pièce jointe */}
+          <button type="button" onClick={() => fileRef.current?.click()} title="Envoyer un fichier"
+            style={{ width: 38, height: 38, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 18 }}>
+            📎
+          </button>
+          {/* Enregistrement audio */}
+          <button type="button" onClick={toggleRecord} title={recording ? 'Arrêter l\'enregistrement' : 'Enregistrer un audio'}
+            style={{ width: 38, height: 38, border: 'none', background: recording ? 'rgba(234,67,53,0.12)' : 'none', borderRadius: '50%', cursor: 'pointer', color: recording ? 'var(--color-alert-red)' : 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 18, transition: 'background 0.15s' }}>
+            {recording ? '⏹️' : '🎤'}
+          </button>
+          <input ref={inputRef} value={text} onChange={e => setText(e.target.value)}
+            placeholder="Écrire un message…"
+            style={{ flex: 1, padding: '10px 16px', border: '1px solid var(--color-border)', borderRadius: 24, fontSize: 15, outline: 'none', background: '#fff', transition: 'border-color 0.15s' }}
             onFocus={e => e.target.style.borderColor = 'var(--color-primary-blue)'}
             onBlur={e => e.target.style.borderColor = 'var(--color-border)'}
           />
-          <button type="submit"
-            disabled={!text.trim()}
-            style={{
-              width: 44, height: 44, borderRadius: '50%',
-              background: text.trim() ? 'var(--color-primary-blue)' : 'var(--color-border)',
-              border: 'none', cursor: text.trim() ? 'pointer' : 'not-allowed',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', transition: 'background 0.15s',
-            }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-            </svg>
+          <button type="submit" disabled={!text.trim()} aria-label="Envoyer"
+            style={{ width: 44, height: 44, borderRadius: '50%', background: text.trim() ? 'var(--color-primary-blue)' : 'var(--color-border)', border: 'none', cursor: text.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', transition: 'background 0.15s', flexShrink: 0 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
         </form>
       </div>
