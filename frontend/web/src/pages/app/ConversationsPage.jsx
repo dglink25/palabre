@@ -6,6 +6,7 @@ import { useConfirm } from '../../components/ui';
 import { api } from '../../lib/apiClient';
 import { Spinner } from '../../components/ui';
 import { friendlyMessage } from '../../lib/errorMessages';
+import { e2eCrypto } from '../../lib/e2eCrypto';
 
 const WS_URL = import.meta.env.VITE_MESSAGE_ROUTER_URL || 'ws://localhost:4020';
 
@@ -235,8 +236,20 @@ export function ChatPage() {
       api.get(`/conversations/${id}`),
       api.get('/conversations'),
     ])
-      .then(([msgs, conv, all]) => {
-        setMessages(Array.isArray(msgs) ? msgs : []);
+      .then(async ([msgs, conv, all]) => {
+        // Déchiffrer l'historique des messages si les clés sont disponibles
+        const rawMsgs = Array.isArray(msgs) ? msgs : [];
+        const decrypted = await Promise.all(rawMsgs.map(async (m) => {
+          if (!m.content || m.type === 'media_ref' || m.type === 'system') return m;
+          try {
+            const peerId = m.isMine ? conv?.peerId : m.from;
+            const plain  = await e2eCrypto.decryptMessage(peerId, 'web', m.content);
+            return { ...m, content: plain };
+          } catch {
+            return m;
+          }
+        }));
+        setMessages(decrypted);
         setConvInfo(conv);
         setConvs(Array.isArray(all) ? all : []);
       })
@@ -275,21 +288,28 @@ export function ChatPage() {
         }));
       };
 
-      ws.onmessage = (e) => {
+      ws.onmessage = async (e) => {
         try {
           const msg = JSON.parse(e.data);
 
           // msg:receive — message entrant du message-router Phoenix
           if (msg.event === 'msg:receive') {
             const payload = msg.payload;
-            // Ajouter le message seulement si on est dans la bonne conversation
             if (payload.to === user.id || payload.from === user.id) {
+              // Déchiffrer le contenu (fallback transparent si les clés ne sont pas disponibles)
+              const raw     = payload.content || payload.ciphertext || '';
+              const senderId = payload.from === user.id ? payload.to : payload.from;
+              let content   = raw;
+              try {
+                content = await e2eCrypto.decryptMessage(senderId, 'web', raw);
+              } catch { /* garder le texte brut */ }
+
               setMessages(prev => {
                 if (prev.find(m => m.id === payload.id)) return prev;
                 return [...prev, {
                   id:      payload.id || Date.now(),
                   from:    payload.from,
-                  content: payload.content || payload.ciphertext,
+                  content,
                   sentAt:  payload.sentAt || new Date().toISOString(),
                   isMine:  payload.from === user.id,
                   status:  payload.status || 'delivered',
@@ -298,30 +318,22 @@ export function ChatPage() {
             }
           }
 
-          // Statut livré (2 traits gris)
           if (msg.event === 'msg:delivered') {
             setMessages(prev => prev.map(m =>
               m.id === msg.payload.id ? { ...m, status: 'delivered' } : m
             ));
           }
 
-          // Statut lu (2 traits bleus)
           if (msg.event === 'msg:read') {
             setMessages(prev => prev.map(m =>
               m.id === msg.payload.msg_id ? { ...m, status: 'read' } : m
             ));
           }
 
-          // Accusé d'envoi initial
           if (msg.event === 'msg:sent_ack') {
             setMessages(prev => prev.map(m =>
-              m.id === msg.payload.id ? { ...m, status: msg.payload.status === 'queued' ? 'sent' : 'sent' } : m
+              m.id === msg.payload.id ? { ...m, status: 'sent' } : m
             ));
-          }
-
-          // Présence d'un contact
-          if (msg.event === 'presence:update') {
-            // Les mises à jour de présence sont gérées au niveau de la liste de contacts
           }
 
         } catch (_) {}
@@ -487,20 +499,28 @@ export function ChatPage() {
       sentAt: new Date().toISOString(), isMine: true, status: 'sending',
     }]);
 
+    // Chiffrer le contenu avant envoi (fallback transparent si clés indisponibles)
+    let ciphertext = content;
+    if (convInfo?.peerId) {
+      try {
+        ciphertext = await e2eCrypto.encryptMessage(convInfo.peerId, 'web', content);
+      } catch { /* envoyer en clair si chiffrement échoue */ }
+    }
+
     const ws = wsRef.current;
     const wsSent = ws?.readyState === WebSocket.OPEN;
     if (wsSent) {
       ws.send(JSON.stringify({
         topic: `user:${user.id}`, event: 'msg:send',
-        payload: { id: msgId, to: convInfo?.peerId, ciphertext: content, type: 'text', timestamp: Date.now() },
+        payload: { id: msgId, to: convInfo?.peerId, ciphertext, type: 'text', timestamp: Date.now() },
         ref: msgId,
       }));
       setMessages(prev => prev.map(m => m.id === msgId ? { ...m, status: 'sent' } : m));
     }
 
     try {
-      const sent = await api.post(`/conversations/${id}/messages`, { content });
-      setMessages(prev => prev.map(m => m.id === msgId ? { ...sent, isMine: true } : m));
+      const sent = await api.post(`/conversations/${id}/messages`, { content: ciphertext });
+      setMessages(prev => prev.map(m => m.id === msgId ? { ...sent, content, isMine: true } : m));
     } catch (err) {
       if (!wsSent) {
         setMessages(prev => prev.map(m => m.id === msgId ? { ...m, status: 'failed' } : m));

@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback, useRef } f
 import { api } from '../lib/apiClient';
 import { getAccessToken, setTokens, clearTokens, onTokensChanged } from '../lib/tokenStore';
 import { registerFcmToken, unregisterFcmToken, onForegroundMessage } from '../lib/fcm';
+import { e2eCrypto } from '../lib/e2eCrypto';
 
 const AuthContext = createContext(null);
 
@@ -49,6 +50,11 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (!user) return;
 
+    // Initialiser les clés E2E (non-bloquant — si ça échoue l'app continue)
+    e2eCrypto.initialize().catch(err =>
+      console.warn('[e2e] init failed:', err.message)
+    );
+
     // Enregistrer le token FCM (non bloquant — peut échouer si refusé)
     registerFcmToken().catch(() => {});
 
@@ -76,6 +82,7 @@ export function AuthProvider({ children }) {
   const logout = useCallback(async () => {
     try { await api.post('/auth/logout'); } catch { /* déconnexion locale malgré tout */ }
     unregisterFcmToken().catch(() => {});
+    e2eCrypto.clearKeys().catch(() => {});
     clearTokens();
     setUser(null);
   }, []);

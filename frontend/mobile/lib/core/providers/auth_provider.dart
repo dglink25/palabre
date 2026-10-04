@@ -4,6 +4,7 @@ import '../storage/secure_storage.dart';
 import '../services/socket_service.dart';
 import '../network/api_client.dart';
 import '../network/network_detector.dart';
+import '../crypto/signal_key_manager.dart';
 
 final authStateProvider = FutureProvider<AuthState>((ref) async {
   final storage = ref.read(secureStorageProvider);
@@ -20,6 +21,9 @@ final authStateProvider = FutureProvider<AuthState>((ref) async {
   if (!socket.isConnected) {
     await socket.connect(userId, orgId ?? '', token);
   }
+
+  // Initialiser les clés E2E (non-bloquant)
+  ref.read(signalKeyManagerProvider).initialize().catchError((_) {});
 
   // Configurer le NetworkDetector si l'utilisateur a une organisation
   if (orgId != null && orgId.isNotEmpty) {
@@ -144,6 +148,9 @@ class AuthActions {
     final userId = data['user']['id'] as String;
     await _ref.read(socketServiceProvider).connect(userId, orgId, token);
 
+    // Initialiser les clés E2E Signal (non-bloquant)
+    _ref.read(signalKeyManagerProvider).initialize().catchError((_) {});
+
     // Configurer le NetworkDetector si organisation connue
     if (orgId.isNotEmpty) {
       try {
@@ -174,6 +181,7 @@ class AuthActions {
     } catch (_) {}
     await _ref.read(secureStorageProvider).clearSession();
     _ref.read(networkDetectorProvider).suspend();
+    _ref.read(signalKeyManagerProvider).clearSessions();
     _ref.invalidate(authStateProvider);
   }
 }

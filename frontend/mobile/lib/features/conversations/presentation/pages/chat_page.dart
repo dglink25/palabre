@@ -7,6 +7,7 @@ import '../../../../core/storage/local_database.dart';
 import '../../../../core/services/socket_service.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/crypto/signal_key_manager.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/message_input.dart';
@@ -81,17 +82,26 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     super.dispose();
   }
 
-  void _onMessageReceived(Map<String, dynamic> payload) {
-    // Filtrer pour cette conversation seulement
+  void _onMessageReceived(Map<String, dynamic> payload) async {
     final convId = payload['conversation_id'] ?? payload['to'];
     if (convId != widget.conversationId) return;
+
+    final raw      = payload['ciphertext'] as String? ?? '';
+    final senderId = payload['from'] as String? ?? '';
+
+    // Déchiffrer le contenu (fallback transparent)
+    String plaintext = raw;
+    try {
+      plaintext = await ref.read(signalKeyManagerProvider)
+          .decryptMessage(senderId, 'mobile', raw);
+    } catch (_) {}
 
     final db = ref.read(localDbProvider);
     db.insertMessage(MessagesCompanion.insert(
       id:             payload['id'],
       conversationId: widget.conversationId,
-      fromUserId:     payload['from'],
-      ciphertext:     payload['ciphertext'],
+      fromUserId:     senderId,
+      ciphertext:     plaintext,
       type:           const Value(MessageType.text),
       status:         const Value(MessageStatus.delivered),
       clientTs:       payload['timestamp'] ?? DateTime.now().millisecondsSinceEpoch,
@@ -108,12 +118,21 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final now    = DateTime.now().millisecondsSinceEpoch;
     final db     = ref.read(localDbProvider);
 
-    // Insérer en local immédiatement (optimistic UI)
+    // Chiffrer avant envoi (fallback transparent si pair sans clés)
+    String ciphertext = text;
+    if (_peerId != null) {
+      try {
+        ciphertext = await ref.read(signalKeyManagerProvider)
+            .encryptMessage(_peerId!, 'web', text);
+      } catch (_) {}
+    }
+
+    // Insérer en local avec le texte déchiffré pour l'affichage (optimistic UI)
     await db.insertMessage(MessagesCompanion.insert(
       id:             msgId,
       conversationId: widget.conversationId,
       fromUserId:     authState.userId!,
-      ciphertext:     text, // en prod : chiffrer avec Signal avant insertion
+      ciphertext:     text, // stocker le texte clair localement
       type:           const Value(MessageType.text),
       status:         const Value(MessageStatus.sending),
       clientTs:       now,
@@ -122,12 +141,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     ));
     _scrollToBottom();
 
-    // Envoyer via WebSocket
+    // Envoyer via WebSocket (ciphertext chiffré)
     try {
       await ref.read(socketServiceProvider).sendMessage({
         'id':         msgId,
         'to':         widget.conversationId,
-        'ciphertext': text, // en prod : ciphertext Signal
+        'ciphertext': ciphertext,
         'type':       'text',
         'timestamp':  now,
       });
