@@ -196,8 +196,18 @@ SUPPORT_CALL_QUEUE_TIMEOUT_SECONDS=600   # timeout avant abandon
 SUPPORT_HOLD_MUSIC_PATH=/audio/hold-music.mp3
 ```
 
-**Fichier audio d'attente :**  
-Placez un MP3 dans le volume monté et ajustez `SUPPORT_HOLD_MUSIC_PATH`.
+> `SUPPORT_HOLD_MUSIC_PATH` est une variable réservée pour l'intégration Asterisk future.
+> **La musique d'attente est actuellement servie par le frontend web**, pas le backend.
+> Placez vos fichiers audio dans `frontend/web/public/audio/` (voir README frontend web).
+
+**Fichiers audio requis (frontend web uniquement) :**
+
+| Fichier | Usage | Emplacement |
+|---------|-------|-------------|
+| `ringtone.mp3` | Sonnerie appel entrant | `frontend/web/public/audio/ringtone.mp3` |
+| `hold-music.mp3` | Musique d'attente service client | `frontend/web/public/audio/hold-music.mp3` |
+
+Téléchargements libres : https://mixkit.co/free-sound-effects/
 
 ---
 

@@ -139,24 +139,20 @@ VITE_FIREBASE_VAPID_KEY=BNxxxxxxxxxxxxxxxx   # ← OBLIGATOIRE pour les notifica
 
 ### 2. Fichiers audio (sonnerie + musique d'attente)
 
-Le système nécessite deux fichiers audio :
+Les fichiers audio sont servis **statiquement par le frontend web** — pas par le backend.
 
-**a) Sonnerie d'appel entrant (web)**
+| Fichier | Usage | Emplacement exact |
+|---------|-------|-------------------|
+| `ringtone.mp3` | Sonnerie appel entrant (appels P2P + service client) | `frontend/web/public/audio/ringtone.mp3` |
+| `hold-music.mp3` | Musique d'attente service client | `frontend/web/public/audio/hold-music.mp3` |
 
-Placez un fichier MP3 dans :
-```
-frontend/web/public/audio/ringtone.mp3
-```
-Format recommandé : MP3, 5–15 secondes, en boucle propre.  
-Téléchargement libre : https://mixkit.co/free-sound-effects/ring/
+**Si tu as déjà placé les fichiers dans `frontend/web/public/audio/`, c'est correct.** Ne mets pas ces fichiers dans `backend/src/audio/` — ce dossier n'est pas utilisé par le code actuel.
 
-**b) Musique d'attente (service client)**
+Téléchargements libres :
+- Sonneries : https://mixkit.co/free-sound-effects/ring/
+- Musique d'ambiance : https://freesound.org
 
-Placez un fichier MP3 dans le volume Docker ou montage :
-```
-backend/.env :  SUPPORT_HOLD_MUSIC_PATH=/audio/hold-music.mp3
-```
-En dev local, créez `backend/uploads/audio/hold-music.mp3`.
+> La variable `SUPPORT_HOLD_MUSIC_PATH` dans `backend/.env` est réservée pour une future intégration Asterisk — elle n'est pas lue par le code actuel.
 
 ---
 

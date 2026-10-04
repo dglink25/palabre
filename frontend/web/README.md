@@ -96,16 +96,22 @@ Laissez vide pour désactiver en développement.
 
 ## Fichiers à placer manuellement
 
-### Sonnerie d'appel entrant
+### Sonnerie d'appel entrant et musique d'attente
 
-```
-frontend/web/public/audio/ringtone.mp3
-```
+Ces deux fichiers sont servis statiquement par le frontend — **aucune configuration backend requise**.
 
-Format : MP3, 5–15 secondes, boucle propre.  
-Téléchargements libres : https://mixkit.co/free-sound-effects/ring/
+| Fichier | Usage | Emplacement |
+|---------|-------|-------------|
+| `ringtone.mp3` | Sonnerie appel entrant (web + appels P2P) | `frontend/web/public/audio/ringtone.mp3` |
+| `hold-music.mp3` | Musique d'attente service client | `frontend/web/public/audio/hold-music.mp3` |
 
-Sans ce fichier, les appels entrants arrivent sans son (la bannière s'affiche mais silencieuse).
+**Tu as déjà placé les fichiers au bon endroit** si tu les as mis dans `frontend/web/public/audio/`. C'est le seul emplacement qui compte — le fichier `backend/src/audio/` n'est pas utilisé par le code actuel.
+
+Téléchargements libres :
+- Sonneries : https://mixkit.co/free-sound-effects/ring/
+- Musique d'ambiance : https://freesound.org
+
+> La variable `SUPPORT_HOLD_MUSIC_PATH` dans `backend/.env` est réservée pour une future intégration Asterisk — elle n'est pas lue par le code actuel.
 
 ### Service Worker FCM (déjà présent)
 
