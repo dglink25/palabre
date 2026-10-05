@@ -1,5 +1,5 @@
 /**
- * Service Worker Firebase Cloud Messaging — Palabre
+ * Service Worker Firebase Cloud Messaging - Palabre
  *
  * Ce fichier DOIT être à la racine du domaine (/firebase-messaging-sw.js)
  * pour que Firebase Messaging puisse l'enregistrer automatiquement.
@@ -13,7 +13,7 @@
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
 
-// Configuration Firebase — à synchroniser avec VITE_FIREBASE_* dans .env
+// Configuration Firebase - à synchroniser avec VITE_FIREBASE_* dans .env
 // Ces valeurs sont publiques (clé d'API web publique, pas la clé de service).
 const firebaseConfig = {
   apiKey:            'AIzaSyAeolDPaTkInYUuRILFXObWmXOcKu5WZj8',

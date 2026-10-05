@@ -224,7 +224,7 @@ router.get('/recovery-methods', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// ── POST /me/fcm-token — enregistrer un token FCM pour les notifications push ──
+// ── POST /me/fcm-token - enregistrer un token FCM pour les notifications push ──
 router.post('/fcm-token', requireAuth, async (req, res, next) => {
   try {
     const { token, platform = 'web' } = req.body;
@@ -247,7 +247,7 @@ router.post('/fcm-token', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// ── DELETE /me/fcm-token — supprimer le token FCM (déconnexion) ───────────────
+// ── DELETE /me/fcm-token - supprimer le token FCM (déconnexion) ───────────────
 router.delete('/fcm-token', requireAuth, async (req, res, next) => {
   try {
     // Vider tous les tokens FCM (déconnexion totale)

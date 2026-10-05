@@ -1,4 +1,4 @@
-# Palabre Tenant — Serveur local autonome
+# Palabre Tenant - Serveur local autonome
 
 Stack Docker complète pour une organisation Palabre. Fonctionne **100% en LAN sans connexion internet** pour les utilisateurs sur le réseau interne. Les utilisateurs externes rejoignent via le tunnel sécurisé WireGuard.
 
@@ -39,9 +39,9 @@ chmod +x setup.sh
 ```
 
 Le script interactif demande :
-- L'identifiant de l'organisation (`ORG_ID`) — reçu par email lors de l'approbation
-- Le token de contrôle (`CONTROL_TOKEN`) — du QR code
-- Les clés WireGuard (`WG_PRIVATE_KEY`, `WG_PUBLIC_KEY`) — du QR code
+- L'identifiant de l'organisation (`ORG_ID`) - reçu par email lors de l'approbation
+- Le token de contrôle (`CONTROL_TOKEN`) - du QR code
+- Les clés WireGuard (`WG_PRIVATE_KEY`, `WG_PUBLIC_KEY`) - du QR code
 
 Le script génère un `.env` complet avec tous les secrets.
 
@@ -66,7 +66,7 @@ curl ifconfig.me
 
 ---
 
-### 2. Vidéoconférence — Jitsi local (recommandé)
+### 2. Vidéoconférence - Jitsi local (recommandé)
 
 Pour que la vidéoconférence fonctionne sans internet :
 
@@ -101,7 +101,7 @@ services:
 
 ---
 
-### 4. AGENT_DATA_DIR — persistance de la file hors-ligne
+### 4. AGENT_DATA_DIR - persistance de la file hors-ligne
 
 L'agent persist sa file de messages hors-ligne sur disque pour survivre aux redémarrages :
 
@@ -109,7 +109,7 @@ L'agent persist sa file de messages hors-ligne sur disque pour survivre aux red�
 AGENT_DATA_DIR=/data/agent
 ```
 
-Ce dossier est monté comme volume Docker dans `docker-compose.yml` (`tenant_agent_data`). **Ne le supprimez pas** — vous perdriez les messages non encore synchronisés.
+Ce dossier est monté comme volume Docker dans `docker-compose.yml` (`tenant_agent_data`). **Ne le supprimez pas** - vous perdriez les messages non encore synchronisés.
 
 ---
 
@@ -186,7 +186,7 @@ La file hors-ligne est persistée dans `AGENT_DATA_DIR/pending_queue.json`. Elle
 
 ---
 
-## Clés E2E Signal — aucune configuration requise
+## Clés E2E Signal - aucune configuration requise
 
 Le chiffrement E2E est entièrement géré par les clients (web + mobile) :
 - Chaque appareil génère ses clés au premier login

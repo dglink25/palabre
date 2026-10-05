@@ -50,12 +50,12 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (!user) return;
 
-    // Initialiser les clés E2E (non-bloquant — si ça échoue l'app continue)
+    // Initialiser les clés E2E (non-bloquant - si ça échoue l'app continue)
     e2eCrypto.initialize().catch(err =>
       console.warn('[e2e] init failed:', err.message)
     );
 
-    // Enregistrer le token FCM (non bloquant — peut échouer si refusé)
+    // Enregistrer le token FCM (non bloquant - peut échouer si refusé)
     registerFcmToken().catch(() => {});
 
     // Écoute des messages FCM au premier plan

@@ -1,5 +1,5 @@
 /**
- * CallsPage — Appels audio/vidéo P2P WebRTC avec signaling complet.
+ * CallsPage - Appels audio/vidéo P2P WebRTC avec signaling complet.
  *
  * Architecture :
  * - Signaling (offer / answer / ICE) via le channel Phoenix "user:{id}" (type call_signal)

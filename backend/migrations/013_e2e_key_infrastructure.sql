@@ -23,7 +23,7 @@ ALTER TABLE signal_prekeys
 
 -- ── Table de sessions E2E (cache côté serveur, facultatif) ───────────────
 -- Enregistre qu'une session Signal a été établie entre deux appareils.
--- Le serveur ne stocke PAS les secrets partagés — uniquement les métadonnées.
+-- Le serveur ne stocke PAS les secrets partagés - uniquement les métadonnées.
 CREATE TABLE IF NOT EXISTS signal_sessions (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,

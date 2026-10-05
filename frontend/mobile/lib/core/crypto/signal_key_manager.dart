@@ -41,7 +41,7 @@ class SignalKeyManager {
   // ── Initialisation ────────────────────────────────────────────────────────
 
   /// Initialise les clés. Appelé après chaque login.
-  /// Idempotent — si les clés existent déjà, elles sont réutilisées.
+  /// Idempotent - si les clés existent déjà, elles sont réutilisées.
   Future<void> initialize() async {
     if (_initialized) return;
 
@@ -97,7 +97,7 @@ class SignalKeyManager {
       prekeys.add({'keyId': keyId, 'publicKey': pubB64});
     }
 
-    // 4. Upload — clés publiques uniquement
+    // 4. Upload - clés publiques uniquement
     await _api.post<void>('/messaging/signal/identity', data: {
       'deviceId':       deviceId,
       'identityKey':    identityPubB64,
@@ -141,7 +141,7 @@ class SignalKeyManager {
       final key = await _getOrCreateSession(peerId, peerDeviceId);
       return _aesGcmEncrypt(key, plaintext);
     } catch (e) {
-      // Fallback transparent — l'app ne crashe pas si les clés manquent
+      // Fallback transparent - l'app ne crashe pas si les clés manquent
       return plaintext;
     }
   }

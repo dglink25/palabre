@@ -2,6 +2,9 @@ import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+const DEVELOPER_PORTAL_URL =
+  import.meta.env.VITE_DEVELOPER_PORTAL_URL || 'http://localhost:3001';
+
 /* ── Intersection Observer hook pour révéler les sections au scroll ── */
 function useReveal() {
   const ref = useRef(null);
@@ -150,6 +153,14 @@ export default function HomePage() {
             <IconVideo aria-hidden="true" />
             Créer une réunion
           </Link>
+          <a
+            href={DEVELOPER_PORTAL_URL}
+            className="btn btn-secondary"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Pour les développeurs
+          </a>
         </div>
       </section>
 

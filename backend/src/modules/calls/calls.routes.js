@@ -12,6 +12,7 @@ const fetch   = require('node-fetch');
 const { pool } = require('../../config/db');
 const { requireAuth } = require('../../middleware/authMiddleware');
 const { sendPushNotification } = require('../users/fcm.service');
+const webhookService = require('../developer/webhook.service');
 
 const router = express.Router();
 
@@ -42,7 +43,7 @@ router.get('/turn-credentials', requireAuth, (req, res) => {
   });
 });
 
-// ── POST /calls — initier un appel (créer l'entrée historique + notifier l'appelé) ─
+// ── POST /calls - initier un appel (créer l'entrée historique + notifier l'appelé) ─
 router.post('/', requireAuth, async (req, res, next) => {
   try {
     const callerId = req.user.id;
@@ -102,7 +103,7 @@ router.post('/', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// ── PATCH /calls/:id — mettre à jour le statut (répondre, raccrocher, rejeter) ─
+// ── PATCH /calls/:id - mettre à jour le statut (répondre, raccrocher, rejeter) ─
 router.patch('/:id', requireAuth, async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -143,11 +144,40 @@ router.patch('/:id', requireAuth, async (req, res, next) => {
       call_id:     call.id,
     });
 
+    // ── Webhook developer : fireEvent call.{status} (non bloquant) ───────────
+    const callEventType = `call.${status}`; // call.started, call.ended, call.missed, etc.
+    const orgId = req.user.org_id;
+    if (orgId) {
+      try {
+        const { rows: devProjects } = await pool.query(
+          `SELECT dp.id AS project_id
+           FROM developer_projects dp
+           JOIN developer_accounts da ON da.id = dp.account_id
+           JOIN memberships m ON m.user_id = da.user_id
+           WHERE m.organization_id = $1
+             AND dp.status = 'active'
+           LIMIT 10`,
+          [orgId]
+        );
+        for (const { project_id } of devProjects) {
+          webhookService.fireEvent(project_id, callEventType, {
+            call_id:    call.id,
+            call_type:  call.call_type,
+            status,
+            caller_id:  call.caller_id,
+            callee_id:  call.callee_id,
+            started_at: updates.started_at ?? call.started_at,
+            ended_at:   updates.ended_at ?? null,
+          }).catch(() => {}); // non bloquant
+        }
+      } catch (_) {} // ne jamais interrompre le flux principal
+    }
+
     res.json({ callId: call.id, status });
   } catch (err) { next(err); }
 });
 
-// ── POST /calls/:id/signal — relayer un signal WebRTC (offer/answer/ICE) ─────
+// ── POST /calls/:id/signal - relayer un signal WebRTC (offer/answer/ICE) ─────
 // Utilisé en fallback REST si le WebSocket Phoenix n'est pas disponible.
 // En temps normal, le signaling passe directement par le message-router WS.
 router.post('/:id/signal', requireAuth, async (req, res, next) => {
@@ -176,7 +206,7 @@ router.post('/:id/signal', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// ── GET /calls/history — historique des appels ────────────────────────────────
+// ── GET /calls/history - historique des appels ────────────────────────────────
 router.get('/history', requireAuth, async (req, res, next) => {
   try {
     const userId = req.user.id;

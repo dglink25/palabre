@@ -1,0 +1,50 @@
+{
+  "name": "palabre-sdk",
+  "version": "0.1.0",
+  "description": "SDK JavaScript officiel pour l'intégration Palabre (messagerie, appels, vidéo, push)",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "build:watch": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "palabre",
+    "sdk",
+    "messaging",
+    "chat",
+    "calls",
+    "webrtc",
+    "cpaas"
+  ],
+  "license": "MIT",
+  "homepage": "https://developer.palabre.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/palabre/palabre-sdk"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5",
+    "tsup": "8.0.2",
+    "typescript": "5.3.3",
+    "vitest": "1.3.1"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}

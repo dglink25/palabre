@@ -22,6 +22,7 @@ const tenantRoutes = require('./modules/tenant/tenant.routes');
 const videoconferenceRoutes = require('./modules/videoconference/videoconference.routes');
 const tenantProvisioningRoutes = require('./modules/tenant-provisioning/tenant-provisioning.routes');
 const supportRoutes = require('./modules/support/support.routes');
+const developerRoutes = require('./modules/developer/developer.routes');
 
 const app = express();
 
@@ -69,6 +70,8 @@ app.use('/api/v1/videoconference', videoconferenceRoutes);
 app.use('/api/v1/tenants', tenantProvisioningRoutes);
 // Service client (support) - Central_Server uniquement
 app.use('/api/v1/support', supportRoutes);
+// Plateforme développeur (comptes, projets, clés API, proxy, webhooks, stats)
+app.use('/api/v1/developer', developerRoutes);
 
 // --- 404 ---
 app.use((req, res) => {

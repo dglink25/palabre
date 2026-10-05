@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * FCM Service — envoi de notifications push Firebase Cloud Messaging.
+ * FCM Service - envoi de notifications push Firebase Cloud Messaging.
  * Utilise Firebase Admin SDK (déjà initialisé pour l'auth fédérée).
  *
  * Appelé après chaque insertion de message, appel entrant, etc.
@@ -29,10 +29,10 @@ async function getUserFcmTokens(userId) {
 
 /**
  * Envoie une notification push à un utilisateur.
- * Non bloquant — les erreurs sont loguées sans faire échouer l'appelant.
+ * Non bloquant - les erreurs sont loguées sans faire échouer l'appelant.
  *
- * @param {string} userId — ID de l'utilisateur destinataire
- * @param {{ title, body, data }} notification — contenu de la notif
+ * @param {string} userId - ID de l'utilisateur destinataire
+ * @param {{ title, body, data }} notification - contenu de la notif
  */
 async function sendPushNotification(userId, { title, body, data = {} }) {
   const tokens = await getUserFcmTokens(userId);
@@ -42,7 +42,7 @@ async function sendPushNotification(userId, { title, body, data = {} }) {
   try {
     admin = initFirebase();
   } catch {
-    return; // Firebase non configuré — ignorer silencieusement
+    return; // Firebase non configuré - ignorer silencieusement
   }
 
   const message = {

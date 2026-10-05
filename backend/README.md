@@ -1,4 +1,4 @@
-# Backend Palabre — API REST
+# Backend Palabre - API REST
 
 API Node.js/Express. Auth, profil, onboarding organisations, messagerie E2E, appels, vidéoconférence, service client.
 
@@ -64,7 +64,7 @@ npm run dev
 
 ---
 
-## Configuration — backend/.env
+## Configuration - backend/.env
 
 ### 1. Firebase Admin SDK (obligatoire)
 
@@ -80,7 +80,7 @@ FIREBASE_SERVICE_ACCOUNT_PATH=/run/secrets/nom-du-fichier.json
 
 ---
 
-### 2. Convessa — OTP WhatsApp (obligatoire)
+### 2. Convessa - OTP WhatsApp (obligatoire)
 
 ```env
 CONVESSA_API_KEY=pk_convessa_xxxxxx
@@ -138,7 +138,7 @@ PASSKEY_ORIGIN=http://localhost:3000
 
 ### 6. Vidéoconférence Jitsi (obligatoire pour la vidéo)
 
-**Option A — Self-hosted (fonctionne sans internet, recommandé pour tenant)**
+**Option A - Self-hosted (fonctionne sans internet, recommandé pour tenant)**
 
 ```env
 JITSI_DOMAIN=meet.votre-serveur.local    # domaine ou IP du serveur Jitsi
@@ -149,7 +149,7 @@ VIDEO_RECORDING_STORAGE_PATH=/data/recordings
 
 > Si `JITSI_DOMAIN` ne finit **pas** par `.jit.si` ni `.8x8.vc`, le proxy SDK ne tente jamais de charger depuis internet → 100% LAN.
 
-**Option B — JaaS 8x8 (cloud)**
+**Option B - JaaS 8x8 (cloud)**
 
 Obtenez vos credentials sur https://jaas.8x8.vc :
 
@@ -162,7 +162,7 @@ JITSI_DOMAIN=8x8.vc
 
 ---
 
-### 7. TURN/STUN (appels WebRTC — obligatoire en production)
+### 7. TURN/STUN (appels WebRTC - obligatoire en production)
 
 ```env
 TURN_HOST=localhost        # IP ou domaine du serveur Coturn
@@ -172,19 +172,19 @@ TURN_SECRET=<openssl rand -hex 32>   # même valeur que coturn + tenant
 TURN_REALM=palabre.app
 ```
 
-> Les credentials TURN sont générés dynamiquement (HMAC-SHA1 sur timestamp) — aucun credential statique ne transite vers les clients.
+> Les credentials TURN sont générés dynamiquement (HMAC-SHA1 sur timestamp) - aucun credential statique ne transite vers les clients.
 
 ---
 
 ### 8. Infra E2E Signal Protocol (automatique)
 
-Les tables `signal_identities`, `signal_prekeys`, `signal_sessions` sont créées par la migration `013_e2e_key_infrastructure.sql`. Aucune configuration supplémentaire requise — les clés sont générées par les clients et uploadées via `/api/v1/messaging/signal/*`.
+Les tables `signal_identities`, `signal_prekeys`, `signal_sessions` sont créées par la migration `013_e2e_key_infrastructure.sql`. Aucune configuration supplémentaire requise - les clés sont générées par les clients et uploadées via `/api/v1/messaging/signal/*`.
 
 Routes disponibles :
-- `POST /api/v1/messaging/signal/identity` — enregistrer la clé d'identité d'un appareil
-- `POST /api/v1/messaging/signal/prekeys` — uploader les prékeys publiques
-- `GET  /api/v1/messaging/signal/prekeys/:userId/:deviceId` — récupérer le bundle d'un pair
-- `GET  /api/v1/messaging/signal/prekeys/count` — stock de prékeys restantes
+- `POST /api/v1/messaging/signal/identity` - enregistrer la clé d'identité d'un appareil
+- `POST /api/v1/messaging/signal/prekeys` - uploader les prékeys publiques
+- `GET  /api/v1/messaging/signal/prekeys/:userId/:deviceId` - récupérer le bundle d'un pair
+- `GET  /api/v1/messaging/signal/prekeys/count` - stock de prékeys restantes
 
 ---
 

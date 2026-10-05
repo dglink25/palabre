@@ -5,6 +5,7 @@ const scheduler = require('./modules/videoconference/scheduler.service');
 const { attachTunnelGateway } = require('./modules/tenant-provisioning/tunnel.gateway');
 const { markInactiveTenants } = require('./modules/tenant-provisioning/tenant-provisioning.service');
 const { attachSupportGateway } = require('./modules/support/support.gateway');
+const statsService = require('./modules/developer/stats.service');
 
 const PORT = process.env.PORT || 4000;
 
@@ -47,4 +48,36 @@ server.listen(PORT, () => {
 
   // Nettoyage périodique des tenants inactifs (toutes les 5 minutes)
   setInterval(markInactiveTenants, 5 * 60_000);
+
+  // Flush périodique des statistiques developer (Redis → PostgreSQL, toutes les 60s)
+  statsService.startFlushLoop();
+
+  // Purge automatique des statistiques developer (toutes les 24h, Requirement 12.4)
+  // Supprime les developer_sdk_events de plus de 90 jours, en conservant les données
+  // des projets supprimés jusqu'à deleted_at + 90 jours.
+  const { pool } = require('./config/db');
+  const STATS_RETENTION_DAYS = parseInt(process.env.DEVELOPER_STATS_RETENTION_DAYS || '90', 10);
+
+  async function purgeOldStats() {
+    try {
+      const { rowCount } = await pool.query(
+        `DELETE FROM developer_sdk_events
+         WHERE created_at < now() - interval '${STATS_RETENTION_DAYS} days'
+           AND project_id NOT IN (
+             SELECT id FROM developer_projects
+             WHERE deleted_at IS NOT NULL
+               AND deleted_at > now() - interval '${STATS_RETENTION_DAYS} days'
+           )`
+      );
+      if (rowCount > 0) {
+        console.log(`[stats-purge] ${rowCount} entrées developer_sdk_events supprimées.`);
+      }
+    } catch (err) {
+      console.error('[stats-purge] Erreur lors de la purge des statistiques:', err.message);
+    }
+  }
+
+  // Lancer la purge immédiatement au démarrage, puis toutes les 24h
+  purgeOldStats();
+  setInterval(purgeOldStats, 24 * 60 * 60_000);
 });

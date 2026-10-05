@@ -1,0 +1,23 @@
+name: palabre_flutter
+description: Flutter SDK for integrating Palabre communication features (messaging, calls, video, push notifications) into mobile applications.
+version: 0.1.0
+homepage: https://developer.palabre.com
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.10.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.0
+  crypto: ^3.0.3
+  shared_preferences: ^2.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  # No assets or fonts defined at bootstrap stage

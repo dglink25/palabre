@@ -13,6 +13,7 @@ const { pool } = require('../../config/db');
 const { requireAuth } = require('../../middleware/authMiddleware');
 const { makeUploader, publicUrlFor } = require('../../middleware/upload');
 const { sendPushNotification } = require('../users/fcm.service');
+const webhookService = require('../developer/webhook.service');
 
 // Uploader médias messagerie : images, PDF, audio, vidéo, documents courants
 const mediaUploader = makeUploader('chat-media', {
@@ -36,7 +37,7 @@ const INTERNAL_SECRET    = process.env.INTERNAL_SERVICES_SECRET    || 'dev_inter
 /**
  * Notifie le message-router Phoenix pour livrer un message en temps réel.
  * Utilise l'endpoint interne /internal/messages/deliver.
- * Non bloquant — le message est déjà persisté en DB.
+ * Non bloquant - le message est déjà persisté en DB.
  */
 async function notifyMessageRouter(msg) {
   try {
@@ -51,7 +52,7 @@ async function notifyMessageRouter(msg) {
       timeout: 3000,
     });
   } catch (err) {
-    // Non bloquant — le destinataire récupérera le message via polling ou reconnexion
+    // Non bloquant - le destinataire récupérera le message via polling ou reconnexion
     console.warn('[conversations] message-router unreachable, RT delivery skipped:', err.message);
   }
 }
@@ -297,6 +298,33 @@ router.post('/:id/messages', requireAuth, async (req, res, next) => {
       data:  { conversationId: convId, url: `/app/conversations/${convId}` },
     });
 
+    // ── Webhook developer : fireEvent message.received (non bloquant) ─────────
+    // Chercher si la conversation est liée à un projet developer (via org_id ou
+    // un lookup sur developer_projects qui auraient créé cette conversation).
+    // On utilise une approche simple : chercher les projets actifs liés à l'org.
+    try {
+      const { rows: devProjects } = await pool.query(
+        `SELECT dp.id AS project_id
+         FROM developer_projects dp
+         JOIN developer_accounts da ON da.id = dp.account_id
+         JOIN memberships m ON m.user_id = da.user_id
+         WHERE m.organization_id = $1
+           AND dp.status = 'active'
+         LIMIT 10`,
+        [orgId]
+      );
+      for (const { project_id } of devProjects) {
+        webhookService.fireEvent(project_id, 'message.received', {
+          message_id:      m.id,
+          from_user_id:    m.from_user_id,
+          to_user_id:      m.to_user_id,
+          conversation_id: convId,
+          type:            m.type,
+          timestamp:       m.server_ts,
+        }).catch(() => {}); // non bloquant
+      }
+    } catch (_) {} // ne jamais interrompre le flux principal
+
     res.status(201).json({
       id:       m.id,
       from:     m.from_user_id,
@@ -311,7 +339,7 @@ router.post('/:id/messages', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// ── POST /conversations/:id/media — uploader un fichier média ────────────────
+// ── POST /conversations/:id/media - uploader un fichier média ────────────────
 router.post('/:id/media', requireAuth, mediaUploader.single('file'), async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -364,7 +392,7 @@ router.post('/:id/media', requireAuth, mediaUploader.single('file'), async (req,
   } catch (err) { next(err); }
 });
 
-// ── PATCH /conversations/:id/messages/:msgId — modifier un message (≤ 15 min) ─
+// ── PATCH /conversations/:id/messages/:msgId - modifier un message (≤ 15 min) ─
 router.patch('/:id/messages/:msgId', requireAuth, async (req, res, next) => {
   try {
     const { content } = req.body;
@@ -397,7 +425,7 @@ router.patch('/:id/messages/:msgId', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// ── DELETE /conversations/:id/messages/:msgId — supprimer un message ──────────
+// ── DELETE /conversations/:id/messages/:msgId - supprimer un message ──────────
 router.delete('/:id/messages/:msgId', requireAuth, async (req, res, next) => {
   try {
     const { forEveryone = false } = req.body;
@@ -421,7 +449,7 @@ router.delete('/:id/messages/:msgId', requireAuth, async (req, res, next) => {
       });
     } 
     else {
-      // Supprimer uniquement pour moi — marquer localement (pas de MAJ serveur)
+      // Supprimer uniquement pour moi - marquer localement (pas de MAJ serveur)
       // En pratique : ajouter une colonne hidden_for_sender ou gérer côté client
       await pool.query(`DELETE FROM messages WHERE id = $1`, [req.params.msgId]);
     }

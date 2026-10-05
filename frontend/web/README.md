@@ -1,4 +1,4 @@
-# Frontend Web Palabre — React/Vite
+# Frontend Web Palabre - React/Vite
 
 Interface web pour tous les types d'utilisateurs : super-administrateur, administrateur d'organisation, membres.
 
@@ -32,7 +32,7 @@ npm run dev       # http://localhost:3000
 
 ---
 
-## Configuration — frontend/web/.env
+## Configuration - frontend/web/.env
 
 ### 1. URL de l'API (obligatoire)
 
@@ -54,7 +54,7 @@ VITE_WS_BASE_URL=ws://localhost:4001
 # VITE_WS_BASE_URL=wss://votre-domaine.com
 ```
 
-### 3. Firebase — connexion sociale (obligatoire)
+### 3. Firebase - connexion sociale (obligatoire)
 
 Ces valeurs sont **publiques** (apparaissent dans le JS du navigateur). Pas des secrets.
 
@@ -69,7 +69,7 @@ VITE_FIREBASE_APP_ID=1:xxx:web:xxx
 VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
 ```
 
-### 4. Notifications push web — VAPID Key (obligatoire pour FCM web)
+### 4. Notifications push web - VAPID Key (obligatoire pour FCM web)
 
 Sans cette clé, les notifications push ne fonctionnent pas dans le navigateur.
 
@@ -98,20 +98,20 @@ Laissez vide pour désactiver en développement.
 
 ### Sonnerie d'appel entrant et musique d'attente
 
-Ces deux fichiers sont servis statiquement par le frontend — **aucune configuration backend requise**.
+Ces deux fichiers sont servis statiquement par le frontend - **aucune configuration backend requise**.
 
 | Fichier | Usage | Emplacement |
 |---------|-------|-------------|
 | `ringtone.mp3` | Sonnerie appel entrant (web + appels P2P) | `frontend/web/public/audio/ringtone.mp3` |
 | `hold-music.mp3` | Musique d'attente service client | `frontend/web/public/audio/hold-music.mp3` |
 
-**Tu as déjà placé les fichiers au bon endroit** si tu les as mis dans `frontend/web/public/audio/`. C'est le seul emplacement qui compte — le fichier `backend/src/audio/` n'est pas utilisé par le code actuel.
+**Tu as déjà placé les fichiers au bon endroit** si tu les as mis dans `frontend/web/public/audio/`. C'est le seul emplacement qui compte - le fichier `backend/src/audio/` n'est pas utilisé par le code actuel.
 
 Téléchargements libres :
 - Sonneries : https://mixkit.co/free-sound-effects/ring/
 - Musique d'ambiance : https://freesound.org
 
-> La variable `SUPPORT_HOLD_MUSIC_PATH` dans `backend/.env` est réservée pour une future intégration Asterisk — elle n'est pas lue par le code actuel.
+> La variable `SUPPORT_HOLD_MUSIC_PATH` dans `backend/.env` est réservée pour une future intégration Asterisk - elle n'est pas lue par le code actuel.
 
 ### Service Worker FCM (déjà présent)
 
@@ -131,7 +131,7 @@ Pour remplacer : déposez un PNG carré. Copiez aussi dans `backend/src/brand/lo
 
 ---
 
-## Chiffrement E2E — aucune configuration manuelle
+## Chiffrement E2E - aucune configuration manuelle
 
 Les clés Signal sont générées **automatiquement** au premier login via WebCrypto API :
 
@@ -140,7 +140,7 @@ Les clés Signal sont générées **automatiquement** au premier login via WebCr
 - Sessions AES-256-GCM dérivées localement → messages chiffrés avant envoi
 - Déchiffrement automatique à la réception et au chargement de l'historique
 
-**Fallback transparent :** si le pair n'a pas encore de clés (première connexion), le message passe en clair — l'app ne bloque jamais.
+**Fallback transparent :** si le pair n'a pas encore de clés (première connexion), le message passe en clair - l'app ne bloque jamais.
 
 Vérifiez que la migration `013_e2e_key_infrastructure.sql` a été exécutée :
 ```bash
@@ -172,10 +172,10 @@ npm run preview   # Prévisualiser le build
 
 ## Notes importantes
 
-**Firebase SDK** — chargé depuis CDN au runtime (pas npm). Connexion réseau requise en développement.
+**Firebase SDK** - chargé depuis CDN au runtime (pas npm). Connexion réseau requise en développement.
 
-**Passkeys** — liées à l'origine exacte du frontend. Si vous changez le port ou domaine, les passkeys existants ne fonctionnent plus. `PASSKEY_ORIGIN` dans `backend/.env` doit correspondre exactement.
+**Passkeys** - liées à l'origine exacte du frontend. Si vous changez le port ou domaine, les passkeys existants ne fonctionnent plus. `PASSKEY_ORIGIN` dans `backend/.env` doit correspondre exactement.
 
-**Vidéoconférence** — le SDK Jitsi est chargé via le proxy backend (`/api/v1/videoconference/client-sdk`). Si `JITSI_DOMAIN` est un serveur local, aucun trafic internet n'est requis pour la vidéo.
+**Vidéoconférence** - le SDK Jitsi est chargé via le proxy backend (`/api/v1/videoconference/client-sdk`). Si `JITSI_DOMAIN` est un serveur local, aucun trafic internet n'est requis pour la vidéo.
 
-**Notifications push** — nécessitent HTTPS en production. En développement localhost fonctionne car WebCrypto et Service Workers sont autorisés sur `http://localhost`.
+**Notifications push** - nécessitent HTTPS en production. En développement localhost fonctionne car WebCrypto et Service Workers sont autorisés sur `http://localhost`.

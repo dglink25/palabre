@@ -1,5 +1,5 @@
 -- ============================================================
--- Migration 012 — Appels P2P (audio/vidéo WebRTC 1:1)
+-- Migration 012 - Appels P2P (audio/vidéo WebRTC 1:1)
 -- Distinct des vidéoconférences de groupe (009).
 -- ============================================================
 

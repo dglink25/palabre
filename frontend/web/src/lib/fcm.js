@@ -1,5 +1,5 @@
 /**
- * fcm.js — Gestion des notifications push Firebase Cloud Messaging
+ * fcm.js - Gestion des notifications push Firebase Cloud Messaging
  *
  * Flux :
  * 1. Demander la permission navigateur
@@ -32,7 +32,7 @@ async function getMessaging() {
 
   _initPromise = (async () => {
     if (!firebaseConfig.apiKey) {
-      console.warn('[fcm] Variables VITE_FIREBASE_* manquantes — notifications désactivées.');
+      console.warn('[fcm] Variables VITE_FIREBASE_* manquantes - notifications désactivées.');
       return null;
     }
 

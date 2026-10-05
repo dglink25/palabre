@@ -1,4 +1,4 @@
-# Palabre — Plateforme de communication sécurisée
+# Palabre - Plateforme de communication sécurisée
 
 Plateforme de communication d'entreprise chiffrée (infrastructure E2E Signal Protocol), conçue pour des organisations qui hébergent leur propre instance (tenant local) connectée à un serveur central.
 
@@ -13,7 +13,7 @@ Plateforme de communication d'entreprise chiffrée (infrastructure E2E Signal Pr
 5. [Configuration manuelle optionnelle](#configuration-manuelle-optionnelle)
 6. [Commandes palabre.sh](#commandes-palabresh)
 7. [Migrations base de données](#migrations-base-de-données)
-8. [Variables d'environnement — récapitulatif](#variables-denvironnement--récapitulatif)
+8. [Variables d'environnement - récapitulatif](#variables-denvironnement--récapitulatif)
 
 ---
 
@@ -80,7 +80,7 @@ cp docker/.env.example docker/.env
 # 2. Démarrer les services centraux
 ./palabre.sh start core
 
-# 3. Lancer toutes les migrations (inclut la 013 — infra clés E2E)
+# 3. Lancer toutes les migrations (inclut la 013 - infra clés E2E)
 ./palabre.sh migrate
 
 # 4. Démarrer le frontend
@@ -95,7 +95,7 @@ Swagger : **http://localhost:4001/docs**
 
 ## Configuration manuelle obligatoire
 
-### 1. Firebase — authentification fédérée + notifications push
+### 1. Firebase - authentification fédérée + notifications push
 
 Utilisé pour : connexions Google/GitHub/Facebook/Apple, vérification des tokens mobiles, et notifications push FCM.
 
@@ -110,7 +110,7 @@ Utilisé pour : connexions Google/GitHub/Facebook/Apple, vérification des token
 FIREBASE_SERVICE_ACCOUNT_PATH=/run/secrets/nom-du-fichier.json
 ```
 
-**Pour le frontend web — FCM (notifications push) :**
+**Pour le frontend web - FCM (notifications push) :**
 
 6. Paramètres du projet → Cloud Messaging → **Certificats Push Web**
 7. Cliquez sur **"Générer une paire de clés"** → copiez la clé VAPID
@@ -139,20 +139,20 @@ VITE_FIREBASE_VAPID_KEY=BNxxxxxxxxxxxxxxxx   # ← OBLIGATOIRE pour les notifica
 
 ### 2. Fichiers audio (sonnerie + musique d'attente)
 
-Les fichiers audio sont servis **statiquement par le frontend web** — pas par le backend.
+Les fichiers audio sont servis **statiquement par le frontend web** - pas par le backend.
 
 | Fichier | Usage | Emplacement exact |
 |---------|-------|-------------------|
 | `ringtone.mp3` | Sonnerie appel entrant (appels P2P + service client) | `frontend/web/public/audio/ringtone.mp3` |
 | `hold-music.mp3` | Musique d'attente service client | `frontend/web/public/audio/hold-music.mp3` |
 
-**Si tu as déjà placé les fichiers dans `frontend/web/public/audio/`, c'est correct.** Ne mets pas ces fichiers dans `backend/src/audio/` — ce dossier n'est pas utilisé par le code actuel.
+**Si tu as déjà placé les fichiers dans `frontend/web/public/audio/`, c'est correct.** Ne mets pas ces fichiers dans `backend/src/audio/` - ce dossier n'est pas utilisé par le code actuel.
 
 Téléchargements libres :
 - Sonneries : https://mixkit.co/free-sound-effects/ring/
 - Musique d'ambiance : https://freesound.org
 
-> La variable `SUPPORT_HOLD_MUSIC_PATH` dans `backend/.env` est réservée pour une future intégration Asterisk — elle n'est pas lue par le code actuel.
+> La variable `SUPPORT_HOLD_MUSIC_PATH` dans `backend/.env` est réservée pour une future intégration Asterisk - elle n'est pas lue par le code actuel.
 
 ---
 
@@ -175,7 +175,7 @@ openssl rand -hex 32   # → TURN_SECRET
 
 ---
 
-### 4. Convessa — OTP WhatsApp
+### 4. Convessa - OTP WhatsApp
 
 Obtenez votre clé sur https://convessa.epac-uac-optica-chapter.bj :
 
@@ -186,7 +186,7 @@ CONVESSA_API_URL=https://convessa.epac-uac-optica-chapter.bj
 
 ---
 
-### 5. SMTP — envoi d'emails
+### 5. SMTP - envoi d'emails
 
 **Gmail avec mot de passe d'application :**
 
@@ -220,9 +220,9 @@ PASSKEY_ORIGIN=http://localhost:3000
 
 ---
 
-### 7. Vidéoconférence — Jitsi
+### 7. Vidéoconférence - Jitsi
 
-**Option A — Serveur Jitsi auto-hébergé (recommandé, fonctionne sans internet)**
+**Option A - Serveur Jitsi auto-hébergé (recommandé, fonctionne sans internet)**
 
 ```env
 JITSI_DOMAIN=meet.votre-domaine.com    # IP ou nom DNS de votre serveur Jitsi
@@ -230,9 +230,9 @@ JITSI_JWT_SECRET=<openssl rand -hex 32>
 VIDEO_SESSION_JWT_TTL_SECONDS=86400
 ```
 
-> Si `JITSI_DOMAIN` ne finit pas par `.jit.si` ni `.8x8.vc`, le backend ne tente **jamais** de charger le SDK depuis internet — 100% LAN.
+> Si `JITSI_DOMAIN` ne finit pas par `.jit.si` ni `.8x8.vc`, le backend ne tente **jamais** de charger le SDK depuis internet - 100% LAN.
 
-**Option B — JaaS 8x8 (cloud, nécessite internet)**
+**Option B - JaaS 8x8 (cloud, nécessite internet)**
 
 Obtenez vos credentials sur https://jaas.8x8.vc :
 
@@ -245,7 +245,7 @@ JITSI_DOMAIN=8x8.vc
 
 ---
 
-### 8. Tenant — TURN local et données persistantes
+### 8. Tenant - TURN local et données persistantes
 
 Dans `tenant/.env` (généré par `setup.sh`) :
 
@@ -344,7 +344,7 @@ docker exec palabre-backend node src/db/reset.js
 
 ---
 
-## Variables d'environnement — récapitulatif
+## Variables d'environnement - récapitulatif
 
 ### backend/.env
 

@@ -292,7 +292,7 @@ export function ChatPage() {
         try {
           const msg = JSON.parse(e.data);
 
-          // msg:receive — message entrant du message-router Phoenix
+          // msg:receive - message entrant du message-router Phoenix
           if (msg.event === 'msg:receive') {
             const payload = msg.payload;
             if (payload.to === user.id || payload.from === user.id) {
@@ -351,8 +351,8 @@ export function ChatPage() {
     connect();
 
     // Heartbeat Phoenix toutes les 30s
-    // — sur le topic "phoenix" pour maintenir le socket vivant
-    // — sur le channel "user:{id}" avec event "heartbeat" pour la présence
+    // - sur le topic "phoenix" pour maintenir le socket vivant
+    // - sur le channel "user:{id}" avec event "heartbeat" pour la présence
     const hbInterval = setInterval(() => {
       if (ws?.readyState === WebSocket.OPEN) {
         // Heartbeat Phoenix standard (maintient la connexion)
@@ -607,7 +607,7 @@ export function ChatPage() {
                 onMouseEnter={e => { if (!isDeleted) e.currentTarget.querySelector?.('.msg-actions')?.style && (e.currentTarget.querySelector('.msg-actions').style.opacity = '1'); }}
                 onMouseLeave={e => { e.currentTarget.querySelector?.('.msg-actions')?.style && (e.currentTarget.querySelector('.msg-actions').style.opacity = '0'); }}>
 
-                {/* Actions (modifier / supprimer) — affichées au survol */}
+                {/* Actions (modifier / supprimer) - affichées au survol */}
                 {mine && !isDeleted && (
                   <div className="msg-actions" style={{ display: 'flex', alignItems: 'center', gap: 4, marginRight: 6, opacity: 0, transition: 'opacity 0.15s' }}>
                     {m.type === 'text' && (

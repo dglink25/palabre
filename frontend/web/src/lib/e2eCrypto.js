@@ -1,5 +1,5 @@
 /**
- * e2eCrypto.js — Infrastructure de chiffrement E2E pour Palabre Web
+ * e2eCrypto.js - Infrastructure de chiffrement E2E pour Palabre Web
  *
  * Architecture :
  *   - Clé d'identité  : ECDH P-256 (non-extractable dans WebCrypto)
@@ -9,7 +9,7 @@
  *
  * Ce module implémente la couche d'infrastructure (génération de clés,
  * stockage sécurisé, échange de clés X3DH simplifié).
- * Le Double Ratchet complet nécessite libsignal — cette couche
+ * Le Double Ratchet complet nécessite libsignal - cette couche
  * établit l'infrastructure pour qu'il puisse être branché.
  *
  * Stockage des clés privées :
@@ -203,7 +203,7 @@ class E2ECryptoService {
           await this._uploadFreshPrekeys(deviceId);
         }
       } catch {
-        // Non bloquant — les prékeys seront rechargées au prochain démarrage
+        // Non bloquant - les prékeys seront rechargées au prochain démarrage
       }
     }
 
@@ -253,7 +253,7 @@ class E2ECryptoService {
       signedPrekey: {
         keyId:     signedKeyId,
         publicKey: signedPubB64,
-        signature: '', // Signature sur la clé elle-même — implémentation complète avec HMAC
+        signature: '', // Signature sur la clé elle-même - implémentation complète avec HMAC
       },
     });
   }
@@ -285,7 +285,7 @@ class E2ECryptoService {
       return await aesEncrypt(sessionKey, plaintext);
     } catch (err) {
       console.warn('[e2e] encrypt failed, sending plaintext:', err.message);
-      // Fallback gracieux — le message passe en clair si les clés ne sont pas disponibles
+      // Fallback gracieux - le message passe en clair si les clés ne sont pas disponibles
       // Cela permet à l'app de fonctionner même si l'autre partie n'a pas encore uploadé ses clés
       return plaintext;
     }
@@ -303,7 +303,7 @@ class E2ECryptoService {
       return await aesDecrypt(sessionKey, ciphertext);
     } catch {
       // Si le déchiffrement échoue (clé différente, message en clair, etc.)
-      // afficher le ciphertext tel quel — jamais crasher
+      // afficher le ciphertext tel quel - jamais crasher
       return ciphertext;
     }
   }

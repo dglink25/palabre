@@ -1,4 +1,4 @@
-# Palabre Mobile — Flutter
+# Palabre Mobile - Flutter
 
 Application Flutter multiplateforme (Android + iOS). Communication chiffrée E2E pour les membres d'une organisation.
 
@@ -85,7 +85,7 @@ flutter run \
 4. **Placez-le dans** : `frontend/mobile/ios/Runner/GoogleService-Info.plist`
 5. Dans Xcode → Runner → Build Phases → Copy Bundle Resources → vérifiez que le fichier est présent
 
-**Notifications iOS (APNs) — obligatoire pour iOS :**
+**Notifications iOS (APNs) - obligatoire pour iOS :**
 
 6. Apple Developer Portal → Certificates, Identifiers & Profiles → Keys → **+**
 7. Cochez **Apple Push Notifications service (APNs)** → créez la clé
@@ -129,7 +129,7 @@ flutter:
 
 ---
 
-### 3. Clés E2E Signal — aucune configuration manuelle
+### 3. Clés E2E Signal - aucune configuration manuelle
 
 Les clés E2E sont générées **automatiquement** au premier login :
 - Clé d'identité ECDH P-256 → stockée dans Keystore (Android) / Keychain (iOS)
@@ -215,11 +215,11 @@ lib/
 4. Pour chaque conversation, dérive un secret ECDH avec la clé publique du pair
 5. Les messages sont chiffrés AES-256-GCM avant envoi
 
-**Fallback transparent :** si le pair n'a pas encore uploadé ses clés, le message passe en clair sans erreur — l'app ne crashe pas.
+**Fallback transparent :** si le pair n'a pas encore uploadé ses clés, le message passe en clair sans erreur - l'app ne crashe pas.
 
 ---
 
-## WebSocket — connexion permanente
+## WebSocket - connexion permanente
 
 - Heartbeat toutes les 30 secondes
 - Reconnexion automatique : 1s → 2s → 5s → 10s → 30s (backoff exponentiel)
@@ -228,7 +228,7 @@ lib/
 
 ---
 
-## Liaison organisation — premier lancement
+## Liaison organisation - premier lancement
 
 ### Admin d'organisation
 
