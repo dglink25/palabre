@@ -1,384 +1,879 @@
-/**
- * DocumentationPage.jsx - Developer Portal
- *
- * Page de documentation du projet avec navigation latérale par section.
- * Utilisée comme onglet dans ProjectPage (tab=docs).
- *
- * Fonctionnalités :
- *   - Layout avec navigation latérale par section (req 9.3)
- *   - Section Playground : requêtes API interactives avec les clés du projet (req 9.3)
- *   - Section Démarrage rapide : guides avec extraits de code (req 9.4)
- *   - Section Référence API : documentation des endpoints (req 9.3)
- *   - Section Webhooks : documentation des événements + vérification de signature
- *   - Extraits régénérés automatiquement quand les clés changent (req 9.5)
- *
- * Requirements couverts : 9.3, 9.4, 9.5
- */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import Playground  from '../components/Playground.jsx';
-import CodeSnippet from '../components/CodeSnippet.jsx';
 
-// ─── Définition des sections de la documentation ─────────────────────────────
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import developerApi from '../api/developerApi';
+
+// ─── Sections ─────────────────────────────────────────────────────────────────
 
 const SECTIONS = [
-  { id: 'quickstart',  label: 'Démarrage rapide' },
-  { id: 'playground',  label: 'Playground'        },
-  { id: 'api-ref',     label: 'Référence API'      },
-  { id: 'webhooks',    label: 'Webhooks'           },
-  { id: 'auth',        label: 'Authentification'   },
+  { id: 'quickstart', label: 'Démarrage rapide' },
+  { id: 'playground', label: 'Playground'        },
+  { id: 'api-ref',    label: 'Référence API'      },
+  { id: 'webhooks',   label: 'Webhooks'           },
+  { id: 'auth',       label: 'Authentification'   },
 ];
 
-// ─── Icônes SVG inline ────────────────────────────────────────────────────────
+// ─── Icônes SVG Lucide ────────────────────────────────────────────────────────
 
-function IconBook({ size = 18 }) {
+function Ic({ d, size = 16, strokeWidth = 2, ...rest }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth={strokeWidth}
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...rest}>
+      {d}
     </svg>
   );
 }
 
-function IconTerminal({ size = 18 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <polyline points="4 17 10 11 4 5" />
-      <line x1="12" y1="19" x2="20" y2="19" />
-    </svg>
-  );
-}
-
-function IconCode({ size = 18 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <polyline points="16 18 22 12 16 6" />
-      <polyline points="8 6 2 12 8 18" />
-    </svg>
-  );
-}
-
-function IconWebhook({ size = 18 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M18 16.016c0 1.648-1.352 3-3 3H5.016A3 3 0 0 1 2 15.984V8a3 3 0 0 1 3-3h10.016" />
-      <path d="M14 8l4-4 4 4" />
-      <path d="M18 4v8" />
-    </svg>
-  );
-}
-
-function IconKey({ size = 18 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
-    </svg>
-  );
-}
-
-function IconChevronRight({ size = 14 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <polyline points="9 18 15 12 9 6" />
-    </svg>
-  );
-}
-
-// ─── Mapping section → icône ──────────────────────────────────────────────────
-
-const SECTION_ICONS = {
-  quickstart: <IconBook size={15} />,
-  playground: <IconTerminal size={15} />,
-  'api-ref':  <IconCode size={15} />,
-  webhooks:   <IconWebhook size={15} />,
-  auth:       <IconKey size={15} />,
+const Icons = {
+  Book:     () => <Ic d={<><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></>} />,
+  Terminal: () => <Ic d={<><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></>} />,
+  Code:     () => <Ic d={<><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></>} />,
+  Webhook:  () => <Ic d={<><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></>} />,
+  Key:      () => <Ic d={<path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>} />,
+  Copy:     () => <Ic d={<><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></>} size={13} />,
+  Check:    () => <Ic d={<polyline points="20 6 9 17 4 12"/>} size={13} strokeWidth={2.5} />,
+  Send:     () => <Ic d={<><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></>} size={15} />,
+  Play:     () => <Ic d={<><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></>} size={15} />,
+  ChevR:    () => <Ic d={<polyline points="9 18 15 12 9 6"/>} size={13} />,
+  ChevD:    () => <Ic d={<polyline points="6 9 12 15 18 9"/>} size={13} />,
+  Menu:     () => <Ic d={<><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></>} />,
+  Alert:    () => <Ic d={<><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>} size={15} />,
+  ExLink:   () => <Ic d={<><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></>} size={13} />,
 };
 
-// ─── Badge de méthode HTTP ────────────────────────────────────────────────────
+const SECTION_ICONS = {
+  quickstart: <Icons.Book />,
+  playground: <Icons.Terminal />,
+  'api-ref':  <Icons.Code />,
+  webhooks:   <Icons.Webhook />,
+  auth:       <Icons.Key />,
+};
 
-function MethodBadge({ method }) {
-  const colors = {
-    GET:    { bg: '#dbeafe', color: '#1d4ed8' },
-    POST:   { bg: '#dcfce7', color: '#15803d' },
-    PATCH:  { bg: '#fef3c7', color: '#b45309' },
-    DELETE: { bg: '#fee2e2', color: '#b91c1c' },
-  };
-  const s = colors[method] ?? colors.POST;
+// ─── Spinner ──────────────────────────────────────────────────────────────────
+
+function Spinner({ size = 16 }) {
   return (
-    <span
+    <span role="status" aria-label="Chargement…" style={{
+      display: 'inline-block', width: size, height: size,
+      border: `${size <= 14 ? 2 : 3}px solid rgba(255,255,255,.3)`,
+      borderTopColor: 'white',
+      borderRadius: '50%', animation: 'dev-spin .7s linear infinite', flexShrink: 0,
+    }} />
+  );
+}
+
+// ─── Bouton copie générique ───────────────────────────────────────────────────
+
+function CopyBtn({ text, label = 'Copier', dark = false }) {
+  const [done, setDone] = useState(false);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(text);
+      setDone(true);
+      setTimeout(() => setDone(false), 2000);
+    } catch { /* silencieux */ }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      aria-label={done ? 'Copié !' : label}
+      title={done ? 'Copié !' : label}
       style={{
-        display: 'inline-block',
-        padding: '2px 8px',
-        background: s.bg,
-        color: s.color,
-        fontSize: '0.7rem',
-        fontWeight: 700,
-        borderRadius: 'var(--dev-border-radius-sm)',
-        fontFamily: 'var(--dev-font-family-mono)',
-        letterSpacing: '0.04em',
-        flexShrink: 0,
+        display:      'inline-flex',
+        alignItems:   'center',
+        gap:          5,
+        padding:      '4px 10px',
+        background:   done
+          ? (dark ? '#34A853' : 'rgba(52,168,83,.12)')
+          : (dark ? 'rgba(255,255,255,.10)' : '#F1F3F4'),
+        color:        done
+          ? (dark ? '#fff' : '#34A853')
+          : (dark ? '#e2e8f0' : '#5F6368'),
+        border:       `1px solid ${done ? (dark ? '#34A853' : '#34A853') : (dark ? 'rgba(255,255,255,.15)' : '#E0E0E0')}`,
+        borderRadius: 6,
+        fontSize:     12,
+        fontWeight:   500,
+        cursor:       'pointer',
+        fontFamily:   'inherit',
+        transition:   'all 150ms ease',
+        whiteSpace:   'nowrap',
+        flexShrink:   0,
       }}
     >
+      {done ? <Icons.Check /> : <Icons.Copy />}
+      {done ? 'Copié !' : label}
+    </button>
+  );
+}
+
+// ─── Bloc de code avec en-tête ────────────────────────────────────────────────
+
+function CodeBlock({ lang = 'code', code, maxHeight }) {
+  return (
+    <div style={{ borderRadius: 8, overflow: 'hidden', background: '#1e2433' }}>
+      {/* Barre d'en-tête */}
+      <div style={{
+        display:        'flex',
+        alignItems:     'center',
+        justifyContent: 'space-between',
+        padding:        '8px 16px',
+        background:     '#161b27',
+        borderBottom:   '1px solid rgba(255,255,255,.08)',
+      }}>
+        <span style={{
+          fontSize: 11, fontWeight: 600, color: '#8892a4',
+          textTransform: 'uppercase', letterSpacing: '0.7px',
+        }}>
+          {lang}
+        </span>
+        <CopyBtn text={code} label="Copier le code" dark />
+      </div>
+      {/* Code */}
+      <pre style={{
+        margin: 0, padding: '16px 20px',
+        overflowX: 'auto',
+        maxHeight: maxHeight || 'none',
+        overflowY: maxHeight ? 'auto' : 'visible',
+        fontSize: 13, lineHeight: 1.7,
+        color: '#e2e8f0',
+        fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace",
+        whiteSpace: 'pre',
+        tabSize: 2,
+      }}>
+        <code style={{ background: 'none', padding: 0, color: 'inherit', fontSize: 'inherit', border: 'none' }}>
+          {code}
+        </code>
+      </pre>
+    </div>
+  );
+}
+
+// ─── Badge HTTP ────────────────────────────────────────────────────────────────
+
+const METHOD_STYLES = {
+  GET:    { bg: '#EAF2FD', color: '#1A73E8' },
+  POST:   { bg: 'rgba(52,168,83,.12)',  color: '#1e7e34' },
+  PATCH:  { bg: 'rgba(251,188,5,.12)',  color: '#8a6700' },
+  DELETE: { bg: 'rgba(234,67,53,.12)',  color: '#EA4335' },
+};
+
+function MethodBadge({ method }) {
+  const s = METHOD_STYLES[method] ?? METHOD_STYLES.POST;
+  return (
+    <span style={{
+      display: 'inline-block', padding: '2px 7px',
+      background: s.bg, color: s.color,
+      fontSize: 11, fontWeight: 700,
+      borderRadius: 4,
+      fontFamily: "'JetBrains Mono', monospace",
+      letterSpacing: '0.04em', flexShrink: 0,
+    }}>
       {method}
     </span>
   );
 }
 
-// ─── Ligne de tableau d'endpoint ─────────────────────────────────────────────
+const AUTH_STYLES = {
+  'SSO JWT':          { bg: 'rgba(109,40,217,.10)', color: '#6d28d9' },
+  'X-Palabre-Key':    { bg: '#EAF2FD', color: '#1A73E8' },
+  'X-Palabre-Secret': { bg: 'rgba(234,67,53,.10)',  color: '#EA4335' },
+  'Aucune':           { bg: '#F1F3F4', color: '#5F6368' },
+};
 
-function EndpointRow({ method, path, description, auth }) {
-  const authColors = {
-    'SSO JWT':             { bg: '#ede9fe', color: '#6d28d9' },
-    'X-Palabre-Key':       { bg: '#dbeafe', color: '#1d4ed8' },
-    'X-Palabre-Secret':    { bg: '#fee2e2', color: '#b91c1c' },
-    'Aucune':              { bg: 'var(--dev-color-neutral-100)', color: 'var(--dev-text-muted)' },
-  };
-  const ac = authColors[auth] ?? authColors['Aucune'];
-
+function AuthBadge({ auth }) {
+  const s = AUTH_STYLES[auth] ?? AUTH_STYLES['Aucune'];
   return (
-    <tr>
-      <td
-        style={{
-          padding: 'var(--dev-space-3) var(--dev-space-4)',
-          borderBottom: '1px solid var(--dev-border-color)',
-          verticalAlign: 'middle',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        <MethodBadge method={method} />
-      </td>
-      <td
-        style={{
-          padding: 'var(--dev-space-3) var(--dev-space-4)',
-          borderBottom: '1px solid var(--dev-border-color)',
-          fontFamily: 'var(--dev-font-family-mono)',
-          fontSize: 'var(--dev-font-size-xs)',
-          color: 'var(--dev-color-brand-primary)',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {path}
-      </td>
-      <td
-        style={{
-          padding: 'var(--dev-space-3) var(--dev-space-4)',
-          borderBottom: '1px solid var(--dev-border-color)',
-          fontSize: 'var(--dev-font-size-sm)',
-          color: 'var(--dev-text-secondary)',
-        }}
-      >
-        {description}
-      </td>
-      <td
-        style={{
-          padding: 'var(--dev-space-3) var(--dev-space-4)',
-          borderBottom: '1px solid var(--dev-border-color)',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        <span
-          style={{
-            display: 'inline-block',
-            padding: '2px 8px',
-            background: ac.bg,
-            color: ac.color,
-            fontSize: 'var(--dev-font-size-xs)',
-            fontWeight: 'var(--dev-font-weight-medium)',
-            borderRadius: 'var(--dev-border-radius-sm)',
-            fontFamily: 'var(--dev-font-family-mono)',
-          }}
-        >
-          {auth}
-        </span>
-      </td>
-    </tr>
+    <span style={{
+      display: 'inline-block', padding: '2px 7px',
+      background: s.bg, color: s.color,
+      fontSize: 11, fontWeight: 600,
+      borderRadius: 4,
+      fontFamily: "'JetBrains Mono', monospace",
+    }}>
+      {auth}
+    </span>
   );
 }
 
-// ─── Section : Démarrage rapide ───────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 1 — Démarrage rapide
+// ─────────────────────────────────────────────────────────────────────────────
+
+const FRAMEWORKS = [
+  { key: 'react',   label: 'React',   lang: 'JavaScript' },
+  { key: 'vue',     label: 'Vue.js',  lang: 'JavaScript' },
+  { key: 'flutter', label: 'Flutter', lang: 'Dart' },
+  { key: 'laravel', label: 'Laravel', lang: 'PHP' },
+  { key: 'django',  label: 'Django',  lang: 'Python' },
+];
+
+function buildSnippets(pk, name) {
+  const key  = pk   || 'pk_live_VOTRE_CLE';
+  const proj = name || 'mon-projet';
+  return {
+    react: `// npm install palabre-sdk
+
+import { useEffect, useState } from 'react';
+import PalabreSDK from 'palabre-sdk';
+
+function usePalabre() {
+  const [sdk,   setSdk]   = useState(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    PalabreSDK.init('${key}')
+      .then(instance => { setSdk(instance); setReady(true); })
+      .catch(err => console.error('Init failed:', err.message));
+  }, []);
+
+  return { sdk, ready };
+}
+
+// Dans votre composant :
+function Chat() {
+  const { sdk, ready } = usePalabre();
+
+  const send = async () => {
+    await sdk.chat.send('user-id', 'Bonjour !');
+  };
+
+  sdk?.on('message', msg => console.log('Reçu :', msg));
+
+  return (
+    <button onClick={send} disabled={!ready}>
+      Envoyer
+    </button>
+  );
+}`,
+    vue: `// npm install palabre-sdk
+
+// composables/usePalabre.js
+import { ref, onMounted } from 'vue';
+import PalabreSDK from 'palabre-sdk';
+
+export function usePalabre() {
+  const sdk   = ref(null);
+  const ready = ref(false);
+
+  onMounted(async () => {
+    sdk.value   = await PalabreSDK.init('${key}');
+    ready.value = true;
+    sdk.value.on('message', msg => console.log('Reçu :', msg));
+  });
+
+  return { sdk, ready };
+}
+
+// Dans votre composant :
+// const { sdk, ready } = usePalabre();
+// await sdk.value.chat.send('user-id', 'Bonjour !');`,
+    flutter: `# pubspec.yaml :  palabre_flutter: ^0.1.0
+
+import 'package:palabre_flutter/palabre_flutter.dart';
+
+class ChatPage extends StatefulWidget {
+  const ChatPage({super.key});
+  @override
+  State<ChatPage> createState() => _ChatPageState();
+}
+
+class _ChatPageState extends State<ChatPage> {
+  PalabreSDK? _sdk;
+
+  @override
+  void initState() {
+    super.initState();
+    _init();
+  }
+
+  Future<void> _init() async {
+    final sdk = await PalabreSDK.init(publishableKey: '${key}');
+    sdk.chat.onMessage = (m) => debugPrint('Reçu : \${m}');
+    setState(() => _sdk = sdk);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: _sdk == null ? null : () => _sdk!.chat.send('user-id', 'Bonjour !'),
+      child: const Text('Envoyer'),
+    );
+  }
+}`,
+    laravel: `# composer require guzzlehttp/guzzle
+
+// config/palabre.php
+return [
+    'publishable_key' => env('PALABRE_KEY', '${key}'),
+    'secret_key'      => env('PALABRE_SECRET', 'sk_live_...'),
+    'api_url'         => 'https://api.palabre.app/api/v1/developer',
+];
+
+// app/Services/PalabreService.php
+class PalabreService
+{
+    public function sendMessage(string $to, string $content): array
+    {
+        $response = Http::withHeaders([
+            'X-Palabre-Secret' => config('palabre.secret_key'),
+        ])->post(config('palabre.api_url').'/proxy/messages', [
+            'to' => $to, 'content' => $content,
+        ]);
+        $response->throw();
+        return $response->json();
+    }
+}`,
+    django: `# pip install requests
+
+# settings.py
+PALABRE_KEY    = '${key}'
+PALABRE_SECRET = 'sk_live_VOTRE_CLE_SECRETE'
+PALABRE_URL    = 'https://api.palabre.app/api/v1/developer'
+
+import requests
+from django.conf import settings
+
+class PalabreClient:
+    def send_message(self, to: str, content: str) -> dict:
+        r = requests.post(
+            f'{settings.PALABRE_URL}/proxy/messages',
+            headers={'X-Palabre-Secret': settings.PALABRE_SECRET},
+            json={'to': to, 'content': content},
+            timeout=10,
+        )
+        r.raise_for_status()
+        return r.json()`,
+  };
+}
 
 function SectionQuickstart({ project }) {
+  const [fw, setFw] = useState('react');
+
+  const pk = project?.keys?.publishable
+    || project?.publishable_key
+    || project?.api_keys?.find?.(k => k.key_type === 'publishable')?.key_value
+    || null;
+
+  const snippets = useMemo(() => buildSnippets(pk, project?.name), [pk, project?.name]);
+  const active = FRAMEWORKS.find(f => f.key === fw);
+
   return (
     <section id="quickstart">
-      <h2
-        style={{
-          fontSize: 'var(--dev-font-size-2xl)',
-          fontWeight: 'var(--dev-font-weight-bold)',
-          color: 'var(--dev-text-primary)',
-          marginBottom: 'var(--dev-space-2)',
-          marginTop: 0,
-        }}
-      >
+      <h2 style={{ fontSize: 22, fontWeight: 700, color: '#202124', margin: '0 0 6px' }}>
         Démarrage rapide
       </h2>
-      <p
-        style={{
-          fontSize: 'var(--dev-font-size-base)',
-          color: 'var(--dev-text-secondary)',
-          marginBottom: 'var(--dev-space-8)',
-          lineHeight: 'var(--dev-line-height-loose)',
-        }}
-      >
-        Intégrez les fonctionnalités de communication Palabre dans votre application en quelques
-        minutes. Choisissez votre framework ci-dessous - les extraits utilisent automatiquement
-        les vraies clés de votre projet.
+      <p style={{ fontSize: 14, color: '#5F6368', margin: '0 0 24px', lineHeight: 1.6 }}>
+        Intégrez Palabre en quelques lignes. Choisissez votre framework — les extraits
+        utilisent les clés réelles de votre projet.
       </p>
 
-      <CodeSnippet project={project} />
-    </section>
-  );
-}
+      {/* Avertissement clé manquante */}
+      {!pk && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '10px 14px', marginBottom: 16,
+          background: 'rgba(251,188,5,.08)', border: '1px solid #FBBC05',
+          borderLeft: '3px solid #FBBC05', borderRadius: 8,
+          fontSize: 13, color: '#8a6700',
+        }}>
+          <Icons.Alert />
+          Clés non chargées — allez dans l'onglet <strong style={{ marginLeft: 4 }}>Clés API</strong> pour les voir.
+        </div>
+      )}
 
-// ─── Section : Playground ─────────────────────────────────────────────────────
+      {/* Sélecteur de framework */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        flexWrap: 'wrap', gap: 10, marginBottom: 0,
+      }}>
+        <nav
+          role="tablist"
+          aria-label="Sélectionner un framework"
+          style={{
+            display: 'flex', gap: 0,
+            background: '#F1F3F4', borderRadius: 8, padding: 3, flexWrap: 'wrap',
+          }}
+        >
+          {FRAMEWORKS.map(f => {
+            const isA = f.key === fw;
+            return (
+              <button
+                key={f.key}
+                role="tab"
+                aria-selected={isA}
+                type="button"
+                onClick={() => setFw(f.key)}
+                style={{
+                  padding: '5px 14px',
+                  background: isA ? '#FFFFFF' : 'transparent',
+                  border: 'none',
+                  borderRadius: 6,
+                  fontSize: 13,
+                  fontWeight: isA ? 600 : 400,
+                  color: isA ? '#1A73E8' : '#5F6368',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  boxShadow: isA ? '0 1px 3px rgba(32,33,36,.12)' : 'none',
+                  transition: 'all 150ms ease',
+                  fontFamily: 'inherit',
+                }}
+              >
+                {f.label}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
 
-function SectionPlayground({ project }) {
-  return (
-    <section id="playground">
-      <h2
-        style={{
-          fontSize: 'var(--dev-font-size-2xl)',
-          fontWeight: 'var(--dev-font-weight-bold)',
-          color: 'var(--dev-text-primary)',
-          marginBottom: 'var(--dev-space-2)',
-          marginTop: 0,
-        }}
-      >
-        Playground
-      </h2>
-      <p
-        style={{
-          fontSize: 'var(--dev-font-size-base)',
-          color: 'var(--dev-text-secondary)',
-          marginBottom: 'var(--dev-space-6)',
-          lineHeight: 'var(--dev-line-height-loose)',
-        }}
-      >
-        Testez les endpoints de l'API directement depuis le portail. Les clés de votre
-        projet sont pré-remplies - aucune configuration supplémentaire requise.
-      </p>
+      {/* Bloc de code */}
+      <div style={{ marginTop: 12 }}>
+        <CodeBlock lang={active?.lang || 'Code'} code={snippets[fw]} maxHeight={460} />
+      </div>
 
-      <div
-        style={{
-          background: 'var(--dev-bg-surface)',
-          border: '1px solid var(--dev-border-color)',
-          borderRadius: 'var(--dev-border-radius-xl)',
-          padding: 'var(--dev-space-6)',
-          boxShadow: 'var(--dev-shadow-sm)',
-        }}
-      >
-        <Playground project={project} />
+      {/* Installation */}
+      <div style={{
+        marginTop: 20,
+        background: '#FFFFFF', border: '1px solid #E0E0E0',
+        borderRadius: 8, padding: '16px 20px',
+      }}>
+        <h3 style={{ fontSize: 13, fontWeight: 700, color: '#202124', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+          Installation
+        </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {fw === 'flutter' ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+              <code style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: '#202124', background: '#F8F9FA', padding: '4px 10px', borderRadius: 6, border: '1px solid #E0E0E0' }}>
+                flutter pub add palabre_flutter
+              </code>
+              <CopyBtn text="flutter pub add palabre_flutter" label="Copier la commande" />
+            </div>
+          ) : fw === 'laravel' ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+              <code style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: '#202124', background: '#F8F9FA', padding: '4px 10px', borderRadius: 6, border: '1px solid #E0E0E0' }}>
+                composer require guzzlehttp/guzzle
+              </code>
+              <CopyBtn text="composer require guzzlehttp/guzzle" label="Copier la commande" />
+            </div>
+          ) : fw === 'django' ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+              <code style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: '#202124', background: '#F8F9FA', padding: '4px 10px', borderRadius: 6, border: '1px solid #E0E0E0' }}>
+                pip install requests
+              </code>
+              <CopyBtn text="pip install requests" label="Copier la commande" />
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+              <code style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: '#202124', background: '#F8F9FA', padding: '4px 10px', borderRadius: 6, border: '1px solid #E0E0E0' }}>
+                npm install palabre-sdk
+              </code>
+              <CopyBtn text="npm install palabre-sdk" label="Copier la commande" />
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );
 }
 
-// ─── Section : Référence API ──────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 2 — Playground
+// ─────────────────────────────────────────────────────────────────────────────
 
-function SectionApiRef() {
-  const endpoints = [
-    { method: 'POST',   path: '/accounts/me',                       description: 'Crée ou retourne le compte développeur (upsert)',               auth: 'SSO JWT'          },
-    { method: 'GET',    path: '/accounts/me',                       description: "Retourne le compte développeur de l'utilisateur courant",        auth: 'SSO JWT'          },
-    { method: 'GET',    path: '/projects',                          description: 'Liste tous les projets du compte développeur',                   auth: 'SSO JWT'          },
-    { method: 'POST',   path: '/projects',                          description: 'Crée un nouveau projet (génère pk_ et sk_ automatiquement)',      auth: 'SSO JWT'          },
-    { method: 'GET',    path: '/projects/:id',                      description: "Détails d'un projet (clés, config white-label, webhooks)",        auth: 'SSO JWT'          },
-    { method: 'PATCH',  path: '/projects/:id',                      description: 'Met à jour les métadonnées du projet',                           auth: 'SSO JWT'          },
-    { method: 'DELETE', path: '/projects/:id',                      description: 'Soft-delete du projet, révoque les clés',                        auth: 'SSO JWT'          },
-    { method: 'GET',    path: '/projects/:id/keys',                 description: 'Liste les clés actives du projet (secret masquée)',               auth: 'SSO JWT'          },
-    { method: 'POST',   path: '/projects/:id/keys/rotate',          description: "Rotation d'une clé (type dans le body)",                         auth: 'SSO JWT'          },
-    { method: 'GET',    path: '/projects/:id/config',               description: 'White_Label_Config publique (utilisée par les SDK)',              auth: 'X-Palabre-Key'    },
-    { method: 'POST',   path: '/proxy/messages',                    description: "Envoie un message via l'infra Palabre",                           auth: 'X-Palabre-Key'    },
-    { method: 'POST',   path: '/proxy/calls',                       description: 'Initie un appel WebRTC, retourne les credentials TURN',           auth: 'X-Palabre-Key'    },
-    { method: 'POST',   path: '/proxy/video/rooms',                 description: 'Crée une room Jitsi, retourne le token de session',               auth: 'X-Palabre-Key'    },
-    { method: 'POST',   path: '/proxy/push',                        description: 'Envoie une notification push via FCM',                            auth: 'X-Palabre-Key'    },
-    { method: 'GET',    path: '/projects/:id/webhooks',             description: 'Liste les webhooks du projet',                                   auth: 'SSO JWT'          },
-    { method: 'POST',   path: '/projects/:id/webhooks',             description: 'Crée un webhook (url HTTPS, events[])',                          auth: 'SSO JWT'          },
-    { method: 'PATCH',  path: '/projects/:id/webhooks/:wid',        description: "Met à jour l'url ou les events d'un webhook",                    auth: 'SSO JWT'          },
-    { method: 'DELETE', path: '/projects/:id/webhooks/:wid',        description: 'Supprime un webhook',                                            auth: 'SSO JWT'          },
-    { method: 'GET',    path: '/projects/:id/webhooks/deliveries',  description: 'Historique des 100 dernières livraisons',                        auth: 'SSO JWT'          },
-    { method: 'GET',    path: '/projects/:id/stats',                description: "Statistiques d'usage (filtrage par période)",                    auth: 'SSO JWT'          },
-    { method: 'GET',    path: '/docs',                              description: 'Documentation OpenAPI 3.0 JSON',                                  auth: 'Aucune'           },
-  ];
+const ENDPOINTS = [
+  { key: 'messages', method: 'POST', path: '/proxy/messages',    label: 'Envoyer un message',          body: { to: 'user-id-destinataire', content: 'Bonjour depuis le Playground !' } },
+  { key: 'calls',    method: 'POST', path: '/proxy/calls',        label: 'Initier un appel WebRTC',     body: { to: 'user-id-destinataire', type: 'audio' } },
+  { key: 'video',    method: 'POST', path: '/proxy/video/rooms',  label: 'Créer une room vidéo',        body: { room_name: 'ma-reunion', max_participants: 10 } },
+  { key: 'push',     method: 'POST', path: '/proxy/push',         label: 'Envoyer une notification push', body: { fcm_token: 'fcm-token-ici', title: 'Nouveau message', body: 'Contenu…' } },
+];
+
+function buildCurl(ep, key, body) {
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://api.palabre.app';
+  const escaped = body.replace(/'/g, "'\\''");
+  return `curl -X ${ep.method} '${origin}/api/v1/developer${ep.path}' \\\n  -H 'Content-Type: application/json' \\\n  -H 'X-Palabre-Key: ${key || 'pk_live_VOTRE_CLE'}' \\\n  -d '${escaped}'`;
+}
+
+function isJson(s) {
+  if (!s.trim()) return true;
+  try { JSON.parse(s); return true; } catch { return false; }
+}
+
+function SectionPlayground({ project }) {
+  const [epKey,    setEpKey]    = useState('messages');
+  const [body,     setBody]     = useState(JSON.stringify(ENDPOINTS[0].body, null, 2));
+  const [jsonErr,  setJsonErr]  = useState('');
+  const [sending,  setSending]  = useState(false);
+  const [response, setResponse] = useState(null);
+  const [copyCurl, setCopyCurl] = useState(false);
+
+  const pk = project?.keys?.publishable
+    || project?.publishable_key
+    || project?.api_keys?.find?.(k => k.key_type === 'publishable')?.key_value
+    || null;
+
+  const ep   = ENDPOINTS.find(e => e.key === epKey) ?? ENDPOINTS[0];
+  const curl = useMemo(() => buildCurl(ep, pk, body), [ep, pk, body]);
+
+  function selectEp(key) {
+    setEpKey(key);
+    const found = ENDPOINTS.find(e => e.key === key);
+    if (found) setBody(JSON.stringify(found.body, null, 2));
+    setResponse(null);
+    setJsonErr('');
+  }
+
+  function onBodyChange(e) {
+    const v = e.target.value;
+    setBody(v);
+    setJsonErr(v.trim() && !isJson(v) ? 'JSON invalide — vérifiez la syntaxe.' : '');
+  }
+
+  const execute = useCallback(async () => {
+    if (!isJson(body)) { setJsonErr('Corrigez le JSON avant d\'envoyer.'); return; }
+    setSending(true); setResponse(null);
+    let parsed = null;
+    if (body.trim()) try { parsed = JSON.parse(body); } catch { /* validated */ }
+    try {
+      const { data, status } = await developerApi.request({
+        method: ep.method, url: ep.path, data: parsed,
+        headers: pk ? { 'X-Palabre-Key': pk } : {},
+      });
+      setResponse({ status, data, ok: true });
+    } catch (err) {
+      setResponse({ status: err.response?.status ?? 0, data: err.response?.data ?? { error: err.message }, ok: false });
+    } finally { setSending(false); }
+  }, [ep, body, pk]);
+
+  async function copyCurlFn() {
+    try { await navigator.clipboard.writeText(curl); setCopyCurl(true); setTimeout(() => setCopyCurl(false), 2000); }
+    catch { /* silencieux */ }
+  }
+
+  const statusColor = (s) => s >= 200 && s < 300 ? '#34A853' : s >= 400 ? '#EA4335' : '#5F6368';
 
   return (
-    <section id="api-ref">
-      <h2
-        style={{
-          fontSize: 'var(--dev-font-size-2xl)',
-          fontWeight: 'var(--dev-font-weight-bold)',
-          color: 'var(--dev-text-primary)',
-          marginBottom: 'var(--dev-space-2)',
-          marginTop: 0,
-        }}
-      >
-        Référence API
+    <section id="playground">
+      <h2 style={{ fontSize: 22, fontWeight: 700, color: '#202124', margin: '0 0 6px' }}>
+        Playground
       </h2>
-      <p
-        style={{
-          fontSize: 'var(--dev-font-size-base)',
-          color: 'var(--dev-text-secondary)',
-          marginBottom: 'var(--dev-space-6)',
-          lineHeight: 'var(--dev-line-height-loose)',
-        }}
-      >
-        Toutes les routes sont préfixées par <code>/api/v1/developer</code>. La
-        documentation OpenAPI complète est disponible sur{' '}
-        <a href="/api/v1/developer/docs" target="_blank" rel="noopener noreferrer">
-          /api/v1/developer/docs
-        </a>.
+      <p style={{ fontSize: 14, color: '#5F6368', margin: '0 0 20px', lineHeight: 1.6 }}>
+        Testez les endpoints de l'API en temps réel. La clé publishable de votre projet
+        est injectée automatiquement — aucune configuration requise.
       </p>
 
-      <div
-        style={{
-          background: 'var(--dev-bg-surface)',
-          border: '1px solid var(--dev-border-color)',
-          borderRadius: 'var(--dev-border-radius-xl)',
-          overflow: 'hidden',
-          boxShadow: 'var(--dev-shadow-sm)',
-        }}
-      >
+      <div style={{ background: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: 8, overflow: 'hidden' }}>
+        {/* Sélecteur d'endpoint */}
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #E0E0E0', background: '#F8F9FA' }}>
+          <label htmlFor="pg-ep" style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#5F6368', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>
+            Endpoint
+          </label>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {ENDPOINTS.map(e => {
+              const isA = e.key === epKey;
+              return (
+                <button
+                  key={e.key}
+                  type="button"
+                  onClick={() => selectEp(e.key)}
+                  style={{
+                    display:      'inline-flex',
+                    alignItems:   'center',
+                    gap:          7,
+                    padding:      '6px 14px',
+                    background:   isA ? '#1A73E8' : '#FFFFFF',
+                    color:        isA ? '#FFFFFF' : '#5F6368',
+                    border:       `1px solid ${isA ? '#1A73E8' : '#E0E0E0'}`,
+                    borderRadius: 6,
+                    fontSize:     13,
+                    fontWeight:   isA ? 600 : 400,
+                    cursor:       'pointer',
+                    fontFamily:   'inherit',
+                    transition:   'all 150ms ease',
+                    whiteSpace:   'nowrap',
+                  }}
+                >
+                  <MethodBadge method={e.method} />
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12 }}>{e.path}</span>
+                </button>
+              );
+            })}
+          </div>
+          <p style={{ fontSize: 12, color: '#5F6368', margin: '8px 0 0' }}>{ep.label}</p>
+        </div>
+
+        <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Authentification */}
+          <div>
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#5F6368', textTransform: 'uppercase', letterSpacing: '0.6px', margin: '0 0 6px' }}>
+              Authentification (lecture seule)
+            </p>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+              padding: '8px 12px', background: '#F8F9FA',
+              border: '1px solid #E0E0E0', borderRadius: 6,
+            }}>
+              <code style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: '#5F6368', background: 'none', border: 'none', padding: 0 }}>
+                X-Palabre-Key:
+              </code>
+              <code style={{
+                flex: 1, fontSize: 12, fontFamily: "'JetBrains Mono', monospace",
+                color: pk ? '#1A73E8' : '#9aa0a6',
+                background: 'none', border: 'none', padding: 0,
+                wordBreak: 'break-all',
+              }}>
+                {pk || 'pk_live_… (non chargée — voir onglet Clés API)'}
+              </code>
+            </div>
+          </div>
+
+          {/* Éditeur JSON */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#5F6368', textTransform: 'uppercase', letterSpacing: '0.6px', margin: 0 }}>
+                Corps de la requête (JSON)
+              </p>
+              {jsonErr && (
+                <span role="alert" style={{ fontSize: 12, color: '#EA4335', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Icons.Alert />
+                  {jsonErr}
+                </span>
+              )}
+            </div>
+            <textarea
+              id="pg-body"
+              value={body}
+              onChange={onBodyChange}
+              rows={9}
+              spellCheck={false}
+              aria-label="Corps de la requête JSON"
+              style={{
+                width: '100%', padding: '12px 14px',
+                background: '#1e2433', color: jsonErr ? '#fca5a5' : '#e2e8f0',
+                border: `1px solid ${jsonErr ? '#EA4335' : 'rgba(255,255,255,.1)'}`,
+                borderRadius: 8,
+                fontSize: 13,
+                fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+                lineHeight: 1.7, resize: 'vertical', outline: 'none',
+                boxSizing: 'border-box', tabSize: 2,
+              }}
+            />
+          </div>
+
+          {/* Actions */}
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            <button
+              type="button"
+              onClick={execute}
+              disabled={sending || !!jsonErr}
+              style={{
+                display:      'inline-flex',
+                alignItems:   'center',
+                gap:          7,
+                height:       40,
+                padding:      '0 20px',
+                background:   (sending || jsonErr) ? '#dadce0' : '#1A73E8',
+                color:        (sending || jsonErr) ? '#5F6368' : '#FFFFFF',
+                border:       'none',
+                borderRadius: 8,
+                fontSize:     14,
+                fontWeight:   600,
+                cursor:       (sending || jsonErr) ? 'not-allowed' : 'pointer',
+                fontFamily:   'inherit',
+                transition:   'background 150ms ease',
+              }}
+            >
+              {sending ? <Spinner size={15} /> : <Icons.Play />}
+              {sending ? 'Exécution…' : 'Exécuter la requête'}
+            </button>
+
+            <button
+              type="button"
+              onClick={copyCurlFn}
+              style={{
+                display:      'inline-flex',
+                alignItems:   'center',
+                gap:          7,
+                height:       40,
+                padding:      '0 16px',
+                background:   copyCurl ? 'rgba(52,168,83,.10)' : '#FFFFFF',
+                color:        copyCurl ? '#34A853' : '#5F6368',
+                border:       `1px solid ${copyCurl ? '#34A853' : '#E0E0E0'}`,
+                borderRadius: 8,
+                fontSize:     13,
+                fontWeight:   500,
+                cursor:       'pointer',
+                fontFamily:   'inherit',
+                transition:   'all 150ms ease',
+              }}
+            >
+              {copyCurl ? <Icons.Check /> : <Icons.Copy />}
+              {copyCurl ? 'Copié !' : 'Copier en cURL'}
+            </button>
+          </div>
+
+          {/* Aperçu cURL */}
+          <div style={{ borderRadius: 8, overflow: 'hidden', background: '#1e2433' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '7px 14px',
+              background: '#161b27', borderBottom: '1px solid rgba(255,255,255,.08)',
+            }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#8892a4', textTransform: 'uppercase', letterSpacing: '0.7px' }}>
+                cURL — aperçu de la commande
+              </span>
+              <CopyBtn text={curl} label="Copier cURL" dark />
+            </div>
+            <pre style={{
+              margin: 0, padding: '12px 14px',
+              fontSize: 12, lineHeight: 1.6,
+              color: '#94a3b8',
+              fontFamily: "'JetBrains Mono', monospace",
+              whiteSpace: 'pre', overflowX: 'auto',
+            }}>
+              {curl}
+            </pre>
+          </div>
+
+          {/* Réponse */}
+          {response && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#5F6368', textTransform: 'uppercase', letterSpacing: '0.6px', margin: 0 }}>
+                  Réponse
+                </p>
+                <span style={{
+                  padding: '2px 8px', borderRadius: 4,
+                  background: response.ok ? 'rgba(52,168,83,.12)' : 'rgba(234,67,53,.12)',
+                  color: statusColor(response.status),
+                  fontSize: 11, fontWeight: 700,
+                  fontFamily: "'JetBrains Mono', monospace",
+                }}>
+                  HTTP {response.status}
+                </span>
+              </div>
+
+              <div style={{ borderRadius: 8, overflow: 'hidden', background: '#1e2433' }}>
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '7px 14px', background: '#161b27',
+                  borderBottom: '1px solid rgba(255,255,255,.08)',
+                }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: '#8892a4', textTransform: 'uppercase', letterSpacing: '0.7px' }}>
+                    JSON
+                  </span>
+                  <CopyBtn text={JSON.stringify(response.data, null, 2)} label="Copier la réponse" dark />
+                </div>
+                <pre style={{
+                  margin: 0, padding: '14px 16px',
+                  fontSize: 12, lineHeight: 1.7,
+                  color: response.ok ? '#86efac' : '#fca5a5',
+                  fontFamily: "'JetBrains Mono', monospace",
+                  whiteSpace: 'pre', overflowX: 'auto',
+                  maxHeight: 360, overflowY: 'auto',
+                }}>
+                  {JSON.stringify(response.data, null, 2)}
+                </pre>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 3 — Référence API
+// ─────────────────────────────────────────────────────────────────────────────
+
+const API_ROUTES = [
+  { method: 'POST',   path: '/accounts/me',                      desc: 'Crée ou retourne le compte développeur',                   auth: 'SSO JWT' },
+  { method: 'GET',    path: '/accounts/me',                      desc: "Retourne le compte développeur courant",                   auth: 'SSO JWT' },
+  { method: 'GET',    path: '/projects',                         desc: 'Liste les projets du compte',                              auth: 'SSO JWT' },
+  { method: 'POST',   path: '/projects',                         desc: 'Crée un projet — génère pk_ et sk_ automatiquement',       auth: 'SSO JWT' },
+  { method: 'GET',    path: '/projects/:id',                     desc: 'Détails du projet (clés, white-label, webhooks)',           auth: 'SSO JWT' },
+  { method: 'PATCH',  path: '/projects/:id',                     desc: 'Met à jour les métadonnées du projet',                     auth: 'SSO JWT' },
+  { method: 'DELETE', path: '/projects/:id',                     desc: 'Soft-delete du projet — révoque les clés',                 auth: 'SSO JWT' },
+  { method: 'GET',    path: '/projects/:id/keys',                desc: 'Liste les clés actives (secret masquée)',                   auth: 'SSO JWT' },
+  { method: 'POST',   path: '/projects/:id/keys/rotate',         desc: "Rotation d'une clé avec période de grâce de 60s",          auth: 'SSO JWT' },
+  { method: 'GET',    path: '/projects/:id/config',              desc: 'White-Label Config publique utilisée par les SDK',          auth: 'X-Palabre-Key' },
+  { method: 'POST',   path: '/proxy/messages',                   desc: "Envoie un message via l'infrastructure E2E Palabre",        auth: 'X-Palabre-Key' },
+  { method: 'POST',   path: '/proxy/calls',                      desc: 'Initie un appel WebRTC — retourne credentials TURN',        auth: 'X-Palabre-Key' },
+  { method: 'POST',   path: '/proxy/video/rooms',                desc: 'Crée une room Jitsi — retourne token de session',           auth: 'X-Palabre-Key' },
+  { method: 'POST',   path: '/proxy/push',                       desc: 'Envoie une notification push via FCM',                     auth: 'X-Palabre-Key' },
+  { method: 'GET',    path: '/projects/:id/webhooks',            desc: 'Liste les webhooks du projet',                             auth: 'SSO JWT' },
+  { method: 'POST',   path: '/projects/:id/webhooks',            desc: 'Crée un webhook (URL HTTPS obligatoire)',                   auth: 'SSO JWT' },
+  { method: 'PATCH',  path: '/projects/:id/webhooks/:wid',       desc: "Met à jour l'URL ou les événements d'un webhook",           auth: 'SSO JWT' },
+  { method: 'DELETE', path: '/projects/:id/webhooks/:wid',       desc: 'Supprime un webhook et son historique',                     auth: 'SSO JWT' },
+  { method: 'GET',    path: '/projects/:id/webhooks/deliveries', desc: 'Historique des 100 dernières livraisons',                   auth: 'SSO JWT' },
+  { method: 'GET',    path: '/projects/:id/stats',               desc: "Statistiques d'usage (today / 7d / 30d / 90d)",            auth: 'SSO JWT' },
+  { method: 'GET',    path: '/docs',                             desc: 'Documentation OpenAPI 3.0 JSON',                           auth: 'Aucune' },
+];
+
+function SectionApiRef() {
+  return (
+    <section id="api-ref">
+      <h2 style={{ fontSize: 22, fontWeight: 700, color: '#202124', margin: '0 0 6px' }}>
+        Référence API
+      </h2>
+      <p style={{ fontSize: 14, color: '#5F6368', margin: '0 0 16px', lineHeight: 1.6 }}>
+        Toutes les routes sont préfixées par{' '}
+        <code style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13 }}>/api/v1/developer</code>.{' '}
+        <a
+          href="/api/v1/developer/docs"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: '#1A73E8', display: 'inline-flex', alignItems: 'center', gap: 3 }}
+        >
+          Documentation OpenAPI complète <Icons.ExLink />
+        </a>
+      </p>
+
+      <div style={{ background: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: 8, overflow: 'hidden' }}>
         <div style={{ overflowX: 'auto' }}>
-          <table
-            style={{
-              width: '100%',
-              borderCollapse: 'collapse',
-              fontSize: 'var(--dev-font-size-sm)',
-            }}
-          >
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr
-                style={{
-                  background: 'var(--dev-color-neutral-50)',
-                  borderBottom: '1px solid var(--dev-border-color)',
-                }}
-              >
-                {['Méthode', 'Chemin', 'Description', 'Authentification'].map((h) => (
-                  <th
-                    key={h}
-                    style={{
-                      padding: 'var(--dev-space-3) var(--dev-space-4)',
-                      textAlign: 'left',
-                      fontSize: 'var(--dev-font-size-xs)',
-                      fontWeight: 'var(--dev-font-weight-semibold)',
-                      color: 'var(--dev-text-muted)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.06em',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
+              <tr style={{ background: '#F8F9FA', borderBottom: '1px solid #E0E0E0' }}>
+                {['Méthode', 'Chemin', 'Description', 'Authentification'].map(h => (
+                  <th key={h} style={{
+                    padding: '10px 14px', textAlign: 'left',
+                    fontSize: 11, fontWeight: 700, color: '#5F6368',
+                    textTransform: 'uppercase', letterSpacing: '0.6px', whiteSpace: 'nowrap',
+                  }}>
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {endpoints.map((ep, i) => (
-                <EndpointRow key={i} {...ep} />
+              {API_ROUTES.map((r, i) => (
+                <tr
+                  key={i}
+                  style={{ borderBottom: '1px solid #E0E0E0' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(26,115,232,.03)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
+                    <MethodBadge method={r.method} />
+                  </td>
+                  <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
+                    <code style={{
+                      fontSize: 12, fontFamily: "'JetBrains Mono', monospace",
+                      color: '#1A73E8', background: 'none', border: 'none', padding: 0,
+                    }}>
+                      {r.path}
+                    </code>
+                  </td>
+                  <td style={{ padding: '10px 14px', fontSize: 13, color: '#5F6368' }}>
+                    {r.desc}
+                  </td>
+                  <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
+                    <AuthBadge auth={r.auth} />
+                  </td>
+                </tr>
               ))}
             </tbody>
           </table>
@@ -388,767 +883,447 @@ function SectionApiRef() {
   );
 }
 
-// ─── Section : Webhooks ───────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 4 — Webhooks
+// ─────────────────────────────────────────────────────────────────────────────
 
-function SectionWebhooks({ project }) {
-  const webhookSecret = '••••••••••••••••'; // affiché comme placeholder
+const EVENT_TYPES = [
+  { type: 'message.received',  desc: 'Un message a été reçu par un utilisateur de votre projet.' },
+  { type: 'call.started',      desc: 'Un appel audio ou vidéo vient de démarrer.' },
+  { type: 'call.ended',        desc: "Un appel s'est terminé normalement." },
+  { type: 'call.missed',       desc: "Un appel entrant n'a pas été décroché." },
+  { type: 'user.online',       desc: 'Un utilisateur est passé en ligne.' },
+  { type: 'user.offline',      desc: 'Un utilisateur est passé hors ligne.' },
+  { type: 'notification.sent', desc: 'Une notification push FCM a été envoyée.' },
+];
 
-  const eventTypes = [
-    { type: 'message.received', description: 'Un message a été reçu par un utilisateur de votre projet.' },
-    { type: 'call.started',     description: 'Un appel a commencé.'                                       },
-    { type: 'call.ended',       description: "Un appel s'est terminé."                                    },
-    { type: 'call.missed',      description: "Un appel entrant n'a pas été décroché."                     },
-    { type: 'user.online',      description: 'Un utilisateur est passé en ligne.'                         },
-    { type: 'user.offline',     description: 'Un utilisateur est passé hors ligne.'                       },
-    { type: 'notification.sent',description: 'Une notification push a été envoyée.'                       },
-  ];
+const WEBHOOK_HEADERS = [
+  { header: 'X-Palabre-Signature', value: 'sha256=hmac(webhookSecret, "$timestamp.$body")' },
+  { header: 'X-Palabre-Event',     value: 'message.received | call.started | …' },
+  { header: 'X-Palabre-Timestamp', value: 'timestamp Unix (secondes)' },
+  { header: 'Content-Type',        value: 'application/json' },
+];
 
-  const verificationSnippet = `// Vérification de la signature HMAC-SHA256 d'un webhook
-// Node.js
+const WEBHOOK_VERIFY = `// Node.js — vérification HMAC-SHA256
 const crypto = require('crypto');
 
-function verifyWebhookSignature(body, signature, secret) {
+function verifyWebhookSignature(rawBody, signature, secret) {
   const expected = 'sha256=' + crypto
     .createHmac('sha256', secret)
-    .update(body)
+    .update(rawBody)
     .digest('hex');
+
+  // Comparaison timing-safe pour éviter les attaques par timing
   return crypto.timingSafeEqual(
     Buffer.from(expected),
     Buffer.from(signature)
   );
 }
 
-// Express.js middleware
-app.post('/webhooks/palabre', express.raw({ type: 'application/json' }), (req, res) => {
-  const signature = req.headers['x-palabre-signature'];
-  const webhookSecret = process.env.PALABRE_WEBHOOK_SECRET;
+// Express.js — utilisez express.raw() pour conserver le corps brut
+app.post('/webhooks/palabre',
+  express.raw({ type: 'application/json' }),
+  (req, res) => {
+    const signature = req.headers['x-palabre-signature'];
+    const secret    = process.env.PALABRE_WEBHOOK_SECRET;
 
-  if (!verifyWebhookSignature(req.body.toString(), signature, webhookSecret)) {
-    return res.status(403).json({ error: 'Signature invalide' });
+    if (!verifyWebhookSignature(req.body.toString(), signature, secret)) {
+      return res.status(403).json({ error: 'Signature invalide' });
+    }
+
+    const event     = JSON.parse(req.body);
+    const eventType = req.headers['x-palabre-event'];
+
+    switch (eventType) {
+      case 'message.received': /* … */ break;
+      case 'call.started':     /* … */ break;
+    }
+
+    res.sendStatus(200);
   }
+);`;
 
-  const event = JSON.parse(req.body);
-  const eventType = req.headers['x-palabre-event'];
-
-  switch (eventType) {
-    case 'message.received':
-      console.log('Nouveau message :', event);
-      break;
-    case 'call.started':
-      console.log('Appel démarré :', event);
-      break;
-    // ...
-  }
-
-  res.status(200).send('OK');
-});`;
-
+function SectionWebhooks() {
   return (
     <section id="webhooks">
-      <h2
-        style={{
-          fontSize: 'var(--dev-font-size-2xl)',
-          fontWeight: 'var(--dev-font-weight-bold)',
-          color: 'var(--dev-text-primary)',
-          marginBottom: 'var(--dev-space-2)',
-          marginTop: 0,
-        }}
-      >
+      <h2 style={{ fontSize: 22, fontWeight: 700, color: '#202124', margin: '0 0 6px' }}>
         Webhooks
       </h2>
-      <p
-        style={{
-          fontSize: 'var(--dev-font-size-base)',
-          color: 'var(--dev-text-secondary)',
-          marginBottom: 'var(--dev-space-6)',
-          lineHeight: 'var(--dev-line-height-loose)',
-        }}
-      >
-        Les webhooks vous permettent de recevoir des notifications en temps réel
-        sur votre serveur quand des événements se produisent. Configurez vos endpoints
-        HTTPS dans l'onglet <strong>Webhooks</strong> du projet.
+      <p style={{ fontSize: 14, color: '#5F6368', margin: '0 0 24px', lineHeight: 1.6 }}>
+        Les webhooks permettent à votre serveur de recevoir des notifications signées
+        en temps réel. Configurez vos endpoints dans l'onglet{' '}
+        <strong>Webhooks</strong> du projet.
       </p>
 
-      {/* Types d'événements */}
-      <h3
-        style={{
-          fontSize: 'var(--dev-font-size-lg)',
-          fontWeight: 'var(--dev-font-weight-semibold)',
-          color: 'var(--dev-text-primary)',
-          marginBottom: 'var(--dev-space-4)',
-          marginTop: 'var(--dev-space-6)',
-        }}
-      >
+      {/* Événements */}
+      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#202124', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
         Événements disponibles
       </h3>
-      <div
-        style={{
-          background: 'var(--dev-bg-surface)',
-          border: '1px solid var(--dev-border-color)',
-          borderRadius: 'var(--dev-border-radius-xl)',
-          overflow: 'hidden',
-          marginBottom: 'var(--dev-space-6)',
-          boxShadow: 'var(--dev-shadow-sm)',
-        }}
-      >
-        {eventTypes.map((ev, i) => (
-          <div
-            key={ev.type}
-            style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: 'var(--dev-space-4)',
-              padding: 'var(--dev-space-4)',
-              borderBottom:
-                i < eventTypes.length - 1
-                  ? '1px solid var(--dev-border-color)'
-                  : 'none',
-            }}
-          >
-            <code
-              style={{
-                flexShrink: 0,
-                fontSize: 'var(--dev-font-size-xs)',
-                fontFamily: 'var(--dev-font-family-mono)',
-                color: 'var(--dev-color-brand-primary)',
-                background: 'var(--dev-color-neutral-100)',
-                padding: '2px 8px',
-                borderRadius: 'var(--dev-border-radius-sm)',
-                whiteSpace: 'nowrap',
-              }}
-            >
+      <div style={{ background: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: 8, overflow: 'hidden', marginBottom: 24 }}>
+        {EVENT_TYPES.map((ev, i) => (
+          <div key={ev.type} style={{
+            display: 'flex', alignItems: 'flex-start', gap: 16,
+            padding: '12px 16px',
+            borderBottom: i < EVENT_TYPES.length - 1 ? '1px solid #E0E0E0' : 'none',
+          }}>
+            <code style={{
+              flexShrink: 0, fontSize: 12, fontFamily: "'JetBrains Mono', monospace",
+              color: '#1A73E8', background: '#EAF2FD',
+              padding: '2px 8px', borderRadius: 4, whiteSpace: 'nowrap',
+            }}>
               {ev.type}
             </code>
-            <p
-              style={{
-                margin: 0,
-                fontSize: 'var(--dev-font-size-sm)',
-                color: 'var(--dev-text-secondary)',
-                paddingTop: 2,
-              }}
-            >
-              {ev.description}
+            <p style={{ margin: 0, fontSize: 13, color: '#5F6368', paddingTop: 2, lineHeight: 1.5 }}>
+              {ev.desc}
             </p>
           </div>
         ))}
       </div>
 
-      {/* En-têtes envoyés */}
-      <h3
-        style={{
-          fontSize: 'var(--dev-font-size-lg)',
-          fontWeight: 'var(--dev-font-weight-semibold)',
-          color: 'var(--dev-text-primary)',
-          marginBottom: 'var(--dev-space-4)',
-          marginTop: 'var(--dev-space-6)',
-        }}
-      >
-        En-têtes de la requête
+      {/* En-têtes */}
+      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#202124', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+        En-têtes envoyés par Palabre
       </h3>
-      <div
-        style={{
-          background: 'var(--dev-bg-surface)',
-          border: '1px solid var(--dev-border-color)',
-          borderRadius: 'var(--dev-border-radius-xl)',
-          overflow: 'hidden',
-          marginBottom: 'var(--dev-space-6)',
-          boxShadow: 'var(--dev-shadow-sm)',
-        }}
-      >
-        {[
-          { header: 'X-Palabre-Signature', value: 'sha256=hmac(secret, timestamp.body)' },
-          { header: 'X-Palabre-Event',     value: 'message.received | call.started | …'  },
-          { header: 'X-Palabre-Timestamp', value: 'timestamp Unix en secondes'            },
-          { header: 'Content-Type',        value: 'application/json'                      },
-        ].map((row, i, arr) => (
-          <div
-            key={row.header}
-            style={{
-              display: 'flex',
-              gap: 'var(--dev-space-4)',
-              padding: 'var(--dev-space-3) var(--dev-space-4)',
-              borderBottom:
-                i < arr.length - 1 ? '1px solid var(--dev-border-color)' : 'none',
-              flexWrap: 'wrap',
-            }}
-          >
-            <code
-              style={{
-                flexShrink: 0,
-                minWidth: 220,
-                fontSize: 'var(--dev-font-size-xs)',
-                fontFamily: 'var(--dev-font-family-mono)',
-                color: 'var(--dev-color-neutral-800)',
-                fontWeight: 'var(--dev-font-weight-semibold)',
-                background: 'none',
-                padding: 0,
-              }}
-            >
-              {row.header}
-            </code>
-            <span
-              style={{
-                fontSize: 'var(--dev-font-size-xs)',
-                color: 'var(--dev-text-muted)',
-                fontFamily: 'var(--dev-font-family-mono)',
-              }}
-            >
-              {row.value}
-            </span>
-          </div>
-        ))}
+      <div style={{ background: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: 8, overflow: 'hidden', marginBottom: 24 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ background: '#F8F9FA', borderBottom: '1px solid #E0E0E0' }}>
+              <th style={{ padding: '9px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#5F6368', textTransform: 'uppercase', letterSpacing: '0.6px', whiteSpace: 'nowrap' }}>En-tête</th>
+              <th style={{ padding: '9px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#5F6368', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Valeur</th>
+            </tr>
+          </thead>
+          <tbody>
+            {WEBHOOK_HEADERS.map((row, i) => (
+              <tr key={row.header} style={{ borderBottom: i < WEBHOOK_HEADERS.length - 1 ? '1px solid #E0E0E0' : 'none' }}>
+                <td style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}>
+                  <code style={{ fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: '#202124', background: '#F8F9FA', padding: '2px 8px', borderRadius: 4, border: '1px solid #E0E0E0' }}>
+                    {row.header}
+                  </code>
+                </td>
+                <td style={{ padding: '10px 16px', fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: '#5F6368' }}>
+                  {row.value}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
-      {/* Vérification de signature */}
-      <h3
-        style={{
-          fontSize: 'var(--dev-font-size-lg)',
-          fontWeight: 'var(--dev-font-weight-semibold)',
-          color: 'var(--dev-text-primary)',
-          marginBottom: 'var(--dev-space-4)',
-          marginTop: 'var(--dev-space-6)',
-        }}
-      >
+      {/* Vérification */}
+      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#202124', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
         Vérification de la signature
       </h3>
-      <p
-        style={{
-          fontSize: 'var(--dev-font-size-sm)',
-          color: 'var(--dev-text-secondary)',
-          marginBottom: 'var(--dev-space-4)',
-          lineHeight: 'var(--dev-line-height-loose)',
-        }}
-      >
-        Chaque webhook est signé avec HMAC-SHA256. Vérifiez toujours la signature
-        avant de traiter l'événement pour vous assurer qu'il provient bien de Palabre.
+      <p style={{ fontSize: 13, color: '#5F6368', margin: '0 0 12px', lineHeight: 1.6 }}>
+        Vérifiez toujours la signature <code style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12 }}>X-Palabre-Signature</code> avant de traiter un événement.
+        Utilisez le corps <strong>brut</strong> (non parsé) pour la vérification.
       </p>
-      <div
-        style={{
-          background: 'var(--dev-color-neutral-900)',
-          borderRadius: 'var(--dev-border-radius-xl)',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            padding: 'var(--dev-space-2) var(--dev-space-4)',
-            borderBottom: '1px solid var(--dev-color-neutral-700)',
-            fontSize: 'var(--dev-font-size-xs)',
-            color: 'var(--dev-color-neutral-400)',
-          }}
-        >
-          Node.js / Express
-        </div>
-        <pre
-          style={{
-            margin: 0,
-            padding: 'var(--dev-space-5)',
-            overflowX: 'auto',
-            fontSize: 'var(--dev-font-size-xs)',
-            lineHeight: 1.7,
-            color: '#e2e8f0',
-            fontFamily: 'var(--dev-font-family-mono)',
-            whiteSpace: 'pre',
-          }}
-        >
-          <code style={{ background: 'none', padding: 0, color: 'inherit', fontSize: 'inherit' }}>
-            {verificationSnippet}
-          </code>
-        </pre>
-      </div>
+      <CodeBlock lang="Node.js / Express" code={WEBHOOK_VERIFY} />
     </section>
   );
 }
 
-// ─── Section : Authentification ───────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 5 — Authentification
+// ─────────────────────────────────────────────────────────────────────────────
+
+const AUTH_ERRORS = [
+  { code: 401, key: 'NO_API_KEY',          msg: "En-tête X-Palabre-Key manquant" },
+  { code: 401, key: 'INVALID_API_KEY',     msg: "Clé API invalide ou révoquée" },
+  { code: 401, key: 'NO_SECRET_KEY',       msg: "En-tête X-Palabre-Secret manquant" },
+  { code: 401, key: 'INVALID_SECRET_KEY',  msg: "Clé secrète invalide ou révoquée" },
+  { code: 429, key: 'RATE_LIMIT_EXCEEDED', msg: "Limite de 1 000 requêtes/minute dépassée" },
+];
 
 function SectionAuth({ project }) {
-  const publishableKey =
-    project?.keys?.publishable ||
-    project?.publishable_key ||
-    project?.api_keys?.find?.((k) => k.key_type === 'publishable')?.key_value ||
-    'pk_live_VOTRE_CLE_ICI';
+  const pk = project?.keys?.publishable
+    || project?.publishable_key
+    || project?.api_keys?.find?.(k => k.key_type === 'publishable')?.key_value
+    || 'pk_live_VOTRE_CLE';
+
+  const cards = [
+    {
+      title:  'Publishable Key',
+      prefix: 'pk_live_…',
+      header: 'X-Palabre-Key',
+      value:  pk,
+      usage:  'Côté client : navigateur, application mobile.',
+      routes: ['/proxy/messages', '/proxy/calls', '/proxy/video/rooms', '/proxy/push'],
+      color:  '#1A73E8', bg: '#EAF2FD',
+    },
+    {
+      title:  'Secret Key',
+      prefix: 'sk_live_…',
+      header: 'X-Palabre-Secret',
+      value:  'sk_live_…',
+      usage:  'Côté serveur uniquement. Ne jamais exposer dans du code client.',
+      routes: ['Opérations serveur sensibles'],
+      color:  '#EA4335', bg: 'rgba(234,67,53,.08)',
+    },
+  ];
 
   return (
     <section id="auth">
-      <h2
-        style={{
-          fontSize: 'var(--dev-font-size-2xl)',
-          fontWeight: 'var(--dev-font-weight-bold)',
-          color: 'var(--dev-text-primary)',
-          marginBottom: 'var(--dev-space-2)',
-          marginTop: 0,
-        }}
-      >
+      <h2 style={{ fontSize: 22, fontWeight: 700, color: '#202124', margin: '0 0 6px' }}>
         Authentification
       </h2>
-      <p
-        style={{
-          fontSize: 'var(--dev-font-size-base)',
-          color: 'var(--dev-text-secondary)',
-          marginBottom: 'var(--dev-space-6)',
-          lineHeight: 'var(--dev-line-height-loose)',
-        }}
-      >
-        L'API utilise deux types de clés selon le contexte d'appel.
+      <p style={{ fontSize: 14, color: '#5F6368', margin: '0 0 24px', lineHeight: 1.6 }}>
+        L'API Palabre utilise deux types de clés selon le contexte d'appel.
+        La rotation des clés est disponible dans l'onglet <strong>Clés API</strong>.
       </p>
 
-      {/* Carte Publishable Key */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
-          gap: 'var(--dev-space-5)',
-          marginBottom: 'var(--dev-space-6)',
-        }}
-      >
-        {[
-          {
-            title:   'Publishable Key',
-            prefix:  'pk_live_',
-            header:  'X-Palabre-Key',
-            color:   'var(--dev-color-brand-primary)',
-            bg:      '#dbeafe',
-            desc:    'Clé publique utilisable côté client (navigateur, application mobile). Donne accès aux routes /proxy/*.',
-            routes:  ['/proxy/messages', '/proxy/calls', '/proxy/video/rooms', '/proxy/push'],
-          },
-          {
-            title:   'Secret Key',
-            prefix:  'sk_live_',
-            header:  'X-Palabre-Secret',
-            color:   '#b91c1c',
-            bg:      '#fee2e2',
-            desc:    "Clé privée à utiliser exclusivement côté serveur. Ne l'exposez jamais dans votre code client.",
-            routes:  ['Opérations sensibles côté serveur'],
-          },
-        ].map((card) => (
-          <div
-            key={card.title}
-            style={{
-              background: 'var(--dev-bg-surface)',
-              border: '1px solid var(--dev-border-color)',
-              borderRadius: 'var(--dev-border-radius-xl)',
-              padding: 'var(--dev-space-5)',
-              boxShadow: 'var(--dev-shadow-sm)',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--dev-space-3)',
-                marginBottom: 'var(--dev-space-3)',
-              }}
-            >
-              <span
-                style={{
-                  display: 'inline-block',
-                  padding: '2px 10px',
-                  background: card.bg,
-                  color: card.color,
-                  fontSize: 'var(--dev-font-size-xs)',
-                  fontWeight: 'var(--dev-font-weight-semibold)',
-                  borderRadius: 'var(--dev-border-radius-full)',
-                  fontFamily: 'var(--dev-font-family-mono)',
-                  letterSpacing: '0.04em',
-                }}
-              >
-                {card.prefix}…
+      {/* Cartes clés */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16, marginBottom: 24 }}>
+        {cards.map(card => (
+          <div key={card.title} style={{
+            background: '#FFFFFF', border: '1px solid #E0E0E0',
+            borderRadius: 8, padding: '20px',
+            borderTop: `3px solid ${card.color}`,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <span style={{
+                padding: '2px 8px', borderRadius: 4,
+                background: card.bg, color: card.color,
+                fontSize: 11, fontWeight: 700,
+                fontFamily: "'JetBrains Mono', monospace",
+              }}>
+                {card.prefix}
               </span>
-              <strong
-                style={{
-                  fontSize: 'var(--dev-font-size-base)',
-                  fontWeight: 'var(--dev-font-weight-semibold)',
-                  color: 'var(--dev-text-primary)',
-                }}
-              >
-                {card.title}
-              </strong>
+              <strong style={{ fontSize: 14, color: '#202124' }}>{card.title}</strong>
             </div>
-            <p
-              style={{
-                fontSize: 'var(--dev-font-size-sm)',
-                color: 'var(--dev-text-secondary)',
-                marginBottom: 'var(--dev-space-3)',
-                lineHeight: 'var(--dev-line-height-normal)',
-              }}
-            >
-              {card.desc}
+            <p style={{ fontSize: 13, color: '#5F6368', margin: '0 0 12px', lineHeight: 1.5 }}>
+              {card.usage}
             </p>
-            <div
-              style={{
-                padding: 'var(--dev-space-2) var(--dev-space-3)',
-                background: 'var(--dev-color-neutral-100)',
-                borderRadius: 'var(--dev-border-radius-md)',
-                marginBottom: 'var(--dev-space-3)',
-              }}
-            >
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: 'var(--dev-font-size-xs)',
-                  color: 'var(--dev-text-muted)',
-                }}
-              >
-                En-tête HTTP requis
+            <div style={{
+              padding: '8px 12px', background: '#F8F9FA',
+              border: '1px solid #E0E0E0', borderRadius: 6, marginBottom: 12,
+            }}>
+              <p style={{ margin: '0 0 3px', fontSize: 11, color: '#9aa0a6', fontWeight: 600 }}>
+                En-tête HTTP
               </p>
-              <code
-                style={{
-                  fontSize: 'var(--dev-font-size-xs)',
-                  fontFamily: 'var(--dev-font-family-mono)',
-                  color: card.color,
-                  background: 'none',
-                  padding: 0,
-                }}
-              >
-                {card.header}: {card.title === 'Publishable Key' ? publishableKey : 'sk_live_…'}
-              </code>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+                <code style={{
+                  fontSize: 11, fontFamily: "'JetBrains Mono', monospace",
+                  color: card.color, background: 'none', border: 'none', padding: 0,
+                  wordBreak: 'break-all', flex: 1,
+                }}>
+                  {card.header}: {card.value}
+                </code>
+                <CopyBtn text={`${card.header}: ${card.value}`} label="Copier" />
+              </div>
             </div>
-            <div>
-              <p
-                style={{
-                  margin: '0 0 var(--dev-space-1) 0',
-                  fontSize: 'var(--dev-font-size-xs)',
-                  fontWeight: 'var(--dev-font-weight-medium)',
-                  color: 'var(--dev-text-secondary)',
-                }}
-              >
-                Routes autorisées
-              </p>
-              {card.routes.map((r) => (
-                <div
-                  key={r}
-                  style={{
-                    fontSize: 'var(--dev-font-size-xs)',
-                    fontFamily: 'var(--dev-font-family-mono)',
-                    color: 'var(--dev-color-brand-primary)',
-                  }}
-                >
-                  {r}
-                </div>
-              ))}
-            </div>
+            <p style={{ margin: '0 0 4px', fontSize: 11, color: '#9aa0a6', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Routes autorisées
+            </p>
+            {card.routes.map(r => (
+              <div key={r} style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: '#1A73E8', lineHeight: 1.8 }}>
+                {r}
+              </div>
+            ))}
           </div>
         ))}
       </div>
 
       {/* Codes d'erreur */}
-      <h3
-        style={{
-          fontSize: 'var(--dev-font-size-lg)',
-          fontWeight: 'var(--dev-font-weight-semibold)',
-          color: 'var(--dev-text-primary)',
-          marginBottom: 'var(--dev-space-4)',
-          marginTop: 'var(--dev-space-6)',
-        }}
-      >
+      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#202124', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
         Codes d'erreur d'authentification
       </h3>
-      <div
-        style={{
-          background: 'var(--dev-bg-surface)',
-          border: '1px solid var(--dev-border-color)',
-          borderRadius: 'var(--dev-border-radius-xl)',
-          overflow: 'hidden',
-          boxShadow: 'var(--dev-shadow-sm)',
-        }}
-      >
-        {[
-          { code: '401', error: 'NO_API_KEY',           message: 'En-tête X-Palabre-Key manquant'          },
-          { code: '401', error: 'INVALID_API_KEY',      message: 'Clé API invalide ou révoquée'             },
-          { code: '401', error: 'NO_SECRET_KEY',        message: 'En-tête X-Palabre-Secret manquant'        },
-          { code: '401', error: 'INVALID_SECRET_KEY',   message: 'Clé secrète invalide ou révoquée'         },
-          { code: '429', error: 'RATE_LIMIT_EXCEEDED',  message: 'Limite de 1 000 requêtes/minute dépassée' },
-        ].map((row, i, arr) => (
-          <div
-            key={row.error}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--dev-space-4)',
-              padding: 'var(--dev-space-3) var(--dev-space-4)',
-              borderBottom:
-                i < arr.length - 1 ? '1px solid var(--dev-border-color)' : 'none',
-              flexWrap: 'wrap',
-            }}
-          >
-            <span
-              style={{
-                flexShrink: 0,
-                width: 36,
-                textAlign: 'center',
-                fontSize: 'var(--dev-font-size-xs)',
-                fontWeight: 'var(--dev-font-weight-bold)',
-                fontFamily: 'var(--dev-font-family-mono)',
-                color:
-                  row.code === '401'
-                    ? '#b91c1c'
-                    : row.code === '429'
-                    ? '#b45309'
-                    : 'var(--dev-text-primary)',
-              }}
-            >
-              {row.code}
-            </span>
-            <code
-              style={{
-                flexShrink: 0,
-                minWidth: 200,
-                fontSize: 'var(--dev-font-size-xs)',
-                fontFamily: 'var(--dev-font-family-mono)',
-                color: 'var(--dev-color-neutral-700)',
-                background: 'none',
-                padding: 0,
-              }}
-            >
-              {row.error}
-            </code>
-            <span
-              style={{
-                fontSize: 'var(--dev-font-size-sm)',
-                color: 'var(--dev-text-secondary)',
-              }}
-            >
-              {row.message}
-            </span>
-          </div>
-        ))}
+      <div style={{ background: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: 8, overflow: 'hidden' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ background: '#F8F9FA', borderBottom: '1px solid #E0E0E0' }}>
+              <th style={{ padding: '9px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#5F6368', textTransform: 'uppercase', letterSpacing: '0.6px', whiteSpace: 'nowrap' }}>Code</th>
+              <th style={{ padding: '9px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#5F6368', textTransform: 'uppercase', letterSpacing: '0.6px', whiteSpace: 'nowrap' }}>Clé d'erreur</th>
+              <th style={{ padding: '9px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#5F6368', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            {AUTH_ERRORS.map((row, i) => (
+              <tr key={row.key} style={{ borderBottom: i < AUTH_ERRORS.length - 1 ? '1px solid #E0E0E0' : 'none' }}>
+                <td style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}>
+                  <span style={{
+                    fontSize: 12, fontWeight: 700,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    color: row.code === 401 ? '#EA4335' : '#8a6700',
+                  }}>
+                    {row.code}
+                  </span>
+                </td>
+                <td style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}>
+                  <code style={{ fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: '#202124', background: '#F8F9FA', padding: '2px 8px', borderRadius: 4, border: '1px solid #E0E0E0' }}>
+                    {row.key}
+                  </code>
+                </td>
+                <td style={{ padding: '10px 16px', fontSize: 13, color: '#5F6368' }}>
+                  {row.msg}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </section>
   );
 }
 
-// ─── DocumentationPage ────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// DocumentationPage — Layout principal
+// ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * DocumentationPage
- *
- * Props (reçues depuis ProjectPage via TabContent) :
- *   - projectId : string - identifiant du projet courant
- *   - project   : objet - données du projet (clés, config, etc.)
- */
 export default function DocumentationPage({ projectId, project }) {
   const [activeSection, setActiveSection] = useState('quickstart');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const contentRef = useRef(null);
 
-  // Scroll vers la section active quand elle change
+  // Scroll vers la section cliquée
   useEffect(() => {
     const el = document.getElementById(activeSection);
-    if (el && contentRef.current) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [activeSection]);
 
-  // Détection de la section visible au scroll
+  // Surlignage auto de la section visible au scroll
   useEffect(() => {
-    const container = contentRef.current;
-    if (!container) return;
-
     function onScroll() {
       for (let i = SECTIONS.length - 1; i >= 0; i--) {
         const el = document.getElementById(SECTIONS[i].id);
         if (!el) continue;
-        const rect = el.getBoundingClientRect();
-        if (rect.top <= 120) {
+        if (el.getBoundingClientRect().top <= 140) {
           setActiveSection(SECTIONS[i].id);
           break;
         }
       }
     }
-
-    container.addEventListener('scroll', onScroll, { passive: true });
-    return () => container.removeEventListener('scroll', onScroll);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  function handleNavClick(sectionId) {
-    setActiveSection(sectionId);
-    setMobileNavOpen(false);
-  }
+  function navClick(id) { setActiveSection(id); setMobileNavOpen(false); }
 
-  // ── Rendu ─────────────────────────────────────────────────────────────────
+  const activeLabel = SECTIONS.find(s => s.id === activeSection)?.label ?? '';
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: 0,
-        alignItems: 'flex-start',
-        minHeight: 600,
-        position: 'relative',
-      }}
-    >
-      {/* ─── Navigation latérale (desktop) ──────────────────────────────── */}
+    <div style={{ display: 'flex', gap: 0, alignItems: 'flex-start', minHeight: 600, position: 'relative' }}>
+
+      {/* ── Sidebar desktop ── */}
       <aside
         aria-label="Navigation de la documentation"
-        style={{
-          width: 220,
-          flexShrink: 0,
-          position: 'sticky',
-          top: 0,
-          maxHeight: '80vh',
-          overflowY: 'auto',
-          paddingRight: 'var(--dev-space-5)',
-          borderRight: '1px solid var(--dev-border-color)',
-          marginRight: 'var(--dev-space-8)',
-          display: 'none', // masqué sur mobile, affiché via media query
-        }}
         className="doc-sidebar"
+        style={{
+          width: 200, flexShrink: 0,
+          position: 'sticky', top: 20,
+          maxHeight: 'calc(100vh - 80px)', overflowY: 'auto',
+          paddingRight: 20,
+          borderRight: '1px solid #E0E0E0',
+          marginRight: 32,
+          display: 'none', /* géré par CSS responsive */
+        }}
       >
-        <p
-          style={{
-            fontSize: 'var(--dev-font-size-xs)',
-            fontWeight: 'var(--dev-font-weight-semibold)',
-            color: 'var(--dev-text-muted)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.06em',
-            marginBottom: 'var(--dev-space-3)',
-            marginTop: 0,
-          }}
-        >
+        <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.7px', color: '#9aa0a6', margin: '0 0 10px' }}>
           Sur cette page
         </p>
-        <nav role="navigation" aria-label="Sections de la documentation">
-          {SECTIONS.map((section) => {
-            const isActive = section.id === activeSection;
+        <nav role="navigation" aria-label="Sections">
+          {SECTIONS.map(s => {
+            const isA = s.id === activeSection;
             return (
               <button
-                key={section.id}
+                key={s.id}
                 type="button"
-                onClick={() => handleNavClick(section.id)}
+                onClick={() => navClick(s.id)}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 'var(--dev-space-2)',
-                  width: '100%',
-                  padding: 'var(--dev-space-2) var(--dev-space-3)',
-                  background: isActive
-                    ? 'var(--dev-color-neutral-100)'
-                    : 'transparent',
-                  border: 'none',
-                  borderLeft: isActive
-                    ? '2px solid var(--dev-color-brand-primary)'
-                    : '2px solid transparent',
-                  borderRadius: '0 var(--dev-border-radius-sm) var(--dev-border-radius-sm) 0',
-                  marginBottom: 'var(--dev-space-1)',
-                  fontSize: 'var(--dev-font-size-sm)',
-                  fontWeight: isActive
-                    ? 'var(--dev-font-weight-semibold)'
-                    : 'var(--dev-font-weight-normal)',
-                  color: isActive
-                    ? 'var(--dev-color-brand-primary)'
-                    : 'var(--dev-text-secondary)',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition:
-                    'background var(--dev-transition-fast), color var(--dev-transition-fast)',
+                  display:     'flex',
+                  alignItems:  'center',
+                  gap:         8,
+                  width:       '100%',
+                  padding:     '7px 10px',
+                  background:  isA ? '#EAF2FD' : 'transparent',
+                  border:      'none',
+                  borderLeft:  `2px solid ${isA ? '#1A73E8' : 'transparent'}`,
+                  borderRadius: '0 6px 6px 0',
+                  marginBottom: 2,
+                  fontSize:    13,
+                  fontWeight:  isA ? 600 : 400,
+                  color:       isA ? '#1A73E8' : '#5F6368',
+                  cursor:      'pointer',
+                  textAlign:   'left',
+                  fontFamily:  'inherit',
+                  transition:  'all 150ms ease',
                 }}
               >
-                <span
-                  style={{
-                    color: isActive
-                      ? 'var(--dev-color-brand-primary)'
-                      : 'var(--dev-text-muted)',
-                    flexShrink: 0,
-                  }}
-                >
-                  {SECTION_ICONS[section.id]}
+                <span style={{ color: isA ? '#1A73E8' : '#9aa0a6', flexShrink: 0 }}>
+                  {SECTION_ICONS[s.id]}
                 </span>
-                {section.label}
+                {s.label}
               </button>
             );
           })}
         </nav>
       </aside>
 
-      {/* ─── Navigation mobile (bouton + menu déroulant) ────────────────── */}
+      {/* ── Navigation mobile ── */}
       <div
-        style={{
-          display: 'block', // affiché sur mobile, masqué sur desktop via style ci-dessous
-          width: '100%',
-          marginBottom: 'var(--dev-space-5)',
-        }}
         className="doc-mobile-nav"
+        style={{ display: 'block', width: '100%', marginBottom: 16 }}
       >
         <button
           type="button"
-          onClick={() => setMobileNavOpen((v) => !v)}
+          onClick={() => setMobileNavOpen(v => !v)}
           aria-expanded={mobileNavOpen}
-          aria-controls="doc-mobile-menu"
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--dev-space-2)',
-            padding: 'var(--dev-space-2) var(--dev-space-4)',
-            background: 'var(--dev-bg-surface)',
-            border: '1px solid var(--dev-border-color)',
-            borderRadius: 'var(--dev-border-radius-md)',
-            fontSize: 'var(--dev-font-size-sm)',
-            fontWeight: 'var(--dev-font-weight-medium)',
-            color: 'var(--dev-text-primary)',
-            cursor: 'pointer',
-            width: '100%',
+            display:        'flex',
+            alignItems:     'center',
             justifyContent: 'space-between',
+            width:          '100%',
+            padding:        '9px 14px',
+            background:     '#FFFFFF',
+            border:         '1px solid #E0E0E0',
+            borderRadius:   8,
+            fontSize:       13,
+            fontWeight:     500,
+            color:          '#202124',
+            cursor:         'pointer',
+            fontFamily:     'inherit',
           }}
         >
-          <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--dev-space-2)' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {SECTION_ICONS[activeSection]}
-            {SECTIONS.find((s) => s.id === activeSection)?.label ?? 'Navigation'}
+            {activeLabel}
           </span>
-          <IconChevronRight
-            size={16}
-            style={{
-              transform: mobileNavOpen ? 'rotate(90deg)' : 'none',
-              transition: 'transform var(--dev-transition-fast)',
-            }}
-          />
+          {mobileNavOpen ? <Icons.ChevD /> : <Icons.ChevR />}
         </button>
 
         {mobileNavOpen && (
-          <div
-            id="doc-mobile-menu"
-            style={{
-              marginTop: 'var(--dev-space-2)',
-              background: 'var(--dev-bg-surface)',
-              border: '1px solid var(--dev-border-color)',
-              borderRadius: 'var(--dev-border-radius-md)',
-              overflow: 'hidden',
-              boxShadow: 'var(--dev-shadow-md)',
-            }}
-          >
-            {SECTIONS.map((section) => {
-              const isActive = section.id === activeSection;
+          <div style={{
+            marginTop: 6, background: '#FFFFFF',
+            border: '1px solid #E0E0E0', borderRadius: 8, overflow: 'hidden',
+            boxShadow: '0 4px 12px rgba(32,33,36,.10)',
+          }}>
+            {SECTIONS.map(s => {
+              const isA = s.id === activeSection;
               return (
                 <button
-                  key={section.id}
+                  key={s.id}
                   type="button"
-                  onClick={() => handleNavClick(section.id)}
+                  onClick={() => navClick(s.id)}
                   style={{
-                    display: 'flex',
+                    display:    'flex',
                     alignItems: 'center',
-                    gap: 'var(--dev-space-3)',
-                    width: '100%',
-                    padding: 'var(--dev-space-3) var(--dev-space-4)',
-                    background: isActive
-                      ? 'var(--dev-color-neutral-100)'
-                      : 'transparent',
-                    border: 'none',
-                    borderBottom: '1px solid var(--dev-border-color)',
-                    fontSize: 'var(--dev-font-size-sm)',
-                    fontWeight: isActive
-                      ? 'var(--dev-font-weight-semibold)'
-                      : 'var(--dev-font-weight-normal)',
-                    color: isActive
-                      ? 'var(--dev-color-brand-primary)'
-                      : 'var(--dev-text-secondary)',
-                    cursor: 'pointer',
-                    textAlign: 'left',
+                    gap:        10,
+                    width:      '100%',
+                    padding:    '11px 16px',
+                    background: isA ? '#EAF2FD' : 'transparent',
+                    border:     'none',
+                    borderBottom: '1px solid #E0E0E0',
+                    fontSize:   13,
+                    fontWeight: isA ? 600 : 400,
+                    color:      isA ? '#1A73E8' : '#5F6368',
+                    cursor:     'pointer',
+                    textAlign:  'left',
+                    fontFamily: 'inherit',
                   }}
                 >
-                  <span style={{ color: isActive ? 'var(--dev-color-brand-primary)' : 'var(--dev-text-muted)' }}>
-                    {SECTION_ICONS[section.id]}
+                  <span style={{ color: isA ? '#1A73E8' : '#9aa0a6' }}>
+                    {SECTION_ICONS[s.id]}
                   </span>
-                  {section.label}
+                  {s.label}
                 </button>
               );
             })}
@@ -1156,26 +1331,18 @@ export default function DocumentationPage({ projectId, project }) {
         )}
       </div>
 
-      {/* ─── Contenu principal ───────────────────────────────────────────── */}
-      <main
-        ref={contentRef}
-        style={{
-          flex: 1,
-          minWidth: 0,
-          overflowY: 'auto',
-        }}
-      >
-        {/* Sections rendues séquentiellement avec un séparateur */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--dev-space-16)' }}>
+      {/* ── Contenu principal ── */}
+      <main ref={contentRef} style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
           <SectionQuickstart project={project} />
           <SectionPlayground project={project} />
           <SectionApiRef />
-          <SectionWebhooks project={project} />
+          <SectionWebhooks />
           <SectionAuth project={project} />
         </div>
       </main>
 
-      {/* ─── CSS inline pour le responsive ───────────────────────────────── */}
+      {/* CSS responsive sidebar / mobile */}
       <style>{`
         @media (min-width: 768px) {
           .doc-sidebar     { display: block !important; }

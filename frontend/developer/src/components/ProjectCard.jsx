@@ -1,11 +1,9 @@
 /**
  * ProjectCard.jsx - Developer Portal
  *
- * Carte affichant le résumé d'un Developer_Project :
- *   - Nom du projet
- *   - Statut (badge coloré : active / inactive)
- *   - Date de création (formatée)
- *   - Lien vers la ProjectPage (/projects/:id)
+ * Carte institutionnelle d'un Developer_Project.
+ * Fond plat #EAF2FD pour l'icône, pas de gradient.
+ * Badge statut : border-radius 4px, fond rgba, texte coloré.
  *
  * Requirements couverts : 3.1, 3.4
  */
@@ -23,19 +21,14 @@ function formatDate(isoString) {
   }).format(new Date(isoString));
 }
 
-// ─── Icône projet ─────────────────────────────────────────────────────────────
+// ─── Icônes SVG Lucide stroke-only ───────────────────────────────────────────
 
-function IconProject() {
+function IconMonitor() {
   return (
     <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      width="18" height="18" viewBox="0 0 24 24"
+      fill="none" stroke="currentColor" strokeWidth="2"
+      strokeLinecap="round" strokeLinejoin="round"
       aria-hidden="true"
     >
       <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
@@ -45,19 +38,12 @@ function IconProject() {
   );
 }
 
-// ─── Icône flèche ─────────────────────────────────────────────────────────────
-
-function IconArrow() {
+function IconArrowRight() {
   return (
     <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      width="14" height="14" viewBox="0 0 24 24"
+      fill="none" stroke="currentColor" strokeWidth="2"
+      strokeLinecap="round" strokeLinejoin="round"
       aria-hidden="true"
     >
       <line x1="5" y1="12" x2="19" y2="12" />
@@ -72,21 +58,18 @@ function StatusBadge({ status }) {
   const config = {
     active: {
       label: 'Actif',
-      bg: 'var(--dev-color-success-light)',
-      color: 'var(--dev-color-success)',
-      dot: 'var(--dev-color-success)',
+      bg:    'rgba(52,168,83,.12)',
+      color: '#34A853',
     },
     inactive: {
       label: 'Inactif',
-      bg: 'var(--dev-color-warning-light)',
-      color: 'var(--dev-color-warning)',
-      dot: 'var(--dev-color-warning)',
+      bg:    'rgba(251,188,5,.12)',
+      color: '#8a6700',
     },
     deleted: {
       label: 'Supprimé',
-      bg: 'var(--dev-color-error-light)',
-      color: 'var(--dev-color-error)',
-      dot: 'var(--dev-color-error)',
+      bg:    'rgba(234,67,53,.12)',
+      color: '#EA4335',
     },
   };
 
@@ -95,29 +78,19 @@ function StatusBadge({ status }) {
   return (
     <span
       style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '5px',
-        padding: '2px 10px',
-        borderRadius: 'var(--dev-border-radius-full)',
-        background: cfg.bg,
-        color: cfg.color,
-        fontSize: 'var(--dev-font-size-xs)',
-        fontWeight: 'var(--dev-font-weight-semibold)',
-        letterSpacing: '0.02em',
-        textTransform: 'uppercase',
+        display:         'inline-flex',
+        alignItems:      'center',
+        padding:         '2px 8px',
+        borderRadius:    4,
+        background:      cfg.bg,
+        color:           cfg.color,
+        fontSize:        12,
+        fontWeight:      600,
+        letterSpacing:   '0.3px',
+        textTransform:   'uppercase',
+        whiteSpace:      'nowrap',
       }}
     >
-      <span
-        aria-hidden="true"
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: '50%',
-          background: cfg.dot,
-          flexShrink: 0,
-        }}
-      />
       {cfg.label}
     </span>
   );
@@ -125,64 +98,55 @@ function StatusBadge({ status }) {
 
 // ─── ProjectCard ──────────────────────────────────────────────────────────────
 
-/**
- * @param {object} props
- * @param {object} props.project - données du projet (id, name, status, created_at, description)
- */
 export default function ProjectCard({ project }) {
   const { id, name, status, created_at, description } = project;
 
   return (
     <article
       style={{
-        background: 'var(--dev-bg-surface)',
-        border: '1px solid var(--dev-border-color)',
-        borderRadius: 'var(--dev-border-radius-lg)',
-        padding: 'var(--dev-space-5)',
-        display: 'flex',
+        background:   '#FFFFFF',
+        border:       '1px solid #E0E0E0',
+        borderRadius: 8,
+        padding:      '20px 24px',
+        display:      'flex',
         flexDirection: 'column',
-        gap: 'var(--dev-space-4)',
-        transition: 'box-shadow var(--dev-transition-fast), border-color var(--dev-transition-fast)',
-        boxShadow: 'var(--dev-shadow-sm)',
+        gap:          16,
+        transition:   'border-color 150ms ease',
+        cursor:       'default',
       }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.boxShadow = 'var(--dev-shadow-md)';
-        e.currentTarget.style.borderColor = 'var(--dev-color-brand-primary)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow = 'var(--dev-shadow-sm)';
-        e.currentTarget.style.borderColor = 'var(--dev-border-color)';
-      }}
+      onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#1A73E8'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#E0E0E0'; }}
     >
-      {/* En-tête : icône + nom + statut */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--dev-space-3)' }}>
+      {/* En-tête */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+        {/* Icône projet — fond plat, pas de gradient */}
         <div
           aria-hidden="true"
           style={{
-            width: 40,
-            height: 40,
-            borderRadius: 'var(--dev-border-radius-md)',
-            background: 'linear-gradient(135deg, var(--dev-color-brand-primary), var(--dev-color-brand-secondary))',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            flexShrink: 0,
+            width:           40,
+            height:          40,
+            borderRadius:    8,
+            backgroundColor: '#EAF2FD',
+            display:         'flex',
+            alignItems:      'center',
+            justifyContent:  'center',
+            color:           '#1A73E8',
+            flexShrink:      0,
           }}
         >
-          <IconProject />
+          <IconMonitor />
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
           <h3
             style={{
-              fontSize: 'var(--dev-font-size-base)',
-              fontWeight: 'var(--dev-font-weight-semibold)',
-              color: 'var(--dev-text-primary)',
-              margin: '0 0 var(--dev-space-1) 0',
-              overflow: 'hidden',
+              fontSize:     15,
+              fontWeight:   600,
+              color:        '#202124',
+              margin:       '0 0 4px 0',
+              overflow:     'hidden',
               textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
+              whiteSpace:   'nowrap',
             }}
             title={name}
           >
@@ -192,17 +156,18 @@ export default function ProjectCard({ project }) {
         </div>
       </div>
 
-      {/* Description (si présente) */}
+      {/* Description */}
       {description && (
         <p
           style={{
-            fontSize: 'var(--dev-font-size-sm)',
-            color: 'var(--dev-text-secondary)',
-            margin: 0,
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
+            fontSize:           14,
+            color:              '#5F6368',
+            margin:             0,
+            display:            '-webkit-box',
+            WebkitLineClamp:    2,
+            WebkitBoxOrient:    'vertical',
+            overflow:           'hidden',
+            lineHeight:         1.5,
           }}
         >
           {description}
@@ -212,20 +177,17 @@ export default function ProjectCard({ project }) {
       {/* Pied : date + lien */}
       <div
         style={{
-          display: 'flex',
-          alignItems: 'center',
+          display:        'flex',
+          alignItems:     'center',
           justifyContent: 'space-between',
-          marginTop: 'auto',
-          paddingTop: 'var(--dev-space-3)',
-          borderTop: '1px solid var(--dev-border-color)',
+          marginTop:      'auto',
+          paddingTop:     12,
+          borderTop:      '1px solid #E0E0E0',
         }}
       >
         <time
           dateTime={created_at}
-          style={{
-            fontSize: 'var(--dev-font-size-xs)',
-            color: 'var(--dev-text-muted)',
-          }}
+          style={{ fontSize: 12, color: '#9aa0a6' }}
         >
           Créé le {formatDate(created_at)}
         </time>
@@ -234,17 +196,19 @@ export default function ProjectCard({ project }) {
           to={`/projects/${id}`}
           aria-label={`Ouvrir le projet ${name}`}
           style={{
-            display: 'inline-flex',
+            display:    'inline-flex',
             alignItems: 'center',
-            gap: 'var(--dev-space-1)',
-            fontSize: 'var(--dev-font-size-sm)',
-            fontWeight: 'var(--dev-font-weight-medium)',
-            color: 'var(--dev-color-brand-primary)',
+            gap:        4,
+            fontSize:   13,
+            fontWeight: 500,
+            color:      '#1A73E8',
             textDecoration: 'none',
           }}
+          onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.75'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
         >
           Ouvrir
-          <IconArrow />
+          <IconArrowRight />
         </Link>
       </div>
     </article>

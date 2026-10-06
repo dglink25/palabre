@@ -1,28 +1,27 @@
 /**
  * PortalLayout.jsx — Developer Portal
  *
- * Shell applicatif du portail développeur.
- * Identique visuellement à l'app Palabre principale :
- *   - Même sidebar blanche avec bordure droite grise
- *   - Même logo (logo.png)
- *   - Même typographie Inter
- *   - Même système de couleurs (#1A73E8, #202124, #5F6368, #E0E0E0)
- *   - Icônes SVG professionnelles — zéro emoji, zéro sticker
- *   - Topbar mobile fixe identique à celle de Palabre
+ * Shell applicatif institutionnel (style Stripe / Twilio / AWS Console).
+ * Sidebar 240px, fond blanc, bordure droite #E0E0E0.
+ * Nav items avec border-left actif #1A73E8.
+ * Logo /logo.png dans la sidebar et le menu mobile.
+ * Responsive — breakpoint 860px.
  */
 
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-// ─── Icônes SVG (pro, stroke-only, design Lucide) ────────────────────────────
+// ─── Icônes SVG Lucide stroke-only ───────────────────────────────────────────
 
 function IconGrid() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
       strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
-      <rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
+      <rect x="3" y="3" width="7" height="7" />
+      <rect x="14" y="3" width="7" height="7" />
+      <rect x="14" y="14" width="7" height="7" />
+      <rect x="3" y="14" width="7" height="7" />
     </svg>
   );
 }
@@ -31,8 +30,7 @@ function IconKey() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
       strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="7.5" cy="15.5" r="3.5" />
-      <path d="M10.5 12l7.5-7.5 2 2-1 1 1 1-1.5 1.5-1-1L16 10.5" />
+      <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
     </svg>
   );
 }
@@ -41,7 +39,9 @@ function IconWebhook() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
       strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+      <path d="M18 20V10" />
+      <path d="M12 20V4" />
+      <path d="M6 20v-6" />
     </svg>
   );
 }
@@ -98,171 +98,16 @@ function IconUser() {
   );
 }
 
-// ─── Items de navigation ──────────────────────────────────────────────────────
+// ─── Navigation ───────────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
-  { to: '/dashboard', label: 'Projets',       icon: <IconGrid />      },
-  { to: '/keys',      label: 'Clés API',      icon: <IconKey />       },
-  { to: '/webhooks',  label: 'Webhooks',      icon: <IconWebhook />   },
-  { to: '/docs',      label: 'Documentation', icon: <IconBook />      },
+  { to: '/dashboard', label: 'Projets',       icon: <IconGrid />    },
+  { to: '/keys',      label: 'Clés API',      icon: <IconKey />     },
+  { to: '/webhooks',  label: 'Webhooks',      icon: <IconWebhook /> },
+  { to: '/docs',      label: 'Documentation', icon: <IconBook />    },
 ];
 
-// ─── Styles sidebar ───────────────────────────────────────────────────────────
-
-const S = {
-  shell: {
-    display: 'flex',
-    minHeight: '100vh',
-  },
-  sidebar: {
-    width: 240,
-    backgroundColor: '#FFFFFF',
-    borderRight: '1px solid #E0E0E0',
-    flexShrink: 0,
-    display: 'flex',
-    flexDirection: 'column',
-    position: 'sticky',
-    top: 0,
-    height: '100vh',
-    overflow: 'hidden',
-  },
-  brand: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-    padding: '20px 24px',
-    borderBottom: '1px solid #E0E0E0',
-    flexShrink: 0,
-    textDecoration: 'none',
-  },
-  brandImg: { width: 32, height: 32 },
-  brandText: {
-    fontWeight: 700,
-    fontSize: 21,
-    letterSpacing: '0.5px',
-    color: '#202124',
-  },
-  brandBadge: {
-    fontSize: 10,
-    fontWeight: 700,
-    textTransform: 'uppercase',
-    letterSpacing: '0.6px',
-    color: '#1A73E8',
-    backgroundColor: 'rgba(26,115,232,.10)',
-    padding: '1px 6px',
-    borderRadius: 3,
-    marginLeft: 4,
-    alignSelf: 'center',
-  },
-  navArea: {
-    flex: 1,
-    overflowY: 'auto',
-    padding: '8px 0',
-  },
-  navLabel: {
-    fontSize: 11,
-    fontWeight: 700,
-    textTransform: 'uppercase',
-    letterSpacing: '0.7px',
-    color: '#9aa0a6',
-    padding: '12px 24px 4px',
-  },
-  footer: {
-    borderTop: '1px solid #E0E0E0',
-    padding: '12px 16px',
-  },
-  userRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-    padding: '8px',
-    borderRadius: 8,
-    cursor: 'pointer',
-    transition: 'background 150ms ease',
-  },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: '50%',
-    backgroundColor: '#1A73E8',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-    overflow: 'hidden',
-  },
-  userName: {
-    flex: 1,
-    fontSize: 13,
-    fontWeight: 600,
-    color: '#202124',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  },
-  userEmail: {
-    fontSize: 11,
-    color: '#5F6368',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  },
-  logoutBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 6,
-    width: '100%',
-    padding: '8px 12px',
-    background: 'none',
-    border: 'none',
-    borderRadius: 6,
-    fontSize: 13,
-    fontWeight: 500,
-    color: '#5F6368',
-    cursor: 'pointer',
-    transition: 'background 150ms ease, color 150ms ease',
-    marginTop: 4,
-  },
-  main: {
-    flex: 1,
-    padding: 32,
-    maxWidth: 960,
-    overflowY: 'auto',
-  },
-  /* Mobile topbar */
-  mobileTopbar: {
-    display: 'none',
-    position: 'fixed',
-    top: 0, left: 0, right: 0,
-    zIndex: 70,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    height: 56,
-    padding: '0 16px',
-    backgroundColor: '#FFFFFF',
-    borderBottom: '1px solid #E0E0E0',
-  },
-  mobileBrand: { display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' },
-  mobileMenuBtn: {
-    width: 40, height: 40,
-    border: '1px solid #E0E0E0',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-  },
-  mobileMenu: {
-    position: 'fixed',
-    top: 56, left: 0, right: 0, bottom: 0,
-    zIndex: 69,
-    backgroundColor: '#FFFFFF',
-    overflowY: 'auto',
-  },
-};
-
-// ─── Composant NavItem ────────────────────────────────────────────────────────
+// ─── NavItem ──────────────────────────────────────────────────────────────────
 
 function NavItem({ to, label, icon, onClick }) {
   return (
@@ -270,18 +115,18 @@ function NavItem({ to, label, icon, onClick }) {
       to={to}
       onClick={onClick}
       style={({ isActive }) => ({
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '11px 24px',
-        color: isActive ? '#1A73E8' : '#5F6368',
-        textDecoration: 'none',
-        borderLeft: `3px solid ${isActive ? '#1A73E8' : 'transparent'}`,
-        fontFamily: 'var(--font-stack)',
-        fontSize: 14,
-        fontWeight: isActive ? 700 : 400,
-        backgroundColor: isActive ? 'rgba(26,115,232,.06)' : 'transparent',
-        transition: 'background 150ms ease, color 150ms ease, border-color 150ms ease',
+        display:         'flex',
+        alignItems:      'center',
+        gap:             10,
+        padding:         '10px 20px',
+        color:           isActive ? '#1A73E8' : '#5F6368',
+        textDecoration:  'none',
+        borderLeft:      `3px solid ${isActive ? '#1A73E8' : 'transparent'}`,
+        fontFamily:      "'Inter', sans-serif",
+        fontSize:        14,
+        fontWeight:      isActive ? 600 : 400,
+        backgroundColor: isActive ? '#EAF2FD' : 'transparent',
+        transition:      'background 150ms ease, color 150ms ease, border-color 150ms ease',
       })}
     >
       <span style={{ width: 16, height: 16, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
@@ -299,54 +144,120 @@ export default function PortalLayout({ children }) {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const name  = account?.user?.full_name  || account?.user?.name  || 'Développeur';
-  const email = account?.user?.email      || '';
-  const photo = account?.user?.photo_url  || account?.user?.avatar || null;
+  const name  = account?.user?.full_name || account?.user?.name || 'Développeur';
+  const email = account?.user?.email || '';
+  const photo = account?.user?.photo_url || account?.user?.avatar || null;
 
   function handleLogout() {
     logout?.();
     navigate('/login');
   }
 
-  // ── Sidebar desktop ──────────────────────────────────────────────────────────
-  const sidebar = (
-    <aside style={S.sidebar} aria-label="Navigation principale">
-      {/* Logo + nom */}
-      <a href="/dashboard" style={S.brand}>
-        <img src="/logo.png" alt="Palabre" style={S.brandImg} />
-        <span style={S.brandText}>Palabre</span>
-        <span style={S.brandBadge}>Dev</span>
+  // ── Contenu sidebar ──────────────────────────────────────────────────────────
+  const sidebarContent = (
+    <>
+      {/* Logo */}
+      <a
+        href="/dashboard"
+        style={{
+          display:        'flex',
+          alignItems:     'center',
+          gap:            10,
+          padding:        '18px 20px',
+          borderBottom:   '1px solid #E0E0E0',
+          textDecoration: 'none',
+          flexShrink:     0,
+        }}
+      >
+        <img src="/logo.png" alt="Palabre" style={{ width: 30, height: 30 }} />
+        <span style={{ fontWeight: 700, fontSize: 18, color: '#202124', letterSpacing: '0.2px' }}>
+          Palabre
+        </span>
+        <span style={{
+          fontSize:        10,
+          fontWeight:      700,
+          textTransform:   'uppercase',
+          letterSpacing:   '0.6px',
+          color:           '#1A73E8',
+          backgroundColor: '#EAF2FD',
+          padding:         '1px 6px',
+          borderRadius:    3,
+          marginLeft:      2,
+        }}>
+          Dev
+        </span>
       </a>
 
       {/* Navigation */}
-      <nav style={S.navArea} aria-label="Menu développeur">
-        <p style={S.navLabel}>Menu</p>
+      <nav
+        style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}
+        aria-label="Menu développeur"
+      >
+        <p style={{
+          fontSize:      11,
+          fontWeight:    700,
+          textTransform: 'uppercase',
+          letterSpacing: '0.8px',
+          color:         '#9aa0a6',
+          padding:       '14px 20px 4px',
+        }}>
+          Menu
+        </p>
         {NAV_ITEMS.map((item) => (
           <NavItem key={item.to} {...item} />
         ))}
       </nav>
 
       {/* Footer utilisateur */}
-      <div style={S.footer}>
-        {/* Infos utilisateur */}
-        <div style={S.userRow}>
-          <div style={S.avatar}>
+      <div style={{ borderTop: '1px solid #E0E0E0', padding: '12px 14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 8px' }}>
+          <div style={{
+            width:           30,
+            height:          30,
+            borderRadius:    '50%',
+            backgroundColor: '#1A73E8',
+            display:         'flex',
+            alignItems:      'center',
+            justifyContent:  'center',
+            flexShrink:      0,
+            overflow:        'hidden',
+          }}>
             {photo
               ? <img src={photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              : <span style={{ display: 'flex' }}><IconUser /></span>
+              : <span style={{ display: 'flex', color: '#fff', width: 16, height: 16 }}><IconUser /></span>
             }
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={S.userName}>{name}</p>
-            {email && <p style={S.userEmail}>{email}</p>}
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#202124', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>
+              {name}
+            </p>
+            {email && (
+              <p style={{ fontSize: 11, color: '#5F6368', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>
+                {email}
+              </p>
+            )}
           </div>
         </div>
-
-        {/* Déconnexion */}
         <button
           type="button"
           onClick={handleLogout}
-          style={S.logoutBtn}
+          style={{
+            display:         'flex',
+            alignItems:      'center',
+            gap:             6,
+            width:           '100%',
+            padding:         '7px 8px',
+            background:      'none',
+            border:          'none',
+            borderRadius:    6,
+            fontFamily:      "'Inter', sans-serif",
+            fontSize:        13,
+            fontWeight:      500,
+            color:           '#5F6368',
+            cursor:          'pointer',
+            transition:      'background 150ms ease, color 150ms ease',
+            marginTop:       4,
+          }}
           onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#F8F9FA'; e.currentTarget.style.color = '#202124'; }}
           onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#5F6368'; }}
         >
@@ -354,61 +265,11 @@ export default function PortalLayout({ children }) {
           Déconnexion
         </button>
       </div>
-    </aside>
-  );
-
-  // ── Mobile topbar + menu ────────────────────────────────────────────────────
-  const mobileTopbar = (
-    <>
-      <header
-        style={{ ...S.mobileTopbar, display: 'flex' }}
-        className="mobile-topbar-visible"
-      >
-        <a href="/dashboard" style={S.mobileBrand}>
-          <img src="/logo.png" alt="Palabre" style={{ width: 26, height: 26 }} />
-          <span style={{ fontWeight: 700, fontSize: 18, color: '#202124' }}>Palabre</span>
-          <span style={{ ...S.brandBadge, marginLeft: 2 }}>Dev</span>
-        </a>
-        <button
-          type="button"
-          style={S.mobileMenuBtn}
-          onClick={() => setMobileOpen((v) => !v)}
-          aria-label={mobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-          aria-expanded={mobileOpen}
-        >
-          <span style={{ width: 20, height: 20, display: 'flex', color: '#202124' }}>
-            {mobileOpen ? <IconX /> : <IconMenu />}
-          </span>
-        </button>
-      </header>
-
-      {mobileOpen && (
-        <div style={S.mobileMenu} role="dialog" aria-modal="true" aria-label="Menu mobile">
-          {NAV_ITEMS.map((item) => (
-            <NavItem
-              key={item.to}
-              {...item}
-              onClick={() => setMobileOpen(false)}
-            />
-          ))}
-          <div style={{ padding: '16px 24px', borderTop: '1px solid #E0E0E0', marginTop: 8 }}>
-            <button
-              type="button"
-              onClick={handleLogout}
-              style={{ ...S.logoutBtn, padding: '10px 0', fontSize: 15 }}
-            >
-              <span style={{ width: 16, height: 16, display: 'flex' }}><IconLogOut /></span>
-              Déconnexion
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 
   return (
     <>
-      {/* CSS inline pour gérer le breakpoint mobile sans JS */}
       <style>{`
         @media (max-width: 860px) {
           .portal-sidebar        { display: none !important; }
@@ -419,18 +280,145 @@ export default function PortalLayout({ children }) {
         @media (min-width: 861px) {
           .mobile-topbar-visible { display: none !important; }
         }
-        .nav-link-item:hover { background-color: #F8F9FA !important; }
       `}</style>
 
-      <div style={S.shell} className="portal-shell">
+      <div
+        className="portal-shell"
+        style={{ display: 'flex', minHeight: '100vh' }}
+      >
         {/* Sidebar desktop */}
-        <div className="portal-sidebar">{sidebar}</div>
+        <aside
+          className="portal-sidebar"
+          style={{
+            width:          240,
+            backgroundColor: '#FFFFFF',
+            borderRight:    '1px solid #E0E0E0',
+            flexShrink:     0,
+            display:        'flex',
+            flexDirection:  'column',
+            position:       'sticky',
+            top:            0,
+            height:         '100vh',
+            overflow:       'hidden',
+          }}
+          aria-label="Navigation principale"
+        >
+          {sidebarContent}
+        </aside>
 
         {/* Topbar mobile */}
-        {mobileTopbar}
+        <header
+          className="mobile-topbar-visible"
+          style={{
+            display:         'none',
+            position:        'fixed',
+            top: 0, left: 0, right: 0,
+            zIndex:          70,
+            alignItems:      'center',
+            justifyContent:  'space-between',
+            height:          56,
+            padding:         '0 16px',
+            backgroundColor: '#FFFFFF',
+            borderBottom:    '1px solid #E0E0E0',
+          }}
+        >
+          <a href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+            <img src="/logo.png" alt="Palabre" style={{ width: 26, height: 26 }} />
+            <span style={{ fontWeight: 700, fontSize: 17, color: '#202124' }}>Palabre</span>
+            <span style={{
+              fontSize:        10,
+              fontWeight:      700,
+              textTransform:   'uppercase',
+              letterSpacing:   '0.6px',
+              color:           '#1A73E8',
+              backgroundColor: '#EAF2FD',
+              padding:         '1px 6px',
+              borderRadius:    3,
+              marginLeft:      2,
+            }}>Dev</span>
+          </a>
+          <button
+            type="button"
+            style={{
+              width:           36,
+              height:          36,
+              border:          '1px solid #E0E0E0',
+              backgroundColor: '#FFFFFF',
+              borderRadius:    8,
+              display:         'flex',
+              alignItems:      'center',
+              justifyContent:  'center',
+              cursor:          'pointer',
+            }}
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label={mobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+            aria-expanded={mobileOpen}
+          >
+            <span style={{ width: 18, height: 18, display: 'flex', color: '#202124' }}>
+              {mobileOpen ? <IconX /> : <IconMenu />}
+            </span>
+          </button>
+        </header>
 
-        {/* Contenu */}
-        <main style={S.main} className="portal-main">
+        {/* Menu mobile overlay */}
+        {mobileOpen && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu mobile"
+            style={{
+              position:        'fixed',
+              top:             56,
+              left:            0,
+              right:           0,
+              bottom:          0,
+              zIndex:          69,
+              backgroundColor: '#FFFFFF',
+              overflowY:       'auto',
+              borderTop:       '1px solid #E0E0E0',
+            }}
+          >
+            {NAV_ITEMS.map((item) => (
+              <NavItem
+                key={item.to}
+                {...item}
+                onClick={() => setMobileOpen(false)}
+              />
+            ))}
+            <div style={{ padding: '16px 20px', borderTop: '1px solid #E0E0E0', marginTop: 8 }}>
+              <button
+                type="button"
+                onClick={handleLogout}
+                style={{
+                  display:    'flex',
+                  alignItems: 'center',
+                  gap:        6,
+                  background: 'none',
+                  border:     'none',
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize:   14,
+                  fontWeight: 500,
+                  color:      '#5F6368',
+                  cursor:     'pointer',
+                  padding:    0,
+                }}
+              >
+                <span style={{ width: 16, height: 16, display: 'flex' }}><IconLogOut /></span>
+                Déconnexion
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Contenu principal */}
+        <main
+          className="portal-main"
+          style={{
+            flex:     1,
+            padding:  32,
+            maxWidth: 960,
+          }}
+        >
           {children}
         </main>
       </div>

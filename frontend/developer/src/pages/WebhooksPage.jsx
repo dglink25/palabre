@@ -1,15 +1,9 @@
 /**
  * WebhooksPage.jsx - Developer Portal
  *
- * Onglet Webhooks d'un Developer_Project.
- *
- * Fonctionnalités :
- *   1. Liste des webhooks : url, events abonnés, statut, last_fired_at (req 10.1)
- *   2. Formulaire de création : champ URL (validation HTTPS côté client),
- *      checkboxes pour les event types disponibles, bouton "Créer" (req 10.1)
- *   3. Bouton "Supprimer" par webhook (confirmation requise)
- *   4. Section "Historique des livraisons" : tableau des 100 dernières entrées
- *      avec event_type, statut (badge coloré), code HTTP, timestamp (req 10.6)
+ * Onglet Webhooks d'un Developer_Project — design institutionnel.
+ * Tableaux header #F8F9FA, badges border-radius 4px, icônes Lucide stroke-only.
+ * Pas de gradient, état vide sobre.
  *
  * Requirements couverts : 10.1, 10.6
  */
@@ -18,16 +12,16 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import developerApi from '../api/developerApi';
 
-// ─── Types d'événements disponibles ──────────────────────────────────────────
+// ─── Types d'événements ───────────────────────────────────────────────────────
 
 const AVAILABLE_EVENT_TYPES = [
-  { value: 'message.received',   label: 'Message reçu' },
-  { value: 'call.missed',        label: 'Appel manqué' },
-  { value: 'call.started',       label: 'Appel démarré' },
-  { value: 'call.ended',         label: 'Appel terminé' },
-  { value: 'user.online',        label: 'Utilisateur connecté' },
-  { value: 'user.offline',       label: 'Utilisateur déconnecté' },
-  { value: 'notification.sent',  label: 'Notification envoyée' },
+  { value: 'message.received',  label: 'Message reçu'           },
+  { value: 'call.missed',       label: 'Appel manqué'           },
+  { value: 'call.started',      label: 'Appel démarré'          },
+  { value: 'call.ended',        label: 'Appel terminé'          },
+  { value: 'user.online',       label: 'Utilisateur connecté'   },
+  { value: 'user.offline',      label: 'Utilisateur déconnecté' },
+  { value: 'notification.sent', label: 'Notification envoyée'   },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -35,40 +29,30 @@ const AVAILABLE_EVENT_TYPES = [
 function formatDateTime(isoString) {
   if (!isoString) return '-';
   return new Intl.DateTimeFormat('fr-FR', {
-    day:    '2-digit',
-    month:  '2-digit',
-    year:   'numeric',
-    hour:   '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
   }).format(new Date(isoString));
 }
 
 function isHttpsUrl(url) {
-  try {
-    const parsed = new URL(url);
-    return parsed.protocol === 'https:';
-  } catch {
-    return false;
-  }
+  try { const p = new URL(url); return p.protocol === 'https:'; }
+  catch { return false; }
 }
 
-// ─── Icônes SVG inline ────────────────────────────────────────────────────────
+// ─── Icônes SVG Lucide stroke-only ───────────────────────────────────────────
 
-function IconWebhook() {
+function IconActivity() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M18 20V10" />
-      <path d="M12 20V4" />
-      <path d="M6 20v-6" />
+      <path d="M18 20V10" /><path d="M12 20V4" /><path d="M6 20v-6" />
     </svg>
   );
 }
 
 function IconPlus() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <line x1="12" y1="5" x2="12" y2="19" />
       <line x1="5" y1="12" x2="19" y2="12" />
@@ -78,12 +62,11 @@ function IconPlus() {
 
 function IconTrash() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <polyline points="3 6 5 6 21 6" />
       <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
-      <path d="M10 11v6" />
-      <path d="M14 11v6" />
+      <path d="M10 11v6M14 11v6" />
       <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" />
     </svg>
   );
@@ -91,7 +74,7 @@ function IconTrash() {
 
 function IconChevronDown() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <polyline points="6 9 12 15 18 9" />
     </svg>
@@ -100,7 +83,7 @@ function IconChevronDown() {
 
 function IconChevronUp() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <polyline points="18 15 12 9 6 15" />
     </svg>
@@ -109,7 +92,7 @@ function IconChevronUp() {
 
 function IconRefresh() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <polyline points="23 4 23 10 17 10" />
       <polyline points="1 20 1 14 7 14" />
@@ -120,7 +103,7 @@ function IconRefresh() {
 
 function IconAlertCircle() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <circle cx="12" cy="12" r="10" />
       <line x1="12" y1="8" x2="12" y2="12" />
@@ -129,7 +112,7 @@ function IconAlertCircle() {
   );
 }
 
-function IconWarning() {
+function IconAlertTriangle() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -140,129 +123,81 @@ function IconWarning() {
   );
 }
 
-function IconClose() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  );
-}
-
 // ─── Spinner ──────────────────────────────────────────────────────────────────
 
-function Spinner({ size = 24 }) {
+function Spinner({ size = 20 }) {
   return (
     <span
       role="status"
       aria-label="Chargement…"
       style={{
-        display: 'inline-block',
-        width: size,
-        height: size,
-        border: '3px solid var(--dev-color-neutral-200)',
-        borderTopColor: 'var(--dev-color-brand-primary)',
-        borderRadius: '50%',
-        animation: 'dev-spin 0.7s linear infinite',
-        flexShrink: 0,
+        display:        'inline-block',
+        width:          size,
+        height:         size,
+        border:         '2px solid #E0E0E0',
+        borderTopColor: '#1A73E8',
+        borderRadius:   '50%',
+        animation:      'dev-spin 0.7s linear infinite',
+        flexShrink:     0,
       }}
     />
   );
 }
 
-// ─── Badge de statut webhook ──────────────────────────────────────────────────
+// ─── Badges ───────────────────────────────────────────────────────────────────
 
 function WebhookStatusBadge({ status }) {
   const config = {
-    active: {
-      label: 'Actif',
-      bg:    'var(--dev-color-success-light)',
-      color: 'var(--dev-color-success)',
-    },
-    failed: {
-      label: 'Défaillant',
-      bg:    'var(--dev-color-error-light)',
-      color: 'var(--dev-color-error)',
-    },
-    disabled: {
-      label: 'Désactivé',
-      bg:    'var(--dev-color-neutral-100)',
-      color: 'var(--dev-color-neutral-500)',
-    },
+    active:   { label: 'Actif',      bg: 'rgba(52,168,83,.12)',  color: '#34A853' },
+    failed:   { label: 'Défaillant', bg: 'rgba(234,67,53,.12)',  color: '#EA4335' },
+    disabled: { label: 'Désactivé',  bg: 'rgba(95,99,104,.10)', color: '#5F6368' },
   };
   const cfg = config[status] ?? config.disabled;
-
   return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 5,
-        padding: '2px 10px',
-        borderRadius: 'var(--dev-border-radius-full)',
-        background: cfg.bg,
-        color: cfg.color,
-        fontSize: 'var(--dev-font-size-xs)',
-        fontWeight: 'var(--dev-font-weight-semibold)',
-        letterSpacing: '0.02em',
-        textTransform: 'uppercase',
-        whiteSpace: 'nowrap',
-      }}
-    >
-      <span
-        aria-hidden="true"
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: '50%',
-          background: cfg.color,
-          flexShrink: 0,
-        }}
-      />
+    <span style={{
+      display:       'inline-flex',
+      alignItems:    'center',
+      gap:           4,
+      padding:       '2px 8px',
+      borderRadius:  4,
+      background:    cfg.bg,
+      color:         cfg.color,
+      fontSize:      11,
+      fontWeight:    600,
+      letterSpacing: '0.3px',
+      textTransform: 'uppercase',
+      whiteSpace:    'nowrap',
+    }}>
+      <span aria-hidden="true" style={{
+        width: 5, height: 5, borderRadius: '50%',
+        background: cfg.color, flexShrink: 0,
+      }} />
       {cfg.label}
     </span>
   );
 }
 
-// ─── Badge de statut de livraison ─────────────────────────────────────────────
-
 function DeliveryStatusBadge({ status }) {
   const config = {
-    delivered: {
-      label: 'Livré',
-      bg:    'var(--dev-color-success-light)',
-      color: 'var(--dev-color-success)',
-    },
-    pending: {
-      label: 'En attente',
-      bg:    'var(--dev-color-warning-light)',
-      color: 'var(--dev-color-warning)',
-    },
-    failed: {
-      label: 'Échoué',
-      bg:    'var(--dev-color-error-light)',
-      color: 'var(--dev-color-error)',
-    },
+    delivered: { label: 'Livré',      bg: 'rgba(52,168,83,.12)',  color: '#34A853' },
+    pending:   { label: 'En attente', bg: 'rgba(251,188,5,.12)',  color: '#8a6700' },
+    failed:    { label: 'Échoué',     bg: 'rgba(234,67,53,.12)',  color: '#EA4335' },
   };
   const cfg = config[status] ?? config.pending;
-
   return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        padding: '2px 8px',
-        borderRadius: 'var(--dev-border-radius-full)',
-        background: cfg.bg,
-        color: cfg.color,
-        fontSize: 'var(--dev-font-size-xs)',
-        fontWeight: 'var(--dev-font-weight-semibold)',
-        letterSpacing: '0.02em',
-        textTransform: 'uppercase',
-        whiteSpace: 'nowrap',
-      }}
-    >
+    <span style={{
+      display:       'inline-flex',
+      alignItems:    'center',
+      padding:       '2px 8px',
+      borderRadius:  4,
+      background:    cfg.bg,
+      color:         cfg.color,
+      fontSize:      11,
+      fontWeight:    600,
+      letterSpacing: '0.3px',
+      textTransform: 'uppercase',
+      whiteSpace:    'nowrap',
+    }}>
       {cfg.label}
     </span>
   );
@@ -271,11 +206,8 @@ function DeliveryStatusBadge({ status }) {
 // ─── Modale de confirmation de suppression ────────────────────────────────────
 
 function ConfirmDeleteModal({ webhook, onConfirm, onCancel, busy }) {
-  // Fermer avec Escape
   useEffect(() => {
-    function handleKey(e) {
-      if (e.key === 'Escape') onCancel();
-    }
+    function handleKey(e) { if (e.key === 'Escape') onCancel(); }
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
   }, [onCancel]);
@@ -286,96 +218,69 @@ function ConfirmDeleteModal({ webhook, onConfirm, onCancel, busy }) {
       aria-modal="true"
       aria-labelledby="confirm-delete-title"
       style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 1000,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--dev-bg-overlay)',
-        padding: 'var(--dev-space-4)',
+        position:        'fixed',
+        inset:           0,
+        zIndex:          1000,
+        display:         'flex',
+        alignItems:      'center',
+        justifyContent:  'center',
+        background:      'rgba(32,33,36,.5)',
+        padding:         16,
       }}
       onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
     >
-      <div
-        style={{
-          background: 'var(--dev-bg-surface)',
-          borderRadius: 'var(--dev-border-radius-xl)',
-          boxShadow: 'var(--dev-shadow-xl)',
-          width: '100%',
-          maxWidth: 440,
-          padding: 'var(--dev-space-8)',
-        }}
-      >
-        {/* En-tête */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: 'var(--dev-space-4)',
-            marginBottom: 'var(--dev-space-6)',
-          }}
-        >
-          <div
-            aria-hidden="true"
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 'var(--dev-border-radius-full)',
-              background: 'var(--dev-color-error-light)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--dev-color-error)',
-              flexShrink: 0,
-            }}
-          >
-            <IconWarning />
+      <div style={{
+        background:   '#FFFFFF',
+        borderRadius: 12,
+        boxShadow:    '0 8px 32px rgba(32,33,36,.14)',
+        width:        '100%',
+        maxWidth:     420,
+        padding:      '28px 32px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 20 }}>
+          <div style={{
+            width:           40,
+            height:          40,
+            borderRadius:    '50%',
+            backgroundColor: 'rgba(234,67,53,.10)',
+            display:         'flex',
+            alignItems:      'center',
+            justifyContent:  'center',
+            color:           '#EA4335',
+            flexShrink:      0,
+          }} aria-hidden="true">
+            <IconAlertTriangle />
           </div>
           <div>
             <h2
               id="confirm-delete-title"
-              style={{
-                fontSize: 'var(--dev-font-size-lg)',
-                fontWeight: 'var(--dev-font-weight-bold)',
-                color: 'var(--dev-text-primary)',
-                margin: '0 0 var(--dev-space-2) 0',
-              }}
+              style={{ fontSize: 17, fontWeight: 700, color: '#202124', margin: '0 0 8px' }}
             >
               Supprimer ce webhook ?
             </h2>
-            <p
-              style={{
-                fontSize: 'var(--dev-font-size-sm)',
-                color: 'var(--dev-text-secondary)',
-                margin: 0,
-                wordBreak: 'break-all',
-              }}
-            >
+            <p style={{ fontSize: 13, color: '#5F6368', margin: 0, wordBreak: 'break-all' }}>
               Cette action est irréversible. Le webhook{' '}
-              <strong style={{ color: 'var(--dev-text-primary)' }}>
-                {webhook.url}
-              </strong>{' '}
-              ainsi que tout son historique de livraisons seront supprimés définitivement.
+              <strong style={{ color: '#202124' }}>{webhook.url}</strong>{' '}
+              ainsi que son historique seront supprimés définitivement.
             </p>
           </div>
         </div>
-
-        {/* Actions */}
-        <div style={{ display: 'flex', gap: 'var(--dev-space-3)', justifyContent: 'flex-end' }}>
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
           <button
             type="button"
             onClick={onCancel}
             disabled={busy}
             style={{
-              padding: 'var(--dev-space-2) var(--dev-space-5)',
-              background: 'var(--dev-bg-surface)',
-              color: 'var(--dev-text-secondary)',
-              border: '1px solid var(--dev-border-color)',
-              borderRadius: 'var(--dev-border-radius-md)',
-              fontSize: 'var(--dev-font-size-sm)',
-              fontWeight: 'var(--dev-font-weight-medium)',
-              cursor: busy ? 'not-allowed' : 'pointer',
+              height:       36,
+              padding:      '0 16px',
+              background:   '#FFFFFF',
+              color:        '#5F6368',
+              border:       '1px solid #E0E0E0',
+              borderRadius: 8,
+              fontSize:     13,
+              fontWeight:   500,
+              cursor:       busy ? 'not-allowed' : 'pointer',
+              fontFamily:   'inherit',
             }}
           >
             Annuler
@@ -385,21 +290,23 @@ function ConfirmDeleteModal({ webhook, onConfirm, onCancel, busy }) {
             onClick={onConfirm}
             disabled={busy}
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 'var(--dev-space-2)',
-              padding: 'var(--dev-space-2) var(--dev-space-5)',
-              background: busy ? 'var(--dev-color-neutral-300)' : 'var(--dev-color-error)',
-              color: 'white',
-              border: 'none',
-              borderRadius: 'var(--dev-border-radius-md)',
-              fontSize: 'var(--dev-font-size-sm)',
-              fontWeight: 'var(--dev-font-weight-semibold)',
-              cursor: busy ? 'not-allowed' : 'pointer',
-              transition: 'background var(--dev-transition-fast)',
+              display:      'inline-flex',
+              alignItems:   'center',
+              gap:          6,
+              height:       36,
+              padding:      '0 16px',
+              background:   busy ? '#dadce0' : '#EA4335',
+              color:        busy ? '#5F6368' : '#FFFFFF',
+              border:       'none',
+              borderRadius: 8,
+              fontSize:     13,
+              fontWeight:   600,
+              cursor:       busy ? 'not-allowed' : 'pointer',
+              fontFamily:   'inherit',
+              transition:   'background 150ms ease',
             }}
           >
-            {busy ? <Spinner size={14} /> : <IconTrash />}
+            {busy ? <Spinner size={13} /> : <IconTrash />}
             Supprimer
           </button>
         </div>
@@ -408,13 +315,13 @@ function ConfirmDeleteModal({ webhook, onConfirm, onCancel, busy }) {
   );
 }
 
-// ─── Formulaire de création de webhook ───────────────────────────────────────
+// ─── Formulaire de création ───────────────────────────────────────────────────
 
 function CreateWebhookForm({ projectId, onCreated }) {
-  const [url, setUrl]           = useState('');
-  const [events, setEvents]     = useState([]);
-  const [busy, setBusy]         = useState(false);
-  const [error, setError]       = useState('');
+  const [url,      setUrl]      = useState('');
+  const [events,   setEvents]   = useState([]);
+  const [busy,     setBusy]     = useState(false);
+  const [error,    setError]    = useState('');
   const [urlError, setUrlError] = useState('');
   const urlInputRef             = useRef(null);
 
@@ -425,34 +332,21 @@ function CreateWebhookForm({ projectId, onCreated }) {
   }
 
   function validateUrl(value) {
-    if (!value.trim()) {
-      setUrlError('L\'URL est obligatoire.');
-      return false;
-    }
-    if (!isHttpsUrl(value.trim())) {
-      setUrlError('L\'URL doit commencer par https://');
-      return false;
-    }
+    if (!value.trim()) { setUrlError("L'URL est obligatoire."); return false; }
+    if (!isHttpsUrl(value.trim())) { setUrlError("L'URL doit commencer par https://"); return false; }
     setUrlError('');
     return true;
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!validateUrl(url)) {
-      urlInputRef.current?.focus();
-      return;
-    }
-    if (events.length === 0) {
-      setError('Sélectionnez au moins un type d\'événement.');
-      return;
-    }
+    if (!validateUrl(url)) { urlInputRef.current?.focus(); return; }
+    if (events.length === 0) { setError("Sélectionnez au moins un type d'événement."); return; }
     setError('');
     setBusy(true);
     try {
       const { data } = await developerApi.post(`/projects/${projectId}/webhooks`, {
-        url: url.trim(),
-        events,
+        url: url.trim(), events,
       });
       const newWebhook = data?.webhook ?? data;
       onCreated(newWebhook);
@@ -462,7 +356,7 @@ function CreateWebhookForm({ projectId, onCreated }) {
       const msg =
         err.response?.data?.error?.message ||
         err.response?.data?.message ||
-        'Une erreur est survenue lors de la création du webhook.';
+        'Une erreur est survenue lors de la création.';
       setError(msg);
     } finally {
       setBusy(false);
@@ -471,217 +365,150 @@ function CreateWebhookForm({ projectId, onCreated }) {
 
   const canSubmit = url.trim().length > 0 && events.length > 0 && !busy;
 
+  const inputStyle = {
+    width:        '100%',
+    padding:      '9px 12px',
+    border:       `1px solid ${urlError ? '#EA4335' : '#E0E0E0'}`,
+    borderRadius: 8,
+    fontFamily:   'inherit',
+    fontSize:     14,
+    color:        '#202124',
+    background:   '#FFFFFF',
+    outline:      'none',
+    boxSizing:    'border-box',
+    transition:   'border-color 150ms ease',
+  };
+
   return (
     <form
       onSubmit={handleSubmit}
       noValidate
       aria-label="Créer un webhook"
       style={{
-        background: 'var(--dev-bg-surface)',
-        border: '1px solid var(--dev-border-color)',
-        borderRadius: 'var(--dev-border-radius-lg)',
-        padding: 'var(--dev-space-6)',
-        boxShadow: 'var(--dev-shadow-sm)',
+        background:   '#FFFFFF',
+        border:       '1px solid #E0E0E0',
+        borderRadius: 8,
+        padding:      '20px 24px',
       }}
     >
-      <h3
-        style={{
-          fontSize: 'var(--dev-font-size-base)',
-          fontWeight: 'var(--dev-font-weight-semibold)',
-          color: 'var(--dev-text-primary)',
-          margin: '0 0 var(--dev-space-5) 0',
-        }}
-      >
+      <h3 style={{ fontSize: 15, fontWeight: 600, color: '#202124', margin: '0 0 16px' }}>
         Nouveau webhook
       </h3>
 
-      {/* Erreur générale */}
       {error && (
         <div
           role="alert"
           aria-live="polite"
           style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: 'var(--dev-space-2)',
-            padding: 'var(--dev-space-3) var(--dev-space-4)',
-            background: 'var(--dev-color-error-light)',
-            border: '1px solid var(--dev-color-error)',
-            borderRadius: 'var(--dev-border-radius-md)',
-            color: 'var(--dev-color-error)',
-            fontSize: 'var(--dev-font-size-sm)',
-            marginBottom: 'var(--dev-space-4)',
+            display:      'flex',
+            alignItems:   'center',
+            gap:          8,
+            padding:      '10px 14px',
+            background:   'rgba(234,67,53,.06)',
+            border:       '1px solid #EA4335',
+            borderLeft:   '3px solid #EA4335',
+            borderRadius: 8,
+            color:        '#EA4335',
+            fontSize:     13,
+            marginBottom: 14,
           }}
         >
-          <span style={{ flexShrink: 0, marginTop: 1 }}>
-            <IconAlertCircle />
-          </span>
+          <IconAlertCircle />
           {error}
         </div>
       )}
 
       {/* Champ URL */}
-      <div style={{ marginBottom: 'var(--dev-space-5)' }}>
+      <div style={{ marginBottom: 16 }}>
         <label
           htmlFor="webhook-url"
-          style={{
-            display: 'block',
-            fontSize: 'var(--dev-font-size-sm)',
-            fontWeight: 'var(--dev-font-weight-medium)',
-            color: 'var(--dev-text-primary)',
-            marginBottom: 'var(--dev-space-2)',
-          }}
+          style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#202124', marginBottom: 6 }}
         >
-          URL de destination{' '}
-          <span aria-hidden="true" style={{ color: 'var(--dev-color-error)' }}>*</span>
+          URL de destination <span aria-hidden="true" style={{ color: '#EA4335' }}>*</span>
         </label>
         <input
           ref={urlInputRef}
           id="webhook-url"
           type="url"
           value={url}
-          onChange={(e) => {
-            setUrl(e.target.value);
-            if (urlError) validateUrl(e.target.value);
-          }}
+          onChange={(e) => { setUrl(e.target.value); if (urlError) validateUrl(e.target.value); }}
           onBlur={(e) => validateUrl(e.target.value)}
           placeholder="https://api.monapp.com/webhooks/palabre"
           required
           aria-describedby={urlError ? 'webhook-url-error' : 'webhook-url-hint'}
           aria-invalid={!!urlError}
-          style={{
-            width: '100%',
-            padding: 'var(--dev-space-3) var(--dev-space-4)',
-            border: `1px solid ${urlError ? 'var(--dev-color-error)' : 'var(--dev-border-color)'}`,
-            borderRadius: 'var(--dev-border-radius-md)',
-            fontSize: 'var(--dev-font-size-base)',
-            color: 'var(--dev-text-primary)',
-            background: 'var(--dev-bg-surface)',
-            outline: 'none',
-            boxSizing: 'border-box',
-            transition: 'border-color var(--dev-transition-fast)',
-          }}
-          onFocus={(e) => {
-            if (!urlError) e.target.style.borderColor = 'var(--dev-border-color-focus)';
-          }}
-          onBlurCapture={(e) => {
-            if (!urlError) e.target.style.borderColor = 'var(--dev-border-color)';
-          }}
+          style={inputStyle}
+          onFocus={(e) => { if (!urlError) e.target.style.borderColor = '#1A73E8'; }}
         />
         {urlError ? (
-          <p
-            id="webhook-url-error"
-            role="alert"
-            style={{
-              fontSize: 'var(--dev-font-size-xs)',
-              color: 'var(--dev-color-error)',
-              marginTop: 'var(--dev-space-1)',
-              marginBottom: 0,
-            }}
-          >
+          <p id="webhook-url-error" role="alert"
+            style={{ fontSize: 12, color: '#EA4335', marginTop: 4, marginBottom: 0 }}>
             {urlError}
           </p>
         ) : (
-          <p
-            id="webhook-url-hint"
-            style={{
-              fontSize: 'var(--dev-font-size-xs)',
-              color: 'var(--dev-text-muted)',
-              marginTop: 'var(--dev-space-1)',
-              marginBottom: 0,
-            }}
-          >
+          <p id="webhook-url-hint"
+            style={{ fontSize: 12, color: '#9aa0a6', marginTop: 4, marginBottom: 0 }}>
             L'URL doit commencer par <code>https://</code>
           </p>
         )}
       </div>
 
-      {/* Checkboxes des event types */}
+      {/* Checkboxes événements */}
       <fieldset
-        style={{
-          border: 'none',
-          padding: 0,
-          margin: '0 0 var(--dev-space-6) 0',
-        }}
-        aria-label="Types d'événements à écouter"
+        style={{ border: 'none', padding: 0, margin: '0 0 20px' }}
+        aria-label="Types d'événements"
       >
-        <legend
-          style={{
-            fontSize: 'var(--dev-font-size-sm)',
-            fontWeight: 'var(--dev-font-weight-medium)',
-            color: 'var(--dev-text-primary)',
-            marginBottom: 'var(--dev-space-3)',
-            display: 'block',
-          }}
-        >
-          Types d'événements{' '}
-          <span aria-hidden="true" style={{ color: 'var(--dev-color-error)' }}>*</span>
-          <span
-            style={{
-              fontSize: 'var(--dev-font-size-xs)',
-              color: 'var(--dev-text-muted)',
-              fontWeight: 'var(--dev-font-weight-normal)',
-              marginLeft: 'var(--dev-space-2)',
-            }}
-          >
-            (sélectionnez au moins un)
+        <legend style={{
+          fontSize: 13, fontWeight: 500, color: '#202124',
+          marginBottom: 10, display: 'block',
+        }}>
+          Types d'événements <span aria-hidden="true" style={{ color: '#EA4335' }}>*</span>
+          <span style={{ fontSize: 11, color: '#9aa0a6', fontWeight: 400, marginLeft: 6 }}>
+            (au moins un)
           </span>
         </legend>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-            gap: 'var(--dev-space-2)',
-          }}
-        >
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: 8 }}>
           {AVAILABLE_EVENT_TYPES.map((evt) => {
             const checked = events.includes(evt.value);
             return (
               <label
                 key={evt.value}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 'var(--dev-space-3)',
-                  padding: 'var(--dev-space-3) var(--dev-space-4)',
-                  border: `1px solid ${checked ? 'var(--dev-color-brand-primary)' : 'var(--dev-border-color)'}`,
-                  borderRadius: 'var(--dev-border-radius-md)',
-                  background: checked ? '#eff6ff' : 'var(--dev-bg-surface)',
-                  cursor: 'pointer',
-                  transition: 'border-color var(--dev-transition-fast), background var(--dev-transition-fast)',
-                  userSelect: 'none',
+                  display:      'flex',
+                  alignItems:   'center',
+                  gap:          10,
+                  padding:      '9px 12px',
+                  border:       `1px solid ${checked ? '#1A73E8' : '#E0E0E0'}`,
+                  borderRadius: 8,
+                  background:   checked ? '#EAF2FD' : '#FFFFFF',
+                  cursor:       'pointer',
+                  transition:   'border-color 150ms ease, background 150ms ease',
+                  userSelect:   'none',
                 }}
               >
                 <input
                   type="checkbox"
                   checked={checked}
                   onChange={() => toggleEvent(evt.value)}
-                  style={{
-                    width: 16,
-                    height: 16,
-                    accentColor: 'var(--dev-color-brand-primary)',
-                    cursor: 'pointer',
-                    flexShrink: 0,
-                  }}
+                  style={{ width: 15, height: 15, accentColor: '#1A73E8', cursor: 'pointer', flexShrink: 0 }}
                 />
-                <span
-                  style={{
-                    fontSize: 'var(--dev-font-size-sm)',
-                    color: checked ? 'var(--dev-color-brand-primary)' : 'var(--dev-text-secondary)',
-                    fontWeight: checked ? 'var(--dev-font-weight-medium)' : 'var(--dev-font-weight-normal)',
-                  }}
-                >
+                <span style={{
+                  fontSize:   13,
+                  color:      checked ? '#1A73E8' : '#5F6368',
+                  fontWeight: checked ? 500 : 400,
+                }}>
                   {evt.label}
                 </span>
-                <code
-                  style={{
-                    fontSize: 'var(--dev-font-size-xs)',
-                    color: 'var(--dev-text-muted)',
-                    marginLeft: 'auto',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
+                <code style={{
+                  fontSize:   10,
+                  color:      '#9aa0a6',
+                  marginLeft: 'auto',
+                  whiteSpace: 'nowrap',
+                  background: 'none',
+                  border:     'none',
+                  padding:    0,
+                }}>
                   {evt.value}
                 </code>
               </label>
@@ -690,155 +517,121 @@ function CreateWebhookForm({ projectId, onCreated }) {
         </div>
       </fieldset>
 
-      {/* Bouton Créer */}
       <button
         type="submit"
         disabled={!canSubmit}
         style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 'var(--dev-space-2)',
-          padding: 'var(--dev-space-3) var(--dev-space-5)',
-          background: canSubmit
-            ? 'var(--dev-color-brand-primary)'
-            : 'var(--dev-color-neutral-300)',
-          color: 'white',
-          border: 'none',
-          borderRadius: 'var(--dev-border-radius-md)',
-          fontSize: 'var(--dev-font-size-base)',
-          fontWeight: 'var(--dev-font-weight-semibold)',
-          cursor: canSubmit ? 'pointer' : 'not-allowed',
-          transition: 'background var(--dev-transition-fast)',
+          display:      'inline-flex',
+          alignItems:   'center',
+          gap:          6,
+          height:       40,
+          padding:      '0 18px',
+          background:   canSubmit ? '#1A73E8' : '#dadce0',
+          color:        canSubmit ? '#FFFFFF' : '#5F6368',
+          border:       'none',
+          borderRadius: 8,
+          fontSize:     14,
+          fontWeight:   600,
+          cursor:       canSubmit ? 'pointer' : 'not-allowed',
+          fontFamily:   'inherit',
+          transition:   'background 150ms ease',
         }}
       >
-        {busy ? <Spinner size={16} /> : <IconPlus />}
+        {busy ? <Spinner size={14} /> : <IconPlus />}
         {busy ? 'Création…' : 'Créer le webhook'}
       </button>
     </form>
   );
 }
 
-// ─── Carte d'un webhook ───────────────────────────────────────────────────────
+// ─── Carte webhook ────────────────────────────────────────────────────────────
 
 function WebhookCard({ webhook, onDelete }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div
-      style={{
-        background: 'var(--dev-bg-surface)',
-        border: '1px solid var(--dev-border-color)',
-        borderRadius: 'var(--dev-border-radius-lg)',
-        overflow: 'hidden',
-        boxShadow: 'var(--dev-shadow-sm)',
-      }}
-    >
-      {/* En-tête de la carte */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: 'var(--dev-space-4)',
-          padding: 'var(--dev-space-5)',
-          flexWrap: 'wrap',
-        }}
-      >
-        {/* URL + events */}
+    <div style={{
+      background:   '#FFFFFF',
+      border:       '1px solid #E0E0E0',
+      borderRadius: 8,
+      overflow:     'hidden',
+    }}>
+      {/* En-tête */}
+      <div style={{
+        display:    'flex',
+        alignItems: 'flex-start',
+        gap:        16,
+        padding:    '16px 20px',
+        flexWrap:   'wrap',
+      }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--dev-space-3)',
-              flexWrap: 'wrap',
-              marginBottom: 'var(--dev-space-2)',
-            }}
-          >
-            <code
-              style={{
-                fontSize: 'var(--dev-font-size-sm)',
-                color: 'var(--dev-text-primary)',
-                fontFamily: 'var(--dev-font-family-mono)',
-                wordBreak: 'break-all',
-                background: 'var(--dev-color-neutral-100)',
-                padding: '2px 8px',
-                borderRadius: 'var(--dev-border-radius-sm)',
-              }}
-            >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
+            <code style={{
+              fontSize:   13,
+              fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+              color:      '#202124',
+              wordBreak:  'break-all',
+              background: '#F8F9FA',
+              padding:    '2px 8px',
+              borderRadius: 4,
+              border:     '1px solid #E0E0E0',
+            }}>
               {webhook.url}
             </code>
             <WebhookStatusBadge status={webhook.status} />
           </div>
 
-          {/* Events abonnés */}
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: 'var(--dev-space-1)',
-              marginBottom: 'var(--dev-space-2)',
-            }}
-            aria-label="Événements abonnés"
-          >
+          {/* Events */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}
+            aria-label="Événements abonnés">
             {(webhook.events ?? []).map((evt) => (
-              <span
-                key={evt}
-                style={{
-                  fontSize: 'var(--dev-font-size-xs)',
-                  padding: '1px 8px',
-                  background: 'var(--dev-color-info-light)',
-                  color: 'var(--dev-color-info)',
-                  borderRadius: 'var(--dev-border-radius-full)',
-                  fontFamily: 'var(--dev-font-family-mono)',
-                  fontWeight: 'var(--dev-font-weight-medium)',
-                }}
-              >
+              <span key={evt} style={{
+                fontSize:   11,
+                padding:    '1px 7px',
+                background: '#EAF2FD',
+                color:      '#1A73E8',
+                borderRadius: 4,
+                fontFamily: "'JetBrains Mono', monospace",
+                fontWeight: 500,
+              }}>
                 {evt}
               </span>
             ))}
             {(!webhook.events || webhook.events.length === 0) && (
-              <span style={{ fontSize: 'var(--dev-font-size-xs)', color: 'var(--dev-text-muted)' }}>
-                Aucun événement abonné
-              </span>
+              <span style={{ fontSize: 12, color: '#9aa0a6' }}>Aucun événement</span>
             )}
           </div>
 
-          {/* last_fired_at */}
-          <p
-            style={{
-              fontSize: 'var(--dev-font-size-xs)',
-              color: 'var(--dev-text-muted)',
-              margin: 0,
-            }}
-          >
+          <p style={{ fontSize: 12, color: '#9aa0a6', margin: 0 }}>
             Dernier déclenchement :{' '}
-            <strong style={{ color: 'var(--dev-text-secondary)' }}>
-              {formatDateTime(webhook.last_fired_at)}
-            </strong>
+            <strong style={{ color: '#5F6368' }}>{formatDateTime(webhook.last_fired_at)}</strong>
           </p>
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', gap: 'var(--dev-space-2)', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}
             aria-expanded={expanded}
             aria-label={expanded ? 'Masquer les détails' : 'Afficher les détails'}
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 'var(--dev-space-1)',
-              padding: 'var(--dev-space-2) var(--dev-space-3)',
-              background: 'var(--dev-bg-surface)',
-              color: 'var(--dev-text-secondary)',
-              border: '1px solid var(--dev-border-color)',
-              borderRadius: 'var(--dev-border-radius-md)',
-              fontSize: 'var(--dev-font-size-xs)',
-              fontWeight: 'var(--dev-font-weight-medium)',
-              cursor: 'pointer',
-              transition: 'background var(--dev-transition-fast)',
+              display:      'inline-flex',
+              alignItems:   'center',
+              gap:          4,
+              padding:      '6px 12px',
+              background:   '#FFFFFF',
+              color:        '#5F6368',
+              border:       '1px solid #E0E0E0',
+              borderRadius: 6,
+              fontSize:     12,
+              fontWeight:   500,
+              cursor:       'pointer',
+              fontFamily:   'inherit',
+              transition:   'background 150ms ease',
             }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#F8F9FA'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = '#FFFFFF'; }}
           >
             {expanded ? <IconChevronUp /> : <IconChevronDown />}
             {expanded ? 'Réduire' : 'Détails'}
@@ -849,19 +642,22 @@ function WebhookCard({ webhook, onDelete }) {
             onClick={() => onDelete(webhook)}
             aria-label={`Supprimer le webhook ${webhook.url}`}
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 'var(--dev-space-1)',
-              padding: 'var(--dev-space-2) var(--dev-space-3)',
-              background: 'var(--dev-color-error-light)',
-              color: 'var(--dev-color-error)',
-              border: '1px solid var(--dev-color-error)',
-              borderRadius: 'var(--dev-border-radius-md)',
-              fontSize: 'var(--dev-font-size-xs)',
-              fontWeight: 'var(--dev-font-weight-medium)',
-              cursor: 'pointer',
-              transition: 'background var(--dev-transition-fast)',
+              display:      'inline-flex',
+              alignItems:   'center',
+              gap:          4,
+              padding:      '6px 12px',
+              background:   'rgba(234,67,53,.06)',
+              color:        '#EA4335',
+              border:       '1px solid #EA4335',
+              borderRadius: 6,
+              fontSize:     12,
+              fontWeight:   500,
+              cursor:       'pointer',
+              fontFamily:   'inherit',
+              transition:   'background 150ms ease',
             }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(234,67,53,.12)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(234,67,53,.06)'; }}
           >
             <IconTrash />
             Supprimer
@@ -869,46 +665,30 @@ function WebhookCard({ webhook, onDelete }) {
         </div>
       </div>
 
-      {/* Détails étendus */}
+      {/* Détails */}
       {expanded && (
-        <div
-          style={{
-            padding: 'var(--dev-space-4) var(--dev-space-5)',
-            borderTop: '1px solid var(--dev-border-color)',
-            background: 'var(--dev-color-neutral-50)',
-          }}
-        >
-          <dl
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'max-content 1fr',
-              gap: 'var(--dev-space-2) var(--dev-space-6)',
-              fontSize: 'var(--dev-font-size-sm)',
-              margin: 0,
-            }}
-          >
-            <dt style={{ color: 'var(--dev-text-muted)', fontWeight: 'var(--dev-font-weight-medium)' }}>
-              ID
-            </dt>
-            <dd style={{ color: 'var(--dev-text-secondary)', fontFamily: 'var(--dev-font-family-mono)', fontSize: 'var(--dev-font-size-xs)', margin: 0 }}>
+        <div style={{
+          padding:    '14px 20px',
+          borderTop:  '1px solid #E0E0E0',
+          background: '#F8F9FA',
+        }}>
+          <dl style={{
+            display:             'grid',
+            gridTemplateColumns: 'max-content 1fr',
+            gap:                 '8px 20px',
+            fontSize:            13,
+            margin:              0,
+          }}>
+            <dt style={{ color: '#9aa0a6', fontWeight: 500 }}>ID</dt>
+            <dd style={{ color: '#5F6368', fontFamily: "'JetBrains Mono', monospace", fontSize: 11, margin: 0 }}>
               {webhook.id}
             </dd>
-
-            <dt style={{ color: 'var(--dev-text-muted)', fontWeight: 'var(--dev-font-weight-medium)' }}>
-              Créé le
-            </dt>
-            <dd style={{ color: 'var(--dev-text-secondary)', margin: 0 }}>
-              {formatDateTime(webhook.created_at)}
-            </dd>
-
+            <dt style={{ color: '#9aa0a6', fontWeight: 500 }}>Créé le</dt>
+            <dd style={{ color: '#5F6368', margin: 0 }}>{formatDateTime(webhook.created_at)}</dd>
             {webhook.failure_count > 0 && (
               <>
-                <dt style={{ color: 'var(--dev-color-error)', fontWeight: 'var(--dev-font-weight-medium)' }}>
-                  Échecs consécutifs
-                </dt>
-                <dd style={{ color: 'var(--dev-color-error)', margin: 0 }}>
-                  {webhook.failure_count}
-                </dd>
+                <dt style={{ color: '#EA4335', fontWeight: 500 }}>Échecs</dt>
+                <dd style={{ color: '#EA4335', margin: 0 }}>{webhook.failure_count}</dd>
               </>
             )}
           </dl>
@@ -918,298 +698,217 @@ function WebhookCard({ webhook, onDelete }) {
   );
 }
 
-// ─── Section historique des livraisons ───────────────────────────────────────
+// ─── Historique des livraisons ────────────────────────────────────────────────
 
 function DeliveryHistorySection({ projectId }) {
   const [deliveries, setDeliveries] = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [error, setError]           = useState('');
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState('');
 
   const fetchDeliveries = useCallback(async () => {
     if (!projectId) return;
     setLoading(true);
     setError('');
     try {
-      const { data } = await developerApi.get(
-        `/projects/${projectId}/webhooks/deliveries`
-      );
+      const { data } = await developerApi.get(`/projects/${projectId}/webhooks/deliveries`);
       const list = Array.isArray(data) ? data : (data?.deliveries ?? []);
       setDeliveries(list);
     } catch (err) {
       const msg =
         err.response?.data?.error?.message ||
         err.response?.data?.message ||
-        'Impossible de charger l\'historique des livraisons.';
+        "Impossible de charger l'historique des livraisons.";
       setError(msg);
     } finally {
       setLoading(false);
     }
   }, [projectId]);
 
-  useEffect(() => {
-    fetchDeliveries();
-  }, [fetchDeliveries]);
+  useEffect(() => { fetchDeliveries(); }, [fetchDeliveries]);
 
   return (
-    <section
-      aria-label="Historique des livraisons de webhooks"
-      style={{
-        background: 'var(--dev-bg-surface)',
-        border: '1px solid var(--dev-border-color)',
-        borderRadius: 'var(--dev-border-radius-lg)',
-        overflow: 'hidden',
-        boxShadow: 'var(--dev-shadow-sm)',
-      }}
-    >
-      {/* En-tête section */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: 'var(--dev-space-5) var(--dev-space-6)',
-          borderBottom: '1px solid var(--dev-border-color)',
-        }}
-      >
+    <section aria-label="Historique des livraisons">
+      {/* En-tête */}
+      <div style={{
+        display:        'flex',
+        alignItems:     'center',
+        justifyContent: 'space-between',
+        marginBottom:   12,
+      }}>
         <div>
-          <h3
-            style={{
-              fontSize: 'var(--dev-font-size-base)',
-              fontWeight: 'var(--dev-font-weight-semibold)',
-              color: 'var(--dev-text-primary)',
-              margin: 0,
-            }}
-          >
+          <h3 style={{ fontSize: 15, fontWeight: 600, color: '#202124', margin: '0 0 2px' }}>
             Historique des livraisons
           </h3>
-          <p
-            style={{
-              fontSize: 'var(--dev-font-size-xs)',
-              color: 'var(--dev-text-muted)',
-              margin: 'var(--dev-space-1) 0 0 0',
-            }}
-          >
-            100 dernières entrées pour tous les webhooks de ce projet
+          <p style={{ fontSize: 12, color: '#9aa0a6', margin: 0 }}>
+            100 dernières entrées pour tous les webhooks
           </p>
         </div>
-
         <button
           type="button"
           onClick={fetchDeliveries}
           disabled={loading}
           aria-label="Actualiser l'historique"
-          title="Actualiser"
           style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 'var(--dev-space-2)',
-            padding: 'var(--dev-space-2) var(--dev-space-3)',
-            background: 'var(--dev-bg-surface)',
-            color: 'var(--dev-text-secondary)',
-            border: '1px solid var(--dev-border-color)',
-            borderRadius: 'var(--dev-border-radius-md)',
-            fontSize: 'var(--dev-font-size-xs)',
-            fontWeight: 'var(--dev-font-weight-medium)',
-            cursor: loading ? 'not-allowed' : 'pointer',
+            display:      'inline-flex',
+            alignItems:   'center',
+            gap:          5,
+            padding:      '6px 12px',
+            background:   '#FFFFFF',
+            color:        '#5F6368',
+            border:       '1px solid #E0E0E0',
+            borderRadius: 6,
+            fontSize:     12,
+            fontWeight:   500,
+            cursor:       loading ? 'not-allowed' : 'pointer',
+            fontFamily:   'inherit',
           }}
         >
-          {loading ? <Spinner size={13} /> : <IconRefresh />}
+          {loading ? <Spinner size={12} /> : <IconRefresh />}
           Actualiser
         </button>
       </div>
 
-      {/* Contenu */}
-      {loading && deliveries.length === 0 ? (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 'var(--dev-space-12)',
-          }}
-        >
-          <Spinner size={28} />
-        </div>
-      ) : error ? (
-        <div
-          role="alert"
-          style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: 'var(--dev-space-3)',
-            padding: 'var(--dev-space-5) var(--dev-space-6)',
-            color: 'var(--dev-color-error)',
-            fontSize: 'var(--dev-font-size-sm)',
-          }}
-        >
-          <span style={{ flexShrink: 0 }}><IconAlertCircle /></span>
-          {error}
-        </div>
-      ) : deliveries.length === 0 ? (
-        <p
-          style={{
-            padding: 'var(--dev-space-12) var(--dev-space-6)',
-            textAlign: 'center',
-            color: 'var(--dev-text-muted)',
-            fontSize: 'var(--dev-font-size-sm)',
-            margin: 0,
-          }}
-        >
-          Aucune livraison enregistrée pour l'instant.
-        </p>
-      ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table
+      {/* Tableau */}
+      <div style={{
+        background:   '#FFFFFF',
+        border:       '1px solid #E0E0E0',
+        borderRadius: 8,
+        overflow:     'hidden',
+      }}>
+        {loading && deliveries.length === 0 ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
+            <Spinner size={24} />
+          </div>
+        ) : error ? (
+          <div
+            role="alert"
             style={{
-              width: '100%',
-              borderCollapse: 'collapse',
-              fontSize: 'var(--dev-font-size-sm)',
+              display:    'flex',
+              alignItems: 'center',
+              gap:        8,
+              padding:    '16px 20px',
+              color:      '#EA4335',
+              fontSize:   13,
             }}
-            aria-label="Tableau de l'historique des livraisons"
           >
-            <thead>
-              <tr
-                style={{
-                  background: 'var(--dev-color-neutral-50)',
-                  borderBottom: '1px solid var(--dev-border-color)',
-                }}
-              >
-                {[
-                  { key: 'event_type', label: 'Type d\'événement' },
-                  { key: 'status',     label: 'Statut'           },
-                  { key: 'http_code',  label: 'Code HTTP'        },
-                  { key: 'timestamp',  label: 'Horodatage'       },
-                ].map((col) => (
-                  <th
-                    key={col.key}
-                    scope="col"
-                    style={{
-                      padding: 'var(--dev-space-3) var(--dev-space-4)',
-                      textAlign: 'left',
-                      fontSize: 'var(--dev-font-size-xs)',
-                      fontWeight: 'var(--dev-font-weight-semibold)',
-                      color: 'var(--dev-text-muted)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {col.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {deliveries.map((delivery, index) => (
-                <tr
-                  key={delivery.id ?? index}
-                  style={{
-                    borderBottom: '1px solid var(--dev-border-color)',
-                    background: index % 2 === 0
-                      ? 'var(--dev-bg-surface)'
-                      : 'var(--dev-color-neutral-50)',
-                  }}
-                >
-                  {/* event_type */}
-                  <td
-                    style={{
-                      padding: 'var(--dev-space-3) var(--dev-space-4)',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    <code
+            <IconAlertCircle />
+            {error}
+          </div>
+        ) : deliveries.length === 0 ? (
+          <p style={{
+            padding:   '32px 20px',
+            textAlign: 'center',
+            color:     '#9aa0a6',
+            fontSize:  13,
+            margin:    0,
+          }}>
+            Aucune livraison enregistrée pour l'instant.
+          </p>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table
+              style={{ width: '100%', borderCollapse: 'collapse' }}
+              aria-label="Historique des livraisons"
+            >
+              <thead>
+                <tr>
+                  {[
+                    "Type d'événement",
+                    'Statut',
+                    'Code HTTP',
+                    'Horodatage',
+                  ].map((col) => (
+                    <th
+                      key={col}
+                      scope="col"
                       style={{
-                        fontSize: 'var(--dev-font-size-xs)',
-                        background: 'var(--dev-color-neutral-100)',
-                        padding: '2px 8px',
-                        borderRadius: 'var(--dev-border-radius-sm)',
-                        color: 'var(--dev-text-primary)',
-                        fontFamily: 'var(--dev-font-family-mono)',
+                        padding:       '9px 16px',
+                        textAlign:     'left',
+                        fontSize:      12,
+                        fontWeight:    600,
+                        color:         '#5F6368',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.6px',
+                        background:    '#F8F9FA',
+                        borderBottom:  '1px solid #E0E0E0',
+                        whiteSpace:    'nowrap',
                       }}
                     >
-                      {delivery.event_type}
-                    </code>
-                  </td>
-
-                  {/* statut */}
-                  <td style={{ padding: 'var(--dev-space-3) var(--dev-space-4)' }}>
-                    <DeliveryStatusBadge status={delivery.status} />
-                  </td>
-
-                  {/* code HTTP */}
-                  <td
-                    style={{
-                      padding: 'var(--dev-space-3) var(--dev-space-4)',
-                      whiteSpace: 'nowrap',
-                    }}
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {deliveries.map((delivery, index) => (
+                  <tr
+                    key={delivery.id ?? index}
+                    style={{ borderBottom: '1px solid #E0E0E0' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(26,115,232,.03)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                   >
-                    {delivery.response_code != null ? (
-                      <span
-                        style={{
-                          fontFamily: 'var(--dev-font-family-mono)',
-                          fontSize: 'var(--dev-font-size-sm)',
-                          fontWeight: 'var(--dev-font-weight-semibold)',
+                    <td style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}>
+                      <code style={{
+                        fontSize:   11,
+                        background: '#F1F3F4',
+                        padding:    '2px 7px',
+                        borderRadius: 4,
+                        color:      '#202124',
+                        fontFamily: "'JetBrains Mono', monospace",
+                        border:     '1px solid #E0E0E0',
+                      }}>
+                        {delivery.event_type}
+                      </code>
+                    </td>
+                    <td style={{ padding: '10px 16px' }}>
+                      <DeliveryStatusBadge status={delivery.status} />
+                    </td>
+                    <td style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}>
+                      {delivery.response_code != null ? (
+                        <span style={{
+                          fontFamily: "'JetBrains Mono', monospace",
+                          fontSize:   13,
+                          fontWeight: 600,
                           color:
                             delivery.response_code >= 200 && delivery.response_code < 300
-                              ? 'var(--dev-color-success)'
+                              ? '#34A853'
                               : delivery.response_code >= 400
-                              ? 'var(--dev-color-error)'
-                              : 'var(--dev-text-secondary)',
-                        }}
-                      >
-                        {delivery.response_code}
-                      </span>
-                    ) : (
-                      <span style={{ color: 'var(--dev-text-muted)' }}>-</span>
-                    )}
-                  </td>
-
-                  {/* horodatage */}
-                  <td
-                    style={{
-                      padding: 'var(--dev-space-3) var(--dev-space-4)',
-                      color: 'var(--dev-text-secondary)',
-                      whiteSpace: 'nowrap',
-                      fontSize: 'var(--dev-font-size-xs)',
-                    }}
-                  >
-                    {formatDateTime(delivery.created_at)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+                              ? '#EA4335'
+                              : '#5F6368',
+                        }}>
+                          {delivery.response_code}
+                        </span>
+                      ) : (
+                        <span style={{ color: '#9aa0a6' }}>—</span>
+                      )}
+                    </td>
+                    <td style={{ padding: '10px 16px', fontSize: 12, color: '#5F6368', whiteSpace: 'nowrap' }}>
+                      {formatDateTime(delivery.created_at)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </section>
   );
 }
 
 // ─── WebhooksPage ─────────────────────────────────────────────────────────────
 
-/**
- * WebhooksPage
- *
- * Utilisé comme onglet dans ProjectPage (reçoit `projectId` en prop)
- * ou en page standalone (lit l'ID depuis useParams).
- *
- * @param {object}  [props]
- * @param {string}  [props.projectId] - ID du projet (injecté par ProjectPage)
- */
 export default function WebhooksPage({ projectId: projectIdProp } = {}) {
-  // Fallback sur useParams si utilisé en standalone
-  const params         = useParams();
-  const projectId      = projectIdProp ?? params.id;
+  const params    = useParams();
+  const projectId = projectIdProp ?? params.id;
 
-  const [webhooks, setWebhooks]           = useState([]);
-  const [loading, setLoading]             = useState(true);
-  const [error, setError]                 = useState('');
+  const [webhooks,        setWebhooks]        = useState([]);
+  const [loading,         setLoading]         = useState(true);
+  const [error,           setError]           = useState('');
   const [webhookToDelete, setWebhookToDelete] = useState(null);
-  const [deleteBusy, setDeleteBusy]       = useState(false);
-  const [deleteError, setDeleteError]     = useState('');
-  const [successMsg, setSuccessMsg]       = useState('');
-
-  // ── Chargement des webhooks ────────────────────────────────────────────────
+  const [deleteBusy,      setDeleteBusy]      = useState(false);
+  const [deleteError,     setDeleteError]     = useState('');
+  const [successMsg,      setSuccessMsg]      = useState('');
 
   const fetchWebhooks = useCallback(async () => {
     if (!projectId) return;
@@ -1230,11 +929,7 @@ export default function WebhooksPage({ projectId: projectIdProp } = {}) {
     }
   }, [projectId]);
 
-  useEffect(() => {
-    fetchWebhooks();
-  }, [fetchWebhooks]);
-
-  // ── Création ───────────────────────────────────────────────────────────────
+  useEffect(() => { fetchWebhooks(); }, [fetchWebhooks]);
 
   function handleWebhookCreated(newWebhook) {
     setWebhooks((prev) => [newWebhook, ...prev]);
@@ -1242,16 +937,12 @@ export default function WebhooksPage({ projectId: projectIdProp } = {}) {
     setTimeout(() => setSuccessMsg(''), 4000);
   }
 
-  // ── Suppression ───────────────────────────────────────────────────────────
-
   async function handleDeleteConfirm() {
     if (!webhookToDelete) return;
     setDeleteBusy(true);
     setDeleteError('');
     try {
-      await developerApi.delete(
-        `/projects/${projectId}/webhooks/${webhookToDelete.id}`
-      );
+      await developerApi.delete(`/projects/${projectId}/webhooks/${webhookToDelete.id}`);
       setWebhooks((prev) => prev.filter((w) => w.id !== webhookToDelete.id));
       setWebhookToDelete(null);
       setSuccessMsg('Webhook supprimé.');
@@ -1267,206 +958,163 @@ export default function WebhooksPage({ projectId: projectIdProp } = {}) {
     }
   }
 
-  // ── Rendu ─────────────────────────────────────────────────────────────────
-
   return (
     <section
       aria-label="Gestion des webhooks"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--dev-space-8)',
-      }}
+      style={{ display: 'flex', flexDirection: 'column', gap: 24 }}
     >
-      {/* ── En-tête ──────────────────────────────────────────────────────────── */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          gap: 'var(--dev-space-4)',
-          flexWrap: 'wrap',
-        }}
-      >
-        <div>
-          <h2
-            style={{
-              fontSize: 'var(--dev-font-size-xl)',
-              fontWeight: 'var(--dev-font-weight-bold)',
-              color: 'var(--dev-text-primary)',
-              margin: 0,
-            }}
-          >
-            Webhooks
-          </h2>
-          <p
-            style={{
-              fontSize: 'var(--dev-font-size-sm)',
-              color: 'var(--dev-text-secondary)',
-              margin: 'var(--dev-space-1) 0 0 0',
-            }}
-          >
-            Configurez des endpoints HTTPS pour recevoir les événements de votre
-            projet en temps réel.
-          </p>
-        </div>
+      {/* En-tête */}
+      <div>
+        <h2 style={{ fontSize: 24, fontWeight: 700, color: '#202124', margin: '0 0 4px' }}>
+          Webhooks
+        </h2>
+        <p style={{ fontSize: 14, color: '#5F6368', margin: 0 }}>
+          Configurez des endpoints HTTPS pour recevoir les événements de votre projet en temps réel.
+        </p>
       </div>
 
-      {/* ── Message de succès ─────────────────────────────────────────────────── */}
+      {/* Message succès */}
       {successMsg && (
         <div
           role="status"
           aria-live="polite"
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--dev-space-3)',
-            padding: 'var(--dev-space-3) var(--dev-space-5)',
-            background: 'var(--dev-color-success-light)',
-            border: '1px solid var(--dev-color-success)',
-            borderRadius: 'var(--dev-border-radius-md)',
-            color: 'var(--dev-color-success)',
-            fontSize: 'var(--dev-font-size-sm)',
-            fontWeight: 'var(--dev-font-weight-medium)',
+            display:      'flex',
+            alignItems:   'center',
+            gap:          8,
+            padding:      '10px 14px',
+            background:   'rgba(52,168,83,.08)',
+            border:       '1px solid #34A853',
+            borderLeft:   '3px solid #34A853',
+            borderRadius: 8,
+            color:        '#34A853',
+            fontSize:     13,
+            fontWeight:   500,
           }}
         >
           {successMsg}
         </div>
       )}
 
-      {/* ── Erreur de suppression ─────────────────────────────────────────────── */}
+      {/* Erreur suppression */}
       {deleteError && (
         <div
           role="alert"
           aria-live="polite"
           style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: 'var(--dev-space-3)',
-            padding: 'var(--dev-space-3) var(--dev-space-5)',
-            background: 'var(--dev-color-error-light)',
-            border: '1px solid var(--dev-color-error)',
-            borderRadius: 'var(--dev-border-radius-md)',
-            color: 'var(--dev-color-error)',
-            fontSize: 'var(--dev-font-size-sm)',
+            display:      'flex',
+            alignItems:   'center',
+            gap:          8,
+            padding:      '10px 14px',
+            background:   'rgba(234,67,53,.06)',
+            border:       '1px solid #EA4335',
+            borderLeft:   '3px solid #EA4335',
+            borderRadius: 8,
+            color:        '#EA4335',
+            fontSize:     13,
           }}
         >
-          <span style={{ flexShrink: 0 }}><IconAlertCircle /></span>
+          <IconAlertCircle />
           {deleteError}
         </div>
       )}
 
-      {/* ── Formulaire de création ────────────────────────────────────────────── */}
-      <CreateWebhookForm
-        projectId={projectId}
-        onCreated={handleWebhookCreated}
-      />
+      {/* Formulaire */}
+      <CreateWebhookForm projectId={projectId} onCreated={handleWebhookCreated} />
 
-      {/* ── Liste des webhooks ────────────────────────────────────────────────── */}
-      <section aria-label="Liste des webhooks configurés">
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 'var(--dev-space-4)',
-          }}
-        >
-          <h3
-            style={{
-              fontSize: 'var(--dev-font-size-base)',
-              fontWeight: 'var(--dev-font-weight-semibold)',
-              color: 'var(--dev-text-primary)',
-              margin: 0,
-            }}
-          >
+      {/* Liste des webhooks */}
+      <section aria-label="Webhooks configurés">
+        <div style={{
+          display:        'flex',
+          alignItems:     'center',
+          justifyContent: 'space-between',
+          marginBottom:   12,
+        }}>
+          <h3 style={{ fontSize: 15, fontWeight: 600, color: '#202124', margin: 0 }}>
             Webhooks configurés
             {!loading && (
-              <span
-                aria-label={`${webhooks.length} webhook${webhooks.length !== 1 ? 's' : ''}`}
-                style={{
-                  marginLeft: 'var(--dev-space-2)',
-                  padding: '1px 8px',
-                  background: 'var(--dev-color-neutral-100)',
-                  color: 'var(--dev-text-muted)',
-                  borderRadius: 'var(--dev-border-radius-full)',
-                  fontSize: 'var(--dev-font-size-xs)',
-                  fontWeight: 'var(--dev-font-weight-medium)',
-                }}
-              >
+              <span style={{
+                marginLeft:   8,
+                padding:      '1px 7px',
+                background:   '#F1F3F4',
+                color:        '#5F6368',
+                borderRadius: 4,
+                fontSize:     11,
+                fontWeight:   600,
+              }}>
                 {webhooks.length}
               </span>
             )}
           </h3>
-
           <button
             type="button"
             onClick={fetchWebhooks}
             disabled={loading}
-            aria-label="Actualiser la liste des webhooks"
-            title="Actualiser"
+            aria-label="Actualiser"
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 'var(--dev-space-2)',
-              padding: 'var(--dev-space-2) var(--dev-space-3)',
-              background: 'var(--dev-bg-surface)',
-              color: 'var(--dev-text-secondary)',
-              border: '1px solid var(--dev-border-color)',
-              borderRadius: 'var(--dev-border-radius-md)',
-              fontSize: 'var(--dev-font-size-xs)',
-              fontWeight: 'var(--dev-font-weight-medium)',
-              cursor: loading ? 'not-allowed' : 'pointer',
+              display:      'inline-flex',
+              alignItems:   'center',
+              gap:          5,
+              padding:      '6px 12px',
+              background:   '#FFFFFF',
+              color:        '#5F6368',
+              border:       '1px solid #E0E0E0',
+              borderRadius: 6,
+              fontSize:     12,
+              fontWeight:   500,
+              cursor:       loading ? 'not-allowed' : 'pointer',
+              fontFamily:   'inherit',
             }}
           >
-            {loading ? <Spinner size={13} /> : <IconRefresh />}
+            {loading ? <Spinner size={12} /> : <IconRefresh />}
             Actualiser
           </button>
         </div>
 
         {loading ? (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: 'var(--dev-space-12)',
-              background: 'var(--dev-bg-surface)',
-              border: '1px solid var(--dev-border-color)',
-              borderRadius: 'var(--dev-border-radius-lg)',
-            }}
-          >
-            <Spinner size={28} />
+          <div style={{
+            display:      'flex',
+            alignItems:   'center',
+            justifyContent: 'center',
+            padding:      40,
+            background:   '#FFFFFF',
+            border:       '1px solid #E0E0E0',
+            borderRadius: 8,
+          }}>
+            <Spinner size={24} />
           </div>
         ) : error ? (
           <div
             role="alert"
             style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: 'var(--dev-space-3)',
-              padding: 'var(--dev-space-5) var(--dev-space-6)',
-              background: 'var(--dev-color-error-light)',
-              border: '1px solid var(--dev-color-error)',
-              borderRadius: 'var(--dev-border-radius-lg)',
-              color: 'var(--dev-color-error)',
-              fontSize: 'var(--dev-font-size-sm)',
+              display:      'flex',
+              alignItems:   'flex-start',
+              gap:          10,
+              padding:      '16px 20px',
+              background:   'rgba(234,67,53,.06)',
+              border:       '1px solid #EA4335',
+              borderLeft:   '3px solid #EA4335',
+              borderRadius: 8,
+              color:        '#EA4335',
+              fontSize:     13,
             }}
           >
-            <span style={{ flexShrink: 0 }}><IconAlertCircle /></span>
+            <span style={{ flexShrink: 0, marginTop: 1 }}><IconAlertCircle /></span>
             <div>
-              <p style={{ margin: '0 0 var(--dev-space-2) 0' }}>{error}</p>
+              <p style={{ margin: '0 0 8px' }}>{error}</p>
               <button
                 type="button"
                 onClick={fetchWebhooks}
                 style={{
-                  padding: 'var(--dev-space-1) var(--dev-space-3)',
-                  background: 'var(--dev-color-error)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 'var(--dev-border-radius-md)',
-                  fontSize: 'var(--dev-font-size-xs)',
-                  cursor: 'pointer',
+                  padding:      '4px 12px',
+                  background:   '#EA4335',
+                  color:        '#FFFFFF',
+                  border:       'none',
+                  borderRadius: 6,
+                  fontSize:     12,
+                  fontWeight:   600,
+                  cursor:       'pointer',
+                  fontFamily:   'inherit',
                 }}
               >
                 Réessayer
@@ -1474,53 +1122,45 @@ export default function WebhooksPage({ projectId: projectIdProp } = {}) {
             </div>
           </div>
         ) : webhooks.length === 0 ? (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 'var(--dev-space-3)',
-              padding: 'var(--dev-space-12) var(--dev-space-6)',
-              background: 'var(--dev-bg-surface)',
-              border: '1px dashed var(--dev-border-color)',
-              borderRadius: 'var(--dev-border-radius-lg)',
-              textAlign: 'center',
-            }}
-          >
-            <span
-              aria-hidden="true"
-              style={{ color: 'var(--dev-text-muted)', opacity: 0.6 }}
-            >
-              <IconWebhook />
-            </span>
-            <p
-              style={{
-                fontSize: 'var(--dev-font-size-sm)',
-                color: 'var(--dev-text-muted)',
-                margin: 0,
-              }}
-            >
+          /* État vide institutionnel */
+          <div style={{
+            display:       'flex',
+            flexDirection: 'column',
+            alignItems:    'center',
+            padding:       '40px 24px',
+            background:    '#FFFFFF',
+            border:        '1px solid #E0E0E0',
+            borderRadius:  8,
+            textAlign:     'center',
+          }}>
+            <div style={{
+              width:           40,
+              height:          40,
+              borderRadius:    8,
+              backgroundColor: '#F1F3F4',
+              display:         'flex',
+              alignItems:      'center',
+              justifyContent:  'center',
+              color:           '#9aa0a6',
+              marginBottom:    12,
+            }} aria-hidden="true">
+              <IconActivity />
+            </div>
+            <p style={{ fontSize: 14, color: '#5F6368', margin: 0 }}>
               Aucun webhook configuré. Créez-en un ci-dessus.
             </p>
           </div>
         ) : (
           <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--dev-space-3)',
-            }}
+            style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
             role="list"
-            aria-label="Liste des webhooks"
+            aria-label="Webhooks"
           >
             {webhooks.map((webhook) => (
               <div key={webhook.id} role="listitem">
                 <WebhookCard
                   webhook={webhook}
-                  onDelete={(w) => {
-                    setDeleteError('');
-                    setWebhookToDelete(w);
-                  }}
+                  onDelete={(w) => { setDeleteError(''); setWebhookToDelete(w); }}
                 />
               </div>
             ))}
@@ -1528,20 +1168,15 @@ export default function WebhooksPage({ projectId: projectIdProp } = {}) {
         )}
       </section>
 
-      {/* ── Historique des livraisons ─────────────────────────────────────────── */}
+      {/* Historique livraisons */}
       <DeliveryHistorySection projectId={projectId} />
 
-      {/* ── Modale de confirmation de suppression ─────────────────────────────── */}
+      {/* Modale suppression */}
       {webhookToDelete && (
         <ConfirmDeleteModal
           webhook={webhookToDelete}
           onConfirm={handleDeleteConfirm}
-          onCancel={() => {
-            if (!deleteBusy) {
-              setWebhookToDelete(null);
-              setDeleteError('');
-            }
-          }}
+          onCancel={() => { if (!deleteBusy) { setWebhookToDelete(null); setDeleteError(''); } }}
           busy={deleteBusy}
         />
       )}
