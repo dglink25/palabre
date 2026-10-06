@@ -66,18 +66,19 @@ export function AuthProvider({ children }) {
 
   // ── Initialisation SSO ───────────────────────────────────────────────────────
   useEffect(() => {
-    // Ne pas ré-exécuter si on est déjà sur /login
-    if (location.pathname === '/login') {
+    // Ne pas bloquer les pages publiques (landing, login, signup)
+    const PUBLIC_PATHS = ['/', '/login', '/signup'];
+    if (PUBLIC_PATHS.includes(location.pathname)) {
       setLoading(false);
       return;
     }
 
     const token = localStorage.getItem('palabre_access_token');
 
-    // Pas de token → rediriger vers la page de connexion
+    // Pas de token → rediriger vers la page d'accueil
     if (!token) {
       setLoading(false);
-      navigate('/login', { replace: true });
+      navigate('/', { replace: true });
       return;
     }
 
