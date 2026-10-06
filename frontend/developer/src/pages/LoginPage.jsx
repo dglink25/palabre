@@ -1,24 +1,36 @@
 /**
- * LoginPage.jsx - Developer Portal
+ * LoginPage.jsx - Palabre for Developers
  *
- * Page de connexion institutionnelle - style Stripe / Twilio.
- * Fond #1A73E8, carte blanche centrée, logo /logo.png.
- * Icônes SVG Lucide stroke-only, zéro emoji.
+ * Structure identique à AuthLayout de l'app Palabre principale :
+ *   - Fond bleu #1A73E8 plein (zéro dégradé)
+ *   - Topbar : logo + bouton "Retour à Palabre"
+ *   - Corps : illustration DEV à GAUCHE - formulaire carte blanche à DROITE
+ *   - Même CSS classes (.auth-layout-*)
+ *
+ * Particularité portail dev :
+ *   - Illustration orientée développeur (nœuds API/SDK/Webhook)
+ *   - Badge "Dev" sur le logo
+ *   - Onglets Google/GitHub + OTP WhatsApp
+ *
+ * URLs vers Palabre lues depuis VITE_PALABRE_BASE_URL (configurable en prod).
  */
 
 import { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import authApi from '../lib/authApi';
 import { federatedProviders } from '../lib/firebase';
+import DevAuthIllustration from '../components/DevAuthIllustration.jsx';
 
-// ─── Icônes SVG Lucide stroke-only ───────────────────────────────────────────
+// URL configurable : pointe vers l'app Palabre principale
+const PALABRE_URL = import.meta.env.VITE_PALABRE_BASE_URL || 'http://localhost:3000';
+
+// ─── Icônes SVG Lucide ────────────────────────────────────────────────────────
 
 function IconAlertCircle() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="12" cy="12" r="10" />
-      <line x1="12" y1="8" x2="12" y2="12" />
+      <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" />
       <line x1="12" y1="16" x2="12.01" y2="16" />
     </svg>
   );
@@ -28,8 +40,7 @@ function IconInfo() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="12" cy="12" r="10" />
-      <line x1="12" y1="16" x2="12" y2="12" />
+      <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" />
       <line x1="12" y1="8" x2="12.01" y2="8" />
     </svg>
   );
@@ -37,7 +48,7 @@ function IconInfo() {
 
 function IconPhone() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" />
     </svg>
@@ -46,15 +57,13 @@ function IconPhone() {
 
 function IconArrowLeft() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <line x1="19" y1="12" x2="5" y2="12" />
-      <polyline points="12 19 5 12 12 5" />
+      <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
     </svg>
   );
 }
 
-// Icône Google (multi-couleur - cas particulier accepté)
 function IconGoogle() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
@@ -74,20 +83,14 @@ function IconGitHub() {
   );
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function friendlyError(err) {
-  if (err?.code === 'auth/popup-closed-by-user' || err?.code === 'FEDERATED_CANCELLED') return null;
-  if (err?.code === 'auth/popup-blocked')
-    return 'La fenêtre popup a été bloquée. Autorisez les popups et réessayez.';
-  if (err?.code === 'auth/network-request-failed')
-    return 'Erreur réseau. Vérifiez votre connexion et réessayez.';
-  if (err?.code === 'auth/account-exists-with-different-credential')
-    return 'Ce compte existe avec un autre mode de connexion. Utilisez la même méthode qu\'à votre première connexion.';
-  const apiMsg = err?.response?.data?.error?.message || err?.response?.data?.message;
-  if (apiMsg) return apiMsg;
-  if (err?.message && !err.message.startsWith('Firebase:')) return err.message;
-  return 'Une erreur est survenue. Veuillez réessayer.';
+function Spinner({ size = 16 }) {
+  return (
+    <span role="status" aria-label="Chargement…" style={{
+      display: 'inline-block', width: size, height: size,
+      border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff',
+      borderRadius: '50%', animation: 'dev-spin .7s linear infinite', flexShrink: 0,
+    }} />
+  );
 }
 
 // ─── Alertes ──────────────────────────────────────────────────────────────────
@@ -95,23 +98,13 @@ function friendlyError(err) {
 function ErrorAlert({ message }) {
   if (!message) return null;
   return (
-    <div
-      role="alert"
-      aria-live="polite"
-      style={{
-        display:     'flex',
-        alignItems:  'flex-start',
-        gap:         8,
-        padding:     '10px 14px',
-        background:  'rgba(234,67,53,.06)',
-        border:      '1px solid #EA4335',
-        borderLeft:  '3px solid #EA4335',
-        borderRadius: 6,
-        color:       '#EA4335',
-        fontSize:    14,
-        marginBottom: 14,
-      }}
-    >
+    <div role="alert" aria-live="polite" style={{
+      display: 'flex', alignItems: 'flex-start', gap: 8,
+      padding: '10px 14px', marginBottom: 14,
+      background: 'rgba(234,67,53,.06)', border: '1px solid #EA4335',
+      borderLeft: '3px solid #EA4335', borderRadius: 6,
+      color: '#EA4335', fontSize: 14,
+    }}>
       <span style={{ flexShrink: 0, marginTop: 1 }}><IconAlertCircle /></span>
       <span>{message}</span>
     </div>
@@ -121,106 +114,69 @@ function ErrorAlert({ message }) {
 function InfoAlert({ message }) {
   if (!message) return null;
   return (
-    <div
-      role="status"
-      aria-live="polite"
-      style={{
-        display:     'flex',
-        alignItems:  'flex-start',
-        gap:         8,
-        padding:     '10px 14px',
-        background:  'rgba(26,115,232,.06)',
-        border:      '1px solid #1A73E8',
-        borderLeft:  '3px solid #1A73E8',
-        borderRadius: 6,
-        color:       '#1A73E8',
-        fontSize:    14,
-        marginBottom: 14,
-      }}
-    >
+    <div role="status" aria-live="polite" style={{
+      display: 'flex', alignItems: 'flex-start', gap: 8,
+      padding: '10px 14px', marginBottom: 14,
+      background: 'rgba(26,115,232,.06)', border: '1px solid #1A73E8',
+      borderLeft: '3px solid #1A73E8', borderRadius: 6,
+      color: '#1A73E8', fontSize: 14,
+    }}>
       <span style={{ flexShrink: 0, marginTop: 1 }}><IconInfo /></span>
       <span>{message}</span>
     </div>
   );
 }
 
-// ─── Spinner ──────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function Spinner({ size = 16 }) {
-  return (
-    <span
-      role="status"
-      aria-label="Chargement…"
-      style={{
-        display:       'inline-block',
-        width:         size,
-        height:        size,
-        border:        '2px solid rgba(255,255,255,.3)',
-        borderTopColor: '#fff',
-        borderRadius:  '50%',
-        animation:     'dev-spin 0.7s linear infinite',
-        flexShrink:    0,
-      }}
-    />
-  );
+function friendlyError(err) {
+  if (err?.code === 'auth/popup-closed-by-user' || err?.code === 'FEDERATED_CANCELLED') return null;
+  if (err?.code === 'auth/popup-blocked') return 'La fenêtre popup a été bloquée. Autorisez les popups et réessayez.';
+  if (err?.code === 'auth/network-request-failed') return 'Erreur réseau. Vérifiez votre connexion et réessayez.';
+  if (err?.code === 'auth/account-exists-with-different-credential')
+    return "Ce compte existe avec un autre mode de connexion. Utilisez la même méthode qu'à votre première connexion.";
+  const apiMsg = err?.response?.data?.error?.message || err?.response?.data?.message;
+  if (apiMsg) return apiMsg;
+  if (err?.message && !err.message.startsWith('Firebase:')) return err.message;
+  return 'Une erreur est survenue. Veuillez réessayer.';
 }
 
-// ─── Formulaire OTP WhatsApp ──────────────────────────────────────────────────
+// ─── OTP WhatsApp ─────────────────────────────────────────────────────────────
 
 function OtpWhatsApp({ onSuccess }) {
-  const [phone,   setPhone]   = useState('');
-  const [code,    setCode]    = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [busy,    setBusy]    = useState(false);
-  const [error,   setError]   = useState('');
-  const [info,    setInfo]    = useState('');
+  const [phone, setPhone]     = useState('');
+  const [code,  setCode]      = useState('');
+  const [sent,  setSent]      = useState(false);
+  const [busy,  setBusy]      = useState(false);
+  const [error, setError]     = useState('');
+  const [info,  setInfo]      = useState('');
 
-  const inputStyle = {
-    width:        '100%',
-    padding:      '9px 12px',
-    border:       '1px solid #E0E0E0',
-    borderRadius: 8,
-    fontFamily:   'inherit',
-    fontSize:     14,
-    color:        '#202124',
-    background:   '#FFFFFF',
-    outline:      'none',
-    boxSizing:    'border-box',
-    transition:   'border-color 150ms ease',
+  const inp = {
+    width: '100%', padding: '10px 12px', boxSizing: 'border-box',
+    border: '1px solid var(--color-border)', borderRadius: 8,
+    fontFamily: 'inherit', fontSize: 16, color: '#202124',
+    background: '#FFFFFF', outline: 'none', transition: 'border-color 150ms ease',
   };
 
-  const btnPrimary = (disabled) => ({
-    display:         'flex',
-    alignItems:      'center',
-    justifyContent:  'center',
-    gap:             8,
-    width:           '100%',
-    height:          40,
-    background:      disabled ? '#dadce0' : '#1A73E8',
-    color:           disabled ? '#5F6368' : '#FFFFFF',
-    border:          'none',
-    borderRadius:    8,
-    fontFamily:      'inherit',
-    fontSize:        14,
-    fontWeight:      600,
-    cursor:          disabled ? 'not-allowed' : 'pointer',
-    transition:      'background 150ms ease',
+  const btn = (dis) => ({
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+    width: '100%', height: 44, background: dis ? '#dadce0' : '#1A73E8',
+    color: dis ? '#5F6368' : '#FFFFFF', border: 'none', borderRadius: 8,
+    fontFamily: 'inherit', fontSize: 15, fontWeight: 600,
+    cursor: dis ? 'not-allowed' : 'pointer', transition: 'background 150ms ease',
   });
 
   async function requestOtp(e) {
-    e.preventDefault();
-    setError(''); setInfo(''); setBusy(true);
+    e.preventDefault(); setError(''); setInfo(''); setBusy(true);
     try {
       await authApi.post('/phone/otp', { phone, purpose: 'login' });
-      setOtpSent(true);
-      setInfo('Un code de vérification a été envoyé sur votre WhatsApp.');
+      setSent(true); setInfo('Un code de vérification a été envoyé sur votre WhatsApp.');
     } catch (err) { setError(friendlyError(err) || ''); }
     finally { setBusy(false); }
   }
 
   async function verifyOtp(e) {
-    e.preventDefault();
-    setError(''); setBusy(true);
+    e.preventDefault(); setError(''); setBusy(true);
     try {
       const { data } = await authApi.post('/phone/login', { phone, code });
       onSuccess(data);
@@ -228,107 +184,51 @@ function OtpWhatsApp({ onSuccess }) {
     finally { setBusy(false); }
   }
 
-  if (!otpSent) {
-    return (
-      <form onSubmit={requestOtp} noValidate>
-        <ErrorAlert message={error} />
-        <div style={{ marginBottom: 16 }}>
-          <label
-            htmlFor="otp-phone"
-            style={{ display: 'block', fontSize: 14, fontWeight: 500, marginBottom: 6, color: '#202124' }}
-          >
-            Numéro WhatsApp
-          </label>
-          <input
-            id="otp-phone"
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="+229 97 00 00 00"
-            required
-            autoComplete="tel"
-            style={inputStyle}
-            onFocus={(e) => { e.target.style.borderColor = '#1A73E8'; }}
-            onBlur={(e)  => { e.target.style.borderColor = '#E0E0E0'; }}
-          />
-          <p style={{ fontSize: 12, color: '#5F6368', marginTop: 5 }}>
-            Incluez le code pays. Un code à 6 chiffres vous sera envoyé.
-          </p>
-        </div>
-        <button
-          type="submit"
-          disabled={busy || !phone.trim()}
-          style={btnPrimary(busy || !phone.trim())}
-        >
-          {busy ? <Spinner /> : <IconPhone />}
-          {busy ? 'Envoi…' : 'Recevoir le code'}
-        </button>
-      </form>
-    );
-  }
+  if (!sent) return (
+    <form onSubmit={requestOtp} noValidate>
+      <ErrorAlert message={error} />
+      <div className="field">
+        <label htmlFor="login-phone">Numéro de téléphone WhatsApp</label>
+        <input id="login-phone" type="tel" value={phone}
+          onChange={e => setPhone(e.target.value)}
+          placeholder="+229 97 00 00 00" required autoComplete="tel" style={inp}
+          onFocus={e => { e.target.style.borderColor = '#1A73E8'; e.target.style.boxShadow = '0 0 0 3px rgba(26,115,232,.12)'; }}
+          onBlur={e  => { e.target.style.borderColor = '#E0E0E0'; e.target.style.boxShadow = 'none'; }}
+        />
+        <p className="hint">Incluez le code pays. Un code à 6 chiffres vous sera envoyé par WhatsApp.</p>
+      </div>
+      <button type="submit" disabled={busy || !phone.trim()} style={btn(busy || !phone.trim())}>
+        {busy ? <Spinner /> : <IconPhone />}
+        {busy ? 'Envoi en cours…' : 'Recevoir le code'}
+      </button>
+    </form>
+  );
 
   return (
     <form onSubmit={verifyOtp} noValidate>
       <InfoAlert message={info} />
       <ErrorAlert message={error} />
-      <div style={{ marginBottom: 16 }}>
-        <label
-          htmlFor="otp-code"
-          style={{ display: 'block', fontSize: 14, fontWeight: 500, marginBottom: 6, color: '#202124' }}
-        >
-          Code reçu par WhatsApp
-        </label>
-        <input
-          id="otp-code"
-          type="text"
-          inputMode="numeric"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          placeholder="123456"
-          required
-          autoFocus
-          autoComplete="one-time-code"
-          maxLength={8}
-          style={{
-            ...inputStyle,
-            fontSize:      20,
-            fontWeight:    700,
-            letterSpacing: '0.4em',
-            textAlign:     'center',
-          }}
-          onFocus={(e) => { e.target.style.borderColor = '#1A73E8'; }}
-          onBlur={(e)  => { e.target.style.borderColor = '#E0E0E0'; }}
+      <div className="field">
+        <label htmlFor="login-code">Code reçu par WhatsApp</label>
+        <input id="login-code" type="text" inputMode="numeric"
+          value={code} onChange={e => setCode(e.target.value)}
+          placeholder="123456" required autoFocus autoComplete="one-time-code" maxLength={8}
+          style={{ ...inp, fontSize: 24, fontWeight: 700, letterSpacing: '0.4em', textAlign: 'center' }}
+          onFocus={e => { e.target.style.borderColor = '#1A73E8'; e.target.style.boxShadow = '0 0 0 3px rgba(26,115,232,.12)'; }}
+          onBlur={e  => { e.target.style.borderColor = '#E0E0E0'; e.target.style.boxShadow = 'none'; }}
         />
-        <p style={{ fontSize: 12, color: '#5F6368', marginTop: 5 }}>
-          Code envoyé au {phone}.
-        </p>
+        <p className="hint">Code envoyé au {phone}.</p>
       </div>
-      <button
-        type="submit"
-        disabled={busy || code.length < 4}
-        style={btnPrimary(busy || code.length < 4)}
-      >
+      <button type="submit" disabled={busy || code.length < 4} style={btn(busy || code.length < 4)}>
         {busy ? <Spinner /> : null}
         {busy ? 'Connexion…' : 'Se connecter'}
       </button>
-      <div style={{ marginTop: 12, textAlign: 'center' }}>
-        <button
-          type="button"
-          onClick={() => { setOtpSent(false); setCode(''); setInfo(''); setError(''); }}
-          style={{
-            display:        'inline-flex',
-            alignItems:     'center',
-            gap:            4,
-            background:     'none',
-            border:         'none',
-            color:          '#1A73E8',
-            fontSize:       13,
-            cursor:         'pointer',
-            fontFamily:     'inherit',
-          }}
-        >
-          <IconArrowLeft />
-          Changer de numéro
+      <div style={{ textAlign: 'center', marginTop: 12 }}>
+        <button type="button"
+          onClick={() => { setSent(false); setCode(''); setInfo(''); setError(''); }}
+          style={{ background: 'none', border: 'none', color: '#1A73E8', fontSize: 14,
+            cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          <IconArrowLeft /> Changer de numéro
         </button>
       </div>
     </form>
@@ -338,68 +238,46 @@ function OtpWhatsApp({ onSuccess }) {
 // ─── Connexion fédérée ────────────────────────────────────────────────────────
 
 function FederatedLogin({ onSuccess }) {
-  const [busy,  setBusy]  = useState(false);
+  const [busy, setBusy]   = useState(false);
   const [error, setError] = useState('');
 
-  const handleProvider = useCallback(async (providerKey) => {
+  const handle = useCallback(async (key) => {
     setError(''); setBusy(true);
     try {
-      const { idToken } = await federatedProviders[providerKey]();
-      const { data } = await authApi.post('/federated/login', { idToken });
+      const { idToken } = await federatedProviders[key]();
+      const { data }   = await authApi.post('/federated/login', { idToken });
       onSuccess(data);
     } catch (err) {
       const msg = friendlyError(err);
       if (msg) setError(msg);
-    } finally {
-      setBusy(false);
-    }
+    } finally { setBusy(false); }
   }, [onSuccess]);
 
-  const socialBtnStyle = {
-    display:     'flex',
-    alignItems:  'center',
-    gap:         10,
-    width:       '100%',
-    padding:     '10px 16px',
-    marginBottom: 10,
-    background:  '#FFFFFF',
-    border:      '1px solid #E0E0E0',
-    borderRadius: 8,
-    fontFamily:  'inherit',
-    fontSize:    14,
-    fontWeight:  500,
-    color:       '#202124',
-    cursor:      busy ? 'not-allowed' : 'pointer',
-    opacity:     busy ? 0.6 : 1,
-    transition:  'background 150ms ease, border-color 150ms ease',
+  const soc = {
+    display: 'flex', alignItems: 'center', gap: 12,
+    width: '100%', padding: '11px 16px', marginBottom: 10,
+    background: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: 8,
+    fontFamily: 'inherit', fontSize: 15, fontWeight: 500, color: '#202124',
+    cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.6 : 1,
+    transition: 'background 150ms ease, border-color 150ms ease',
   };
 
   return (
     <div>
       <ErrorAlert message={error} />
-      <button
-        type="button"
-        disabled={busy}
-        style={socialBtnStyle}
-        onClick={() => handleProvider('google')}
-        onMouseEnter={(e) => { e.currentTarget.style.background = '#F8F9FA'; e.currentTarget.style.borderColor = '#c9cccf'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#E0E0E0'; }}
-      >
-        <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}><IconGoogle /></span>
-        Continuer avec Google
+      <button type="button" disabled={busy} style={soc}
+        onClick={() => handle('google')}
+        onMouseEnter={e => { e.currentTarget.style.background = '#F8F9FA'; e.currentTarget.style.borderColor = '#c9cccf'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#E0E0E0'; }}>
+        <IconGoogle /> Continuer avec Google
       </button>
-      <button
-        type="button"
-        disabled={busy}
-        style={socialBtnStyle}
-        onClick={() => handleProvider('github')}
-        onMouseEnter={(e) => { e.currentTarget.style.background = '#F8F9FA'; e.currentTarget.style.borderColor = '#c9cccf'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#E0E0E0'; }}
-      >
-        <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}><IconGitHub /></span>
-        Continuer avec GitHub
+      <button type="button" disabled={busy} style={soc}
+        onClick={() => handle('github')}
+        onMouseEnter={e => { e.currentTarget.style.background = '#F8F9FA'; e.currentTarget.style.borderColor = '#c9cccf'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.borderColor = '#E0E0E0'; }}>
+        <IconGitHub /> Continuer avec GitHub
       </button>
-      <p style={{ fontSize: 12, color: '#5F6368', textAlign: 'center', marginTop: 6 }}>
+      <p style={{ fontSize: 13, color: '#5F6368', textAlign: 'center', marginTop: 8 }}>
         Utilisez le même compte que votre profil Palabre.
       </p>
     </div>
@@ -418,155 +296,110 @@ export default function LoginPage() {
   }
 
   const tabStyle = (active) => ({
-    flex:         1,
-    padding:      '8px 12px',
-    border:       'none',
-    borderRadius: 6,
-    fontFamily:   'inherit',
-    fontSize:     13,
-    fontWeight:   active ? 600 : 400,
-    background:   active ? '#FFFFFF' : 'transparent',
-    color:        active ? '#202124' : '#5F6368',
-    boxShadow:    active ? '0 1px 2px rgba(32,33,36,.10)' : 'none',
-    cursor:       'pointer',
-    transition:   'all 150ms ease',
+    flex: 1, padding: '9px 12px', border: 'none', borderRadius: 6,
+    fontFamily: 'inherit', fontSize: 14,
+    fontWeight: active ? 600 : 400,
+    background: active ? '#FFFFFF' : 'transparent',
+    color: active ? '#202124' : '#5F6368',
+    boxShadow: active ? '0 1px 2px rgba(32,33,36,.10)' : 'none',
+    cursor: 'pointer', transition: 'all 150ms ease',
   });
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#1A73E8' }}>
-      {/* Topbar */}
-      <div style={{
-        display:        'flex',
-        alignItems:     'center',
-        justifyContent: 'space-between',
-        padding:        '18px 40px',
-        flexShrink:     0,
-      }}>
-        <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <img src="/logo.png" alt="Palabre" style={{ width: 28, height: 28 }} />
-          <span style={{ fontWeight: 700, fontSize: 18, color: '#FFFFFF', letterSpacing: '0.3px' }}>
-            Palabre
-          </span>
-          <span style={{
-            fontSize:    10,
-            fontWeight:  700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.6px',
-            color:       '#FFFFFF',
-            background:  'rgba(255,255,255,.20)',
-            padding:     '1px 6px',
-            borderRadius: 3,
-          }}>
-            Dev
-          </span>
-        </a>
-        <a
-          href="https://palabre.app"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            padding:        '7px 14px',
-            background:     'transparent',
-            color:          '#FFFFFF',
-            border:         '1px solid rgba(255,255,255,.4)',
-            borderRadius:   8,
-            fontFamily:     'inherit',
-            fontSize:       13,
-            fontWeight:     500,
-            textDecoration: 'none',
-          }}
-        >
-          Retour à Palabre
-        </a>
-      </div>
+    <>
+      {/* Styles spécifiques à cette page */}
+      <style>{`
+        @keyframes authCardIn {
+          from { opacity: 0; transform: translateY(14px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .auth-card-anim { animation: authCardIn .45s cubic-bezier(.4,0,.2,1) forwards; }
+        @keyframes authIllIn {
+          from { opacity: 0; transform: translateX(-16px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        .auth-ill-anim { animation: authIllIn .55s cubic-bezier(.4,0,.2,1) .1s both; }
+      `}</style>
 
-      {/* Corps centré */}
-      <div style={{
-        flex:           1,
-        display:        'flex',
-        alignItems:     'center',
-        justifyContent: 'center',
-        padding:        '16px 24px 48px',
-      }}>
-        <div style={{
-          background:   '#FFFFFF',
-          borderRadius: 12,
-          boxShadow:    '0 8px 32px rgba(32,33,36,.16)',
-          width:        '100%',
-          maxWidth:     420,
-          padding:      '36px',
-        }}>
-          {/* Logo + titre */}
-          <div style={{ textAlign: 'center', marginBottom: 24 }}>
-            <img
-              src="/logo.png"
-              alt="Palabre"
-              style={{ width: 52, height: 52, display: 'block', margin: '0 auto 12px' }}
-            />
-            <h1 style={{ fontSize: 20, fontWeight: 700, color: '#202124', margin: '0 0 4px' }}>
-              Palabre for Developers
-            </h1>
-            <p style={{ fontSize: 14, color: '#5F6368', margin: 0 }}>
-              Connectez-vous pour accéder à votre portail
-            </p>
+      {/* ── Mise en page identique à AuthLayout de Palabre ── */}
+      <div className="auth-layout">
+
+        {/* ── Topbar ── */}
+        <div className="auth-layout-topbar">
+          <Link to="/" className="brand-inline light" aria-label="Palabre Developers - retour à l'accueil"
+            style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <img src="/logo.png" alt="" aria-hidden="true" width="30" height="30" />
+            <span style={{ fontWeight: 800, fontSize: 20, letterSpacing: '0.5px', color: '#FFFFFF' }}>
+              PALABRE
+            </span>
+            <span style={{
+              fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px',
+              color: '#FFFFFF', background: 'rgba(255,255,255,.22)', padding: '2px 7px', borderRadius: 3,
+            }}>
+              Dev
+            </span>
+          </Link>
+          <a href={`${PALABRE_URL}`}
+            className="btn btn-outline-light"
+            style={{ textDecoration: 'none' }}>
+            Retour à Palabre
+          </a>
+        </div>
+
+        {/* ── Corps : illustration à GAUCHE - carte à DROITE ── */}
+        <div className="auth-layout-body">
+
+          {/* Illustration dev (masquée sur mobile par CSS auth-layout) */}
+          <div className="auth-layout-illustration auth-ill-anim" aria-hidden="true">
+            <DevAuthIllustration />
           </div>
 
-          {/* Onglets méthode */}
-          <div
-            role="tablist"
-            aria-label="Méthode de connexion"
-            style={{
-              display:      'flex',
-              background:   '#F1F3F4',
-              borderRadius: 8,
-              padding:      4,
-              gap:          4,
-              marginBottom: 20,
-            }}
-          >
-            <button
-              role="tab"
-              aria-selected={tab === 'social'}
-              style={tabStyle(tab === 'social')}
-              onClick={() => setTab('social')}
-            >
-              Google / GitHub
-            </button>
-            <button
-              role="tab"
-              aria-selected={tab === 'whatsapp'}
-              style={tabStyle(tab === 'whatsapp')}
-              onClick={() => setTab('whatsapp')}
-            >
-              OTP WhatsApp
-            </button>
-          </div>
+          {/* Carte formulaire */}
+          <div className="auth-layout-card auth-card-anim" style={{ maxWidth: 440 }}>
+            {/* Logo + titre */}
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+              <img src="/logo.png" alt="Palabre"
+                style={{ width: 54, height: 54, display: 'block', margin: '0 auto 14px' }} />
+              <h1 style={{ fontSize: 22, fontWeight: 700, color: '#202124', margin: '0 0 5px' }}>
+                Palabre for Developers
+              </h1>
+              <p style={{ fontSize: 14, color: '#5F6368', margin: 0 }}>
+                Connexion sécurisée à votre espace développeur
+              </p>
+            </div>
 
-          {/* Contenu */}
-          {tab === 'social'   && <FederatedLogin onSuccess={handleSuccess} />}
-          {tab === 'whatsapp' && <OtpWhatsApp    onSuccess={handleSuccess} />}
+            {/* Onglets */}
+            <div role="tablist" aria-label="Méthode de connexion" className="segmented" style={{ marginBottom: 20 }}>
+              <button role="tab" aria-selected={tab === 'social'} style={tabStyle(tab === 'social')} onClick={() => setTab('social')}>
+                Google / GitHub
+              </button>
+              <button role="tab" aria-selected={tab === 'whatsapp'} style={tabStyle(tab === 'whatsapp')} onClick={() => setTab('whatsapp')}>
+                OTP WhatsApp
+              </button>
+            </div>
 
-          {/* Pied */}
-          <div style={{
-            marginTop:  20,
-            paddingTop: 18,
-            borderTop:  '1px solid #E0E0E0',
-            textAlign:  'center',
-            fontSize:   13,
-            color:      '#5F6368',
-          }}>
-            Nouveau sur Palabre ?{' '}
-            <a
-              href="https://palabre.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: '#1A73E8', fontWeight: 500 }}
-            >
-              Créez un compte
-            </a>
+            {tab === 'social'   && <FederatedLogin onSuccess={handleSuccess} />}
+            {tab === 'whatsapp' && <OtpWhatsApp    onSuccess={handleSuccess} />}
+
+            {/* Pied */}
+            <div style={{
+              marginTop: 20, paddingTop: 18, borderTop: '1px solid #E0E0E0',
+              display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center',
+              fontSize: 13, color: '#5F6368',
+            }}>
+              <span>
+                Pas encore de compte ?{' '}
+                <Link to="/signup" style={{ color: '#1A73E8', fontWeight: 600 }}>
+                  Créer un compte développeur
+                </Link>
+              </span>
+              <a href={`${PALABRE_URL}`} style={{ color: '#9aa0a6', fontSize: 12 }}>
+                Accéder à Palabre (app principale)
+              </a>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

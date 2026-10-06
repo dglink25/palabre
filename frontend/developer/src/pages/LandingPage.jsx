@@ -9,6 +9,10 @@
 
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import DeveloperFooter from '../components/DeveloperFooter.jsx';
+
+// URL configurable vers l'app Palabre principale
+const PALABRE_URL = import.meta.env.VITE_PALABRE_BASE_URL || 'http://localhost:3000';
 
 // ─── Hook révélation au scroll ────────────────────────────────────────────────
 
@@ -652,38 +656,7 @@ palabre.on(\u001b[32m'message'\u001b[0m, msg \u001b[36m=>\u001b[0m {
         </section>
 
         {/* ── FOOTER ── */}
-        <footer style={{
-          background: '#FFFFFF', borderTop: '1px solid #E0E0E0',
-          padding: '32px 40px',
-        }}>
-          <div style={{
-            maxWidth: 1120, margin: '0 auto',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            flexWrap: 'wrap', gap: 16,
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <img src="/logo.png" alt="Palabre" style={{ width: 24, height: 24 }} />
-              <span style={{ fontWeight: 700, fontSize: 15, color: '#202124' }}>Palabre Developers</span>
-            </div>
-            <div style={{ display: 'flex', gap: 24 }}>
-              {[
-                { label: 'Documentation',  to: '/docs'   },
-                { label: 'Se connecter',   to: '/login'  },
-                { label: 'S\'inscrire',    to: '/signup' },
-              ].map(({ label, to }) => (
-                <Link key={label} to={to} style={{ fontSize: 13, color: '#5F6368', textDecoration: 'none' }}
-                  onMouseEnter={e => { e.currentTarget.style.color = '#1A73E8'; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = '#5F6368'; }}
-                >
-                  {label}
-                </Link>
-              ))}
-            </div>
-            <p style={{ fontSize: 12, color: '#9aa0a6', margin: 0 }}>
-              © {new Date().getFullYear()} Palabre. Tous droits réservés.
-            </p>
-          </div>
-        </footer>
+        <DeveloperFooter />
 
       </div>
 
