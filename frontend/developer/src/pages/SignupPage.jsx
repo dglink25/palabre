@@ -1,5 +1,5 @@
 /**
- * SignupPage.jsx — Palabre for Developers
+ * SignupPage.jsx - Palabre for Developers
  *
  * Page d'inscription du portail développeur.
  * Même flux SSO que la connexion (Google, GitHub, WhatsApp OTP)
@@ -401,7 +401,7 @@ export default function SignupPage() {
               Intégrez la communication<br />Palabre en 5 minutes
             </h2>
             <p style={{ fontSize: 15, color: 'rgba(255,255,255,.75)', margin: '0 0 28px', lineHeight: 1.6 }}>
-              Messagerie E2E, appels WebRTC, vidéoconférence et push — avec votre propre marque.
+              Messagerie E2E, appels WebRTC, vidéoconférence et push - avec votre propre marque.
             </p>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
               {PERKS.map(p => (

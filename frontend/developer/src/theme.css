@@ -1,5 +1,5 @@
 /* =============================================================
-   theme.css — Palabre Developer Portal
+   theme.css - Palabre Developer Portal
    Design institutionnel : Stripe / Twilio / AWS Console
    ============================================================= */
 
@@ -236,7 +236,7 @@ code {
   min-height: 100vh;
 }
 
-/* ── Sidebar 240px — style Palabre ── */
+/* ── Sidebar 240px - style Palabre ── */
 .sidebar {
   width: var(--sidebar-width);
   background-color: var(--color-white);

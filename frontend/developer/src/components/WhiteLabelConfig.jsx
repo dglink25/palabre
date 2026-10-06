@@ -1,7 +1,7 @@
 /**
  * WhiteLabelConfig.jsx - Developer Portal
  *
- * Formulaire de configuration White-Label — design institutionnel.
+ * Formulaire de configuration White-Label - design institutionnel.
  * Prévisualisation du widget sans gradient dans le header.
  * Icônes Lucide stroke-only, badges border-radius 4px.
  *
@@ -181,7 +181,7 @@ function ColorField({ id, label, value, onChange }) {
           role="alert"
           style={{ fontSize: 12, color: '#EA4335', margin: 0 }}
         >
-          Format invalide — utilisez <code>#RRGGBB</code>
+          Format invalide - utilisez <code>#RRGGBB</code>
         </p>
       )}
     </div>
@@ -214,7 +214,7 @@ function ChatWidgetPreview({ displayName, colorPrimary, logoUrl }) {
         background:   '#FFFFFF',
       }}
     >
-      {/* Header — fond plat couleur primaire */}
+      {/* Header - fond plat couleur primaire */}
       <div
         style={{
           backgroundColor: primary,
@@ -570,7 +570,7 @@ export default function WhiteLabelConfig({ projectId, project }) {
                 )}
 
                 <p style={{ fontSize: 11, color: '#9aa0a6', margin: 0 }}>
-                  PNG, JPG, GIF, WebP ou SVG — 2 Mo max
+                  PNG, JPG, GIF, WebP ou SVG - 2 Mo max
                 </p>
               </div>
             </div>

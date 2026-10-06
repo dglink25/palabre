@@ -1,7 +1,7 @@
 /**
  * StatsChart.jsx - Developer Portal
  *
- * Statistiques d'usage — design institutionnel.
+ * Statistiques d'usage - design institutionnel.
  * Cartes métriques fond #EAF2FD / icône #1A73E8 (pas de gradient).
  * Sélecteur de période sobre, graphique barres SVG minimaliste.
  *
@@ -352,7 +352,7 @@ export default function StatsChart({ projectId }) {
         }}
       >
         <h3 style={{ fontSize: 15, fontWeight: 600, color: '#202124', margin: '0 0 16px' }}>
-          Vue d'ensemble — {selectedPeriodLabel}
+          Vue d'ensemble - {selectedPeriodLabel}
         </h3>
 
         {loading ? (

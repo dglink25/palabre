@@ -51,7 +51,7 @@ function ProtectedLayout({ children }) {
 export default function App() {
   return (
     <Routes>
-      {/* ── Pages publiques — accessibles sans authentification ── */}
+      {/* ── Pages publiques - accessibles sans authentification ── */}
       <Route path="/" element={
         <PublicPage><LandingPage /></PublicPage>
       } />
@@ -62,7 +62,7 @@ export default function App() {
         <PublicPage><SignupPage /></PublicPage>
       } />
 
-      {/* ── Pages protégées — avec sidebar Palabre ── */}
+      {/* ── Pages protégées - avec sidebar Palabre ── */}
       <Route path="/dashboard" element={
         <ProtectedLayout><DashboardPage /></ProtectedLayout>
       } />

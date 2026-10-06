@@ -1,5 +1,5 @@
 /**
- * NotificationContext.jsx — Developer Portal
+ * NotificationContext.jsx - Developer Portal
  *
  * Système de toasts identique à l'app Palabre principale :
  *   - 4 types : success, error, info, warning

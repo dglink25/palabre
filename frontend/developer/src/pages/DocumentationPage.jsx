@@ -200,7 +200,7 @@ function AuthBadge({ auth }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SECTION 1 — Démarrage rapide
+// SECTION 1 - Démarrage rapide
 // ─────────────────────────────────────────────────────────────────────────────
 
 const FRAMEWORKS = [
@@ -367,7 +367,7 @@ function SectionQuickstart({ project }) {
         Démarrage rapide
       </h2>
       <p style={{ fontSize: 14, color: '#5F6368', margin: '0 0 24px', lineHeight: 1.6 }}>
-        Intégrez Palabre en quelques lignes. Choisissez votre framework — les extraits
+        Intégrez Palabre en quelques lignes. Choisissez votre framework - les extraits
         utilisent les clés réelles de votre projet.
       </p>
 
@@ -381,7 +381,7 @@ function SectionQuickstart({ project }) {
           fontSize: 13, color: '#8a6700',
         }}>
           <Icons.Alert />
-          Clés non chargées — allez dans l'onglet <strong style={{ marginLeft: 4 }}>Clés API</strong> pour les voir.
+          Clés non chargées - allez dans l'onglet <strong style={{ marginLeft: 4 }}>Clés API</strong> pour les voir.
         </div>
       )}
 
@@ -480,7 +480,7 @@ function SectionQuickstart({ project }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SECTION 2 — Playground
+// SECTION 2 - Playground
 // ─────────────────────────────────────────────────────────────────────────────
 
 const ENDPOINTS = [
@@ -528,7 +528,7 @@ function SectionPlayground({ project }) {
   function onBodyChange(e) {
     const v = e.target.value;
     setBody(v);
-    setJsonErr(v.trim() && !isJson(v) ? 'JSON invalide — vérifiez la syntaxe.' : '');
+    setJsonErr(v.trim() && !isJson(v) ? 'JSON invalide - vérifiez la syntaxe.' : '');
   }
 
   const execute = useCallback(async () => {
@@ -561,7 +561,7 @@ function SectionPlayground({ project }) {
       </h2>
       <p style={{ fontSize: 14, color: '#5F6368', margin: '0 0 20px', lineHeight: 1.6 }}>
         Testez les endpoints de l'API en temps réel. La clé publishable de votre projet
-        est injectée automatiquement — aucune configuration requise.
+        est injectée automatiquement - aucune configuration requise.
       </p>
 
       <div style={{ background: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: 8, overflow: 'hidden' }}>
@@ -624,7 +624,7 @@ function SectionPlayground({ project }) {
                 background: 'none', border: 'none', padding: 0,
                 wordBreak: 'break-all',
               }}>
-                {pk || 'pk_live_… (non chargée — voir onglet Clés API)'}
+                {pk || 'pk_live_… (non chargée - voir onglet Clés API)'}
               </code>
             </div>
           </div>
@@ -722,7 +722,7 @@ function SectionPlayground({ project }) {
               background: '#161b27', borderBottom: '1px solid rgba(255,255,255,.08)',
             }}>
               <span style={{ fontSize: 11, fontWeight: 600, color: '#8892a4', textTransform: 'uppercase', letterSpacing: '0.7px' }}>
-                cURL — aperçu de la commande
+                cURL - aperçu de la commande
               </span>
               <CopyBtn text={curl} label="Copier cURL" dark />
             </div>
@@ -786,23 +786,23 @@ function SectionPlayground({ project }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SECTION 3 — Référence API
+// SECTION 3 - Référence API
 // ─────────────────────────────────────────────────────────────────────────────
 
 const API_ROUTES = [
   { method: 'POST',   path: '/accounts/me',                      desc: 'Crée ou retourne le compte développeur',                   auth: 'SSO JWT' },
   { method: 'GET',    path: '/accounts/me',                      desc: "Retourne le compte développeur courant",                   auth: 'SSO JWT' },
   { method: 'GET',    path: '/projects',                         desc: 'Liste les projets du compte',                              auth: 'SSO JWT' },
-  { method: 'POST',   path: '/projects',                         desc: 'Crée un projet — génère pk_ et sk_ automatiquement',       auth: 'SSO JWT' },
+  { method: 'POST',   path: '/projects',                         desc: 'Crée un projet - génère pk_ et sk_ automatiquement',       auth: 'SSO JWT' },
   { method: 'GET',    path: '/projects/:id',                     desc: 'Détails du projet (clés, white-label, webhooks)',           auth: 'SSO JWT' },
   { method: 'PATCH',  path: '/projects/:id',                     desc: 'Met à jour les métadonnées du projet',                     auth: 'SSO JWT' },
-  { method: 'DELETE', path: '/projects/:id',                     desc: 'Soft-delete du projet — révoque les clés',                 auth: 'SSO JWT' },
+  { method: 'DELETE', path: '/projects/:id',                     desc: 'Soft-delete du projet - révoque les clés',                 auth: 'SSO JWT' },
   { method: 'GET',    path: '/projects/:id/keys',                desc: 'Liste les clés actives (secret masquée)',                   auth: 'SSO JWT' },
   { method: 'POST',   path: '/projects/:id/keys/rotate',         desc: "Rotation d'une clé avec période de grâce de 60s",          auth: 'SSO JWT' },
   { method: 'GET',    path: '/projects/:id/config',              desc: 'White-Label Config publique utilisée par les SDK',          auth: 'X-Palabre-Key' },
   { method: 'POST',   path: '/proxy/messages',                   desc: "Envoie un message via l'infrastructure E2E Palabre",        auth: 'X-Palabre-Key' },
-  { method: 'POST',   path: '/proxy/calls',                      desc: 'Initie un appel WebRTC — retourne credentials TURN',        auth: 'X-Palabre-Key' },
-  { method: 'POST',   path: '/proxy/video/rooms',                desc: 'Crée une room Jitsi — retourne token de session',           auth: 'X-Palabre-Key' },
+  { method: 'POST',   path: '/proxy/calls',                      desc: 'Initie un appel WebRTC - retourne credentials TURN',        auth: 'X-Palabre-Key' },
+  { method: 'POST',   path: '/proxy/video/rooms',                desc: 'Crée une room Jitsi - retourne token de session',           auth: 'X-Palabre-Key' },
   { method: 'POST',   path: '/proxy/push',                       desc: 'Envoie une notification push via FCM',                     auth: 'X-Palabre-Key' },
   { method: 'GET',    path: '/projects/:id/webhooks',            desc: 'Liste les webhooks du projet',                             auth: 'SSO JWT' },
   { method: 'POST',   path: '/projects/:id/webhooks',            desc: 'Crée un webhook (URL HTTPS obligatoire)',                   auth: 'SSO JWT' },
@@ -884,7 +884,7 @@ function SectionApiRef() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SECTION 4 — Webhooks
+// SECTION 4 - Webhooks
 // ─────────────────────────────────────────────────────────────────────────────
 
 const EVENT_TYPES = [
@@ -904,7 +904,7 @@ const WEBHOOK_HEADERS = [
   { header: 'Content-Type',        value: 'application/json' },
 ];
 
-const WEBHOOK_VERIFY = `// Node.js — vérification HMAC-SHA256
+const WEBHOOK_VERIFY = `// Node.js - vérification HMAC-SHA256
 const crypto = require('crypto');
 
 function verifyWebhookSignature(rawBody, signature, secret) {
@@ -920,7 +920,7 @@ function verifyWebhookSignature(rawBody, signature, secret) {
   );
 }
 
-// Express.js — utilisez express.raw() pour conserver le corps brut
+// Express.js - utilisez express.raw() pour conserver le corps brut
 app.post('/webhooks/palabre',
   express.raw({ type: 'application/json' }),
   (req, res) => {
@@ -1023,7 +1023,7 @@ function SectionWebhooks() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SECTION 5 — Authentification
+// SECTION 5 - Authentification
 // ─────────────────────────────────────────────────────────────────────────────
 
 const AUTH_ERRORS = [
@@ -1166,7 +1166,7 @@ function SectionAuth({ project }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DocumentationPage — Layout principal
+// DocumentationPage - Layout principal
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function DocumentationPage({ projectId, project }) {

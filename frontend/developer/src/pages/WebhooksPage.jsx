@@ -1,7 +1,7 @@
 /**
  * WebhooksPage.jsx - Developer Portal
  *
- * Onglet Webhooks d'un Developer_Project — design institutionnel.
+ * Onglet Webhooks d'un Developer_Project - design institutionnel.
  * Tableaux header #F8F9FA, badges border-radius 4px, icônes Lucide stroke-only.
  * Pas de gradient, état vide sobre.
  *
@@ -879,7 +879,7 @@ function DeliveryHistorySection({ projectId }) {
                           {delivery.response_code}
                         </span>
                       ) : (
-                        <span style={{ color: '#9aa0a6' }}>—</span>
+                        <span style={{ color: '#9aa0a6' }}>-</span>
                       )}
                     </td>
                     <td style={{ padding: '10px 16px', fontSize: 12, color: '#5F6368', whiteSpace: 'nowrap' }}>

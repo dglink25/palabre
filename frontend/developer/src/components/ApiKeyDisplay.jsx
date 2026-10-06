@@ -1,8 +1,8 @@
 /**
  * ApiKeyDisplay.jsx - Developer Portal
  *
- * Affichage et gestion des clés API — design institutionnel.
- * Pas de gradient sur les icônes — fond #EAF2FD / couleur #1A73E8.
+ * Affichage et gestion des clés API - design institutionnel.
+ * Pas de gradient sur les icônes - fond #EAF2FD / couleur #1A73E8.
  * Badges statut border-radius 4px.
  *
  * Requirements couverts : 4.1, 4.2, 4.3, 4.4, 4.6
@@ -314,7 +314,7 @@ function NewKeyAlert({ keyType, newKeyValue, onClose }) {
         margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 6,
       }}>
         <IconCheck size={14} />
-        Rotation réussie — nouvelle clé {keyLabel}
+        Rotation réussie - nouvelle clé {keyLabel}
       </p>
       <p style={{ fontSize: 12, color: '#34A853', margin: '0 0 12px' }}>
         Cette valeur ne sera plus affichée après fermeture. Copiez-la maintenant.
@@ -364,7 +364,7 @@ function NewKeyAlert({ keyType, newKeyValue, onClose }) {
           fontFamily:   'inherit',
         }}
       >
-        J'ai sauvegardé la clé — fermer
+        J'ai sauvegardé la clé - fermer
       </button>
     </div>
   );

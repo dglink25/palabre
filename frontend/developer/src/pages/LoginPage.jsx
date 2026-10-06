@@ -1,7 +1,7 @@
 /**
- * LoginPage.jsx — Developer Portal
+ * LoginPage.jsx - Developer Portal
  *
- * Page de connexion institutionnelle — style Stripe / Twilio.
+ * Page de connexion institutionnelle - style Stripe / Twilio.
  * Fond #1A73E8, carte blanche centrée, logo /logo.png.
  * Icônes SVG Lucide stroke-only, zéro emoji.
  */
@@ -54,7 +54,7 @@ function IconArrowLeft() {
   );
 }
 
-// Icône Google (multi-couleur — cas particulier accepté)
+// Icône Google (multi-couleur - cas particulier accepté)
 function IconGoogle() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">

@@ -1,5 +1,5 @@
 /**
- * LandingPage.jsx — Palabre for Developers
+ * LandingPage.jsx - Palabre for Developers
  *
  * Page d'accueil publique du portail développeur.
  * Style institutionnel Stripe/Twilio : couleurs Palabre exactes,
@@ -348,7 +348,7 @@ export default function LandingPage() {
                 transition: 'all 150ms ease',
               }}
             >
-              Commencer — c'est gratuit
+              Commencer - c'est gratuit
             </Link>
           </nav>
         </header>
@@ -371,7 +371,7 @@ export default function LandingPage() {
                 animation: 'lpPulse 2s ease infinite',
               }} />
               <span style={{ fontSize: 12, fontWeight: 600, color: '#1A73E8' }}>
-                API CPaaS — Communication Platform as a Service
+                API CPaaS - Communication Platform as a Service
               </span>
             </div>
 
@@ -387,7 +387,7 @@ export default function LandingPage() {
               fontSize: 17, color: '#5F6368', lineHeight: 1.7,
               margin: '0 0 32px', maxWidth: 500,
             }}>
-              Messagerie E2E, appels WebRTC, vidéoconférence et notifications push —
+              Messagerie E2E, appels WebRTC, vidéoconférence et notifications push -
               en quelques lignes de code, avec vos propres clés API.
             </p>
 

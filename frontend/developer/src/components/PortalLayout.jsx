@@ -1,11 +1,11 @@
 /**
- * PortalLayout.jsx — Developer Portal
+ * PortalLayout.jsx - Developer Portal
  *
  * Shell applicatif institutionnel (style Stripe / Twilio / AWS Console).
  * Sidebar 240px, fond blanc, bordure droite #E0E0E0.
  * Nav items avec border-left actif #1A73E8.
  * Logo /logo.png dans la sidebar et le menu mobile.
- * Responsive — breakpoint 860px.
+ * Responsive - breakpoint 860px.
  */
 
 import { useState } from 'react';

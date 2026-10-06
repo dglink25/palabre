@@ -119,7 +119,7 @@ export default function ProjectCard({ project }) {
     >
       {/* En-tête */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-        {/* Icône projet — fond plat, pas de gradient */}
+        {/* Icône projet - fond plat, pas de gradient */}
         <div
           aria-hidden="true"
           style={{

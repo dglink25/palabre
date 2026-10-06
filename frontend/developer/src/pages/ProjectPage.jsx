@@ -1,7 +1,7 @@
 /**
  * ProjectPage.jsx - Developer Portal
  *
- * Page de détail d'un projet — design institutionnel Stripe/Twilio/AWS.
+ * Page de détail d'un projet - design institutionnel Stripe/Twilio/AWS.
  * En-tête sans gradient, icône fond #EAF2FD/#1A73E8.
  * Onglets de navigation standard avec border-bottom actif.
  * Breadcrumb sobre.
@@ -305,7 +305,7 @@ export default function ProjectPage() {
       {/* En-tête du projet */}
       <header style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, flexWrap: 'wrap' }}>
-          {/* Icône — fond plat */}
+          {/* Icône - fond plat */}
           <div
             aria-hidden="true"
             style={{

@@ -1,7 +1,7 @@
 /**
  * DashboardPage.jsx - Developer Portal
  *
- * Tableau de bord institutionnel — style Stripe / Twilio / AWS Console.
+ * Tableau de bord institutionnel - style Stripe / Twilio / AWS Console.
  * En-tête sobre sans gradient, icônes fond #EAF2FD/#1A73E8.
  * État vide avec icône neutre et texte descriptif.
  *
@@ -397,7 +397,7 @@ function NewProjectModal({ onClose, onCreated }) {
                 fontFamily:   'inherit',
               }}
             >
-              J'ai copié ma clé — fermer
+              J'ai copié ma clé - fermer
             </button>
           </div>
         ) : (
@@ -672,7 +672,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ─── Stats globales 30 jours ─────────────────────────────────────────── */}
-      <section aria-label="Statistiques globales — 30 derniers jours" style={{ marginBottom: 28 }}>
+      <section aria-label="Statistiques globales - 30 derniers jours" style={{ marginBottom: 28 }}>
         <p style={{
           fontSize:      12,
           fontWeight:    600,
@@ -681,7 +681,7 @@ export default function DashboardPage() {
           letterSpacing: '0.6px',
           margin:        '0 0 12px',
         }}>
-          Activité globale — 30 derniers jours
+          Activité globale - 30 derniers jours
         </p>
         <div style={{
           display:             'grid',
