@@ -41,20 +41,15 @@ get_var() {
   echo "${val:-$default}"
 }
 
-# ── Ecriture d'un .env (sans écraser l'existant) ─────────────────────────────
+# ── Ecriture d'un .env (écrase toujours - source unique = backend/.env) ───────
 write_env() {
   local dest="$1"
   local content="$2"
   local service
   service=$(basename "$(dirname "$dest")")
 
-  if [ -f "$dest" ] && [ -s "$dest" ]; then
-    warn "${service}/.env existe déjà et n'est pas vide → écrit dans ${service}/.env.new"
-    dest="${dest}.new"
-  fi
-
   printf '%s\n' "$content" > "$dest"
-  ok "${service}/.env généré"
+  ok "${service}/.env mis à jour"
 }
 
 # ── Extraction des variables partagées depuis backend/.env ───────────────────
