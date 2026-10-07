@@ -24,6 +24,7 @@ const tenantProvisioningRoutes = require('./modules/tenant-provisioning/tenant-p
 const supportRoutes = require('./modules/support/support.routes');
 const developerRoutes = require('./modules/developer/developer.routes');
 const aiRoutes = require('./modules/ai/ai.routes');
+const reportRoutes = require('./modules/reports/report.routes');
 
 const app = express();
 
@@ -75,6 +76,8 @@ app.use('/api/v1/support', supportRoutes);
 app.use('/api/v1/developer', developerRoutes);
 // Service AI (IVR service client, base de connaissance, config agent)
 app.use('/api/v1/ai', aiRoutes);
+// Rapports de sessions (vidéoconférences, appels P2P, support)
+app.use('/api/v1/reports', reportRoutes);
 
 // --- 404 ---
 app.use((req, res) => {

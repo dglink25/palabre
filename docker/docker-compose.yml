@@ -52,6 +52,7 @@ services:
       - ../backend/src:/app/src
       - ../backend/migrations:/app/migrations
       - palabre_uploads:/app/uploads
+      - palabre_reports:/data/reports
       - ../backend/secrets:/run/secrets:ro
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:4000/health || curl -sf http://localhost:4000/health || exit 1"]
@@ -260,6 +261,7 @@ services:
 volumes:
   palabre_postgres_data:
   palabre_uploads:
+  palabre_reports:
   palabre_mnesia_data:
   palabre_media_storage:
   palabre_coturn_data:

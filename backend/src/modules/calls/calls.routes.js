@@ -144,6 +144,18 @@ router.patch('/:id', requireAuth, async (req, res, next) => {
       call_id:     call.id,
     });
 
+    // ── Rapport automatique à la fin d'un appel ──────────────────────────────
+    if (status === 'ended') {
+      setImmediate(async () => {
+        try {
+          const reportService = require('../reports/report.service');
+          await reportService.generateP2PCallReport(call.id);
+        } catch (err) {
+          console.error('[calls] report generation error:', err.message);
+        }
+      });
+    }
+
     // ── Webhook developer : fireEvent call.{status} (non bloquant) ───────────
     const callEventType = `call.${status}`; // call.started, call.ended, call.missed, etc.
     const orgId = req.user.org_id;

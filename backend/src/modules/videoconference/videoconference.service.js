@@ -637,6 +637,18 @@ async function endRoom(roomId, actorUserId, roomData) {
   );
 
   await auditLog({ orgId: room.org_id, actorUserId, action: 'VIDEO_SESSION_ENDED', roomId, metadata: { title: room.title } });
+
+  // Générer le rapport automatiquement (non bloquant)
+  // Scope : serveur central uniquement (org_id NULL = vidéoconférence publique ou support)
+  // Les vidéoconférences tenant ont un org_id, on génère aussi leur rapport
+  setImmediate(async () => {
+    try {
+      const reportService = require('../reports/report.service');
+      await reportService.generateVideoRoomReport(roomId);
+    } catch (err) {
+      console.error('[videoconference] report generation error:', err.message);
+    }
+  });
 }
 
 // ═════════════════════════════════════════════════════════════════════════

@@ -4,9 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import NetworkModeIndicator from './NetworkModeIndicator';
 import { networkDetector } from '../lib/networkDetector';
 
-// ── Horloge temps réel ────────────────────────────────────────────────────────
-// Format : 1ER OCTOBRE 2026  23H:40
-// Se met à jour toutes les secondes dans le fuseau de l'utilisateur.
 function RealtimeClock({ timezone }) {
   const [display, setDisplay] = useState('');
 
@@ -172,6 +169,7 @@ export default function Layout() {
     { to: '/admin',              key: 'dashboard', label: 'Tableau de bord', end: true },
     { to: '/admin/onboarding',   key: 'requests',  label: 'Dossiers' },
     { to: '/admin/support',      key: 'support',   label: 'Service client' },
+    { to: '/admin/knowledge',    key: 'guide',     label: 'Base de connaissance' },
   ];
   const orgItems = [
     { to: '/org/dashboard', key: 'org',      label: 'Organisation', end: true },

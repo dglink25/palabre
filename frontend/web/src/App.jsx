@@ -43,6 +43,7 @@ import PublicVideoConferencePage from './pages/videoconference/PublicVideoConfer
 import JoinByInvitationPage from './pages/videoconference/JoinByInvitationPage';
 import SupportPage from './pages/support/SupportPage';
 import AdminSupportPage from './pages/admin/AdminSupportPage';
+import KnowledgePage from './pages/admin/KnowledgePage';
 import SupportWidget from './components/SupportWidget';
 // ── Pont : branche la fonction notify sur le composant Alert legacy ───────────
 function NotifyBridge() {
@@ -95,6 +96,7 @@ export default function App() {
               <Route path="/admin/onboarding/:id" element={<RequestDetailPage />} />
               <Route path="/admin/installation"   element={<InstallationGuidePage />} />
               <Route path="/admin/support"        element={<AdminSupportPage />} />
+              <Route path="/admin/knowledge"      element={<KnowledgePage />} />
             </Route>
 
             {/* Administrateur d'organisation */}

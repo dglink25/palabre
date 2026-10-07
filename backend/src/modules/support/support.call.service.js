@@ -269,11 +269,22 @@ async function endCall(callId, actorUserId, reason = 'user_hangup') {
     metadata:  { callId, reason, durationSeconds },
   });
 
+  // Générer le rapport automatiquement si l'appel a été répondu (non bloquant)
+  if (call.answered_at) {
+    setImmediate(async () => {
+      try {
+        const reportService = require('../reports/report.service');
+        await reportService.generateSupportCallReport(callId);
+      } catch (err) {
+        console.error('[support:call] report generation error:', err.message);
+      }
+    });
+  }
+
   return { callId, status: 'ended', durationSeconds };
 }
 
 // ── Timeout automatique de file d'attente ─────────────────────────────────────
-
 /**
  * Lance un timer. Si l'appel est toujours en file après QUEUE_TIMEOUT_SECONDS,
  * envoie un message système et retire l'utilisateur de la file.
