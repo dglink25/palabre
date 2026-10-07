@@ -23,6 +23,7 @@ const videoconferenceRoutes = require('./modules/videoconference/videoconference
 const tenantProvisioningRoutes = require('./modules/tenant-provisioning/tenant-provisioning.routes');
 const supportRoutes = require('./modules/support/support.routes');
 const developerRoutes = require('./modules/developer/developer.routes');
+const aiRoutes = require('./modules/ai/ai.routes');
 
 const app = express();
 
@@ -72,6 +73,8 @@ app.use('/api/v1/tenants', tenantProvisioningRoutes);
 app.use('/api/v1/support', supportRoutes);
 // Plateforme développeur (comptes, projets, clés API, proxy, webhooks, stats)
 app.use('/api/v1/developer', developerRoutes);
+// Service AI (IVR service client, base de connaissance, config agent)
+app.use('/api/v1/ai', aiRoutes);
 
 // --- 404 ---
 app.use((req, res) => {

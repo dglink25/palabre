@@ -4,7 +4,8 @@ name: palabre
 services:
 
   postgres:
-    image: postgres:16-alpine
+    # pgvector/pgvector:pg16 inclut l'extension pgvector requise par le service AI
+    image: pgvector/pgvector:pg16
     container_name: palabre-postgres
     profiles: ["postgres", "core", "all"]
     environment:
@@ -39,6 +40,7 @@ services:
       DATABASE_URL: postgres://palabre:palabre@postgres:5432/palabre
       REDIS_URL: redis://redis:6379
       MESSAGE_ROUTER_INTERNAL_URL: http://message-router:4020
+      AI_SERVICE_URL: http://ai:8000
     depends_on:
       postgres:
         condition: service_healthy
@@ -101,7 +103,25 @@ services:
       context: ../ai
     container_name: palabre-ai
     profiles: ["ai", "all"]
-    # STT / TTS / LLM hébergés localement (voir section 37 du cahier des charges)
+    env_file: ../ai/.env
+    environment:
+      DATABASE_URL: postgres://palabre:palabre@postgres:5432/palabre
+      AI_SERVICE_URL: http://ai:8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - palabre_ai_data:/data
+      - palabre_recordings:/recordings:ro
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    restart: unless-stopped
 
   wireguard:
     build:
@@ -243,3 +263,5 @@ volumes:
   palabre_mnesia_data:
   palabre_media_storage:
   palabre_coturn_data:
+  palabre_ai_data:
+  palabre_recordings:
