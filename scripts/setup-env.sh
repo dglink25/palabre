@@ -68,6 +68,10 @@ DATABASE_URL=$(get_var DATABASE_URL "postgres://palabre:palabre@localhost:5433/p
 REDIS_URL=$(get_var REDIS_URL "redis://localhost:6380")
 PUBLIC_HOST=$(get_var PUBLIC_HOST "localhost")
 FILE_SERVER_PUBLIC_URL=$(get_var FILE_SERVER_PUBLIC_URL "http://localhost:4030")
+AI_API_KEY=$(get_var AI_API_KEY "change_me_ai_api_key")
+LLM_BASE_URL=$(get_var LLM_BASE_URL "https://api.groq.com/openai/v1")
+LLM_API_KEY=$(get_var LLM_API_KEY "")
+LLM_MODEL=$(get_var LLM_MODEL "llama-3.3-70b-versatile")
 
 TARGET="${1:-all}"
 
@@ -159,6 +163,59 @@ MEDIASOUP_URL=http://mediasoup:3478
 "
 }
 
+# ── ai ────────────────────────────────────────────────────────────────────────
+setup_ai() {
+  # DATABASE_URL adapté pour Docker (postgres interne) vs. hôte local
+  # En Docker le service s'appelle "postgres", en hôte local c'est localhost:5433
+  local db_url_docker
+  db_url_docker=$(echo "$DATABASE_URL" | sed 's|@localhost:|@postgres:|g' | sed 's|@127\.0\.0\.1:|@postgres:|g')
+
+  write_env "${ROOT}/ai/.env" "# Service AI Palabre - généré par scripts/setup-env.sh depuis backend/.env
+# Variables copiées depuis backend/.env - ne pas modifier ici, modifier backend/.env
+# puis relancer : ./scripts/setup-env.sh ai
+
+# Base de données (pgvector requis - image pgvector/pgvector:pg16)
+# Copié depuis backend/.env (DATABASE_URL) avec adaptation pour Docker
+DATABASE_URL=${db_url_docker}
+
+# Clé API partagée avec le backend (doit correspondre à AI_API_KEY dans backend/.env)
+# Copié depuis backend/.env (AI_API_KEY)
+API_KEY=${AI_API_KEY}
+
+# LLM - API compatible OpenAI (Groq, OpenRouter, Mistral...)
+# Copié depuis backend/.env
+LLM_BASE_URL=${LLM_BASE_URL}
+LLM_API_KEY=${LLM_API_KEY}
+LLM_MODEL=${LLM_MODEL}
+
+# Embeddings vectoriels (dimension 1024 pour bge-m3)
+EMBEDDING_MODEL=BAAI/bge-m3
+EMBEDDING_DIM=1024
+
+# Service voix (STT + TTS) - laisser vide pour mode texte uniquement
+VOICE_SERVICE_URL=
+VOICE_SERVICE_KEY=
+
+# Table et colonnes de la base de connaissance
+KB_TABLE=connaissance_base
+KB_ID_COL=id
+KB_QUESTION_COL=question
+KB_ANSWER_COL=response
+KB_TYPE_COL=type
+
+# Paramètres RAG
+TOP_K=4
+MIN_SIMILARITY=0.40
+HISTORY_TURNS=8
+KB_SYNC_SECONDS=60
+AUTO_APPROVE_VOTES=0
+
+# Chemins de données
+DATA_DIR=/data
+RECORDINGS_DIR=/recordings
+"
+}
+
 # ── Dispatcher ────────────────────────────────────────────────────────────────
 echo ""
 log "Configuration des .env des services..."
@@ -169,26 +226,30 @@ case "$TARGET" in
   message-router) setup_message_router ;;
   file-server)    setup_file_server ;;
   call-signal)    setup_call_signal ;;
+  ai)             setup_ai ;;
   all)
     setup_presence
     setup_message_router
     setup_file_server
     setup_call_signal
+    setup_ai
     ;;
   *)
-    echo "  Usage : $0 [presence|message-router|file-server|call-signal|all]"
+    echo "  Usage : $0 [presence|message-router|file-server|call-signal|ai|all]"
     exit 1
     ;;
 esac
 
 echo ""
-ok "Terminé. Les .env sont dans services/<service>/.env"
+ok "Terminé. Les .env sont dans services/<service>/.env et ai/.env"
 echo ""
 echo "  Variables copiées automatiquement depuis backend/.env :"
 echo "    JWT_ACCESS_SECRET, INTERNAL_SERVICES_SECRET, ERLANG_COOKIE,"
-echo "    PHOENIX_SECRET_KEY_BASE, DATABASE_URL, REDIS_URL, PUBLIC_HOST"
+echo "    PHOENIX_SECRET_KEY_BASE, DATABASE_URL, REDIS_URL, PUBLIC_HOST,"
+echo "    AI_API_KEY, LLM_BASE_URL, LLM_API_KEY, LLM_MODEL"
 echo ""
 echo "  Variables à configurer manuellement si nécessaire :"
 echo "    file-server : ALLOWED_ORIGINS (URL exacte du frontend)"
 echo "    call-signal : MEDIASOUP_URL   (si vous changez de port)"
+echo "    ai          : VOICE_SERVICE_URL (si vous activez STT/TTS)"
 echo ""

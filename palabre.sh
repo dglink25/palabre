@@ -11,13 +11,16 @@
 #   ./palabre.sh stop   all         # Tout arrêter
 #   ./palabre.sh restart core       # Redémarrer
 #   ./palabre.sh logs   backend     # Suivre les logs d'un service
+#   ./palabre.sh logs   ai          # Suivre les logs du service AI
 #   ./palabre.sh status             # État de tous les conteneurs
 #   ./palabre.sh migrate            # Exécuter les migrations SQL
 #   ./palabre.sh ps                 # Alias de status
+#   ./palabre.sh setup-env          # Propager les variables partagées
+#   ./palabre.sh setup-env ai       # Générer uniquement ai/.env
 #
 # Profils disponibles :
-#   core        → postgres, redis, backend, presence, message-router,
-#                 file-server, call-signal, coturn
+#   core        → postgres (pgvector), redis, backend, presence,
+#                 message-router, file-server, call-signal, coturn, ai
 #   frontend    → frontend-web
 #   telephony   → mediasoup, asterisk
 #   realtime    → presence, message-router, file-server, call-signal, coturn
@@ -114,9 +117,10 @@ cmd_start() {
   if [ "$target" = "core" ]; then
     echo ""
     echo "  Services démarrés :"
-    echo "    postgres        → :5433"
+    echo "    postgres        → :5433  (pgvector/pgvector:pg16)"
     echo "    redis           → :6380"
     echo "    backend         → :4001"
+    echo "    ai              → :8000  (agent IA, IVR, RAG, rapports)"
     echo "    presence        → :4010"
     echo "    message-router  → :4020"
     echo "    file-server     → :4030"
@@ -216,8 +220,7 @@ case "$ACTION" in
     check_env
     log "Configuration des .env des services depuis backend/.env..."
     bash "${SCRIPT_DIR}/scripts/setup-env.sh" "${TARGET:-all}"
-    ;;
-  help|--help|-h)
+    ;;  help|--help|-h)
     usage
     ;;
   *)

@@ -46,6 +46,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+      ai:
+        condition: service_healthy
     ports:
       - "4001:4000"
     volumes:
@@ -103,7 +105,7 @@ services:
     build:
       context: ../ai
     container_name: palabre-ai
-    profiles: ["ai", "all"]
+    profiles: ["ai", "core", "all"]
     env_file: ../ai/.env
     environment:
       DATABASE_URL: postgres://palabre:palabre@postgres:5432/palabre
