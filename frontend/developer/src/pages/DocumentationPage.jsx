@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import developerApi from '../api/developerApi';
 
@@ -1201,7 +1199,7 @@ export default function DocumentationPage({ projectId, project }) {
   const activeLabel = SECTIONS.find(s => s.id === activeSection)?.label ?? '';
 
   return (
-    <div style={{ display: 'flex', gap: 0, alignItems: 'flex-start', minHeight: 600, position: 'relative' }}>
+    <div style={{ display: 'flex', gap: 0, alignItems: 'flex-start', minHeight: 600, position: 'relative', overflow: 'hidden' }}>
 
       {/* ── Sidebar desktop ── */}
       <aside
@@ -1344,9 +1342,36 @@ export default function DocumentationPage({ projectId, project }) {
 
       {/* CSS responsive sidebar / mobile */}
       <style>{`
+        /* Documentation sidebar responsive */
+        .doc-sidebar     { display: none; }
+        .doc-mobile-nav  { display: block; }
+
         @media (min-width: 768px) {
           .doc-sidebar     { display: block !important; }
           .doc-mobile-nav  { display: none  !important; }
+        }
+
+        /* Prevent text overflow in documentation content */
+        #quickstart, #playground, #api-ref, #webhooks, #auth {
+          min-width: 0;
+          overflow-x: hidden;
+        }
+        #quickstart pre, #api-ref pre, #webhooks pre, #auth pre {
+          max-width: 100%;
+          overflow-x: auto;
+          white-space: pre;
+          word-break: normal;
+        }
+        /* Fix table overflow on mobile */
+        #api-ref table, #webhooks table, #auth table {
+          display: block;
+          overflow-x: auto;
+          max-width: 100%;
+        }
+        /* Fix paragraph word wrapping */
+        #quickstart p, #playground p, #api-ref p, #webhooks p, #auth p {
+          word-break: break-word;
+          overflow-wrap: break-word;
         }
       `}</style>
     </div>

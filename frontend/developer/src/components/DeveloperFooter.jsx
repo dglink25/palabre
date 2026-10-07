@@ -1,14 +1,7 @@
-/**
- * DeveloperFooter.jsx - Palabre for Developers
- *
- * Footer identique au PublicFooter de l'app Palabre principale :
- *   - Même structure HTML (grille 4 colonnes : brand + 3 col liens)
- *   - Mêmes classes CSS (.pub-footer-*, définies dans theme.css)
- *   - Même fond sombre (#202124), barre copyright bleue (#1A73E8)
- *   - Logo + nom, contact, colonnes liens adaptées au portail développeur
- */
-
 import { Link } from 'react-router-dom';
+
+// URL configurable vers l'app Palabre principale
+const PALABRE_URL = import.meta.env.VITE_PALABRE_BASE_URL || 'http://localhost:3000';
 
 // ─── Icône flèche (identique au PublicFooter) ─────────────────────────────────
 
@@ -85,6 +78,7 @@ export default function DeveloperFooter() {
             <li><FooterLink to="/login">Se connecter</FooterLink></li>
             <li><FooterLink to="/dashboard">Tableau de bord</FooterLink></li>
             <li><FooterLink to="/docs">Documentation</FooterLink></li>
+            
           </ul>
         </div>
 
@@ -105,7 +99,7 @@ export default function DeveloperFooter() {
                 <ArrowIcon />SDK Flutter
               </a>
             </li>
-            <li><FooterLink href="https://palabre.app">Palabre (app principale)</FooterLink></li>
+            <li><FooterLink href={`${PALABRE_URL}`}>Palabre</FooterLink></li>
           </ul>
         </div>
 
@@ -114,16 +108,10 @@ export default function DeveloperFooter() {
           <h4>Liens utiles</h4>
           <ul>
             <li>
-              <a href="https://palabre.app/terms" className="pub-footer-link"
-                target="_blank" rel="noopener noreferrer">
-                <ArrowIcon />Conditions d'utilisation
-              </a>
+            <FooterLink to="/terms">Conditions d'utilisation</FooterLink>
             </li>
             <li>
-              <a href="https://palabre.app/privacy" className="pub-footer-link"
-                target="_blank" rel="noopener noreferrer">
-                <ArrowIcon />Politique de confidentialité
-              </a>
+              <FooterLink to="/privacy">Politique de confidentialité</FooterLink>
             </li>
           </ul>
 

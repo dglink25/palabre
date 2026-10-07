@@ -394,7 +394,7 @@ export default function LoginPage() {
                 </Link>
               </span>
               <a href={`${PALABRE_URL}`} style={{ color: '#9aa0a6', fontSize: 12 }}>
-                Accéder à Palabre (app principale)
+                Accéder à Palabre
               </a>
             </div>
           </div>

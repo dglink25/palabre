@@ -268,99 +268,93 @@ export default function LandingPage() {
           from { opacity: 0; transform: scale(0.8); }
           to   { opacity: 1; transform: scale(1); }
         }
+
+        /* ── Responsive LandingPage ── */
+        @media (max-width: 860px) {
+          .lp-desktop-nav { display: none !important; }
+          .lp-mobile-nav  { display: flex !important; }
+        }
+        @media (min-width: 861px) {
+          .lp-desktop-nav { display: flex !important; }
+          .lp-mobile-nav  { display: none !important; }
+        }
+        @media (max-width: 768px) {
+          .lp-hero-grid { grid-template-columns: 1fr !important; }
+          .lp-hero-code { display: none !important; }
+        }
+
+        /* ── Responsive portal content ── */
+        .portal-main { min-width: 0; overflow-x: hidden; }
+        * { box-sizing: border-box; }
+        pre, code { max-width: 100%; overflow-x: auto; }
       `}</style>
 
       <div style={{ fontFamily: "'Inter', -apple-system, 'Segoe UI', sans-serif", background: '#F8F9FA', minHeight: '100vh' }}>
 
         {/* ── NAVIGATION ── */}
         <header style={{
-          position:  'sticky', top: 0, zIndex: 80,
-          display:   'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding:   '0 40px', height: 64,
+          position: 'sticky', top: 0, zIndex: 80,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 20px', height: 60,
           background: '#FFFFFF',
           borderBottom: '1px solid #E0E0E0',
           boxShadow: '0 1px 3px rgba(32,33,36,.06)',
         }}>
           {/* Logo */}
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-            <img src="/logo.png" alt="Palabre" style={{ width: 30, height: 30 }} />
-            <span style={{ fontWeight: 700, fontSize: 18, color: '#202124', letterSpacing: '0.2px' }}>
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', flexShrink: 0 }}>
+            <img src="/logo.png" alt="Palabre" style={{ width: 28, height: 28 }} />
+            <span style={{ fontWeight: 700, fontSize: 16, color: '#202124', letterSpacing: '0.2px' }}>
               Palabre
             </span>
             <span style={{
-              fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px',
-              color: '#1A73E8', background: '#EAF2FD', padding: '1px 6px', borderRadius: 3,
-            }}>
-              Developers
-            </span>
+              fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px',
+              color: '#1A73E8', background: '#EAF2FD', padding: '1px 5px', borderRadius: 3,
+            }}>Dev</span>
           </Link>
 
-          {/* Nav links */}
-          <nav style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {/* Nav - masquée sur mobile */}
+          <nav className="lp-desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             {[
-              { label: 'Fonctionnalités', href: '#features'  },
-              { label: 'Intégrations',    href: '#integrations' },
-              { label: 'Documentation',   href: '/docs' },
+              { label: 'Fonctionnalités', href: '#features' },
+              { label: 'Intégrations',   href: '#integrations' },
+              { label: 'Documentation',  href: '/docs' },
             ].map(({ label, href }) => (
               href.startsWith('#') ? (
-                <a key={label} href={href}
-                  className="lp-nav-link"
-                  style={{
-                    padding: '8px 14px', fontSize: 14, fontWeight: 500,
-                    color: '#5F6368', textDecoration: 'none',
-                    borderRadius: 6, transition: 'color 150ms ease',
-                  }}
-                >
+                <a key={label} href={href} className="lp-nav-link"
+                  style={{ padding: '7px 12px', fontSize: 13, fontWeight: 500, color: '#5F6368', textDecoration: 'none', borderRadius: 6, transition: 'color 150ms ease' }}>
                   {label}
                 </a>
               ) : (
-                <Link key={label} to={href}
-                  className="lp-nav-link"
-                  style={{
-                    padding: '8px 14px', fontSize: 14, fontWeight: 500,
-                    color: '#5F6368', textDecoration: 'none',
-                    borderRadius: 6, transition: 'color 150ms ease',
-                  }}
-                >
+                <Link key={label} to={href} className="lp-nav-link"
+                  style={{ padding: '7px 12px', fontSize: 13, fontWeight: 500, color: '#5F6368', textDecoration: 'none', borderRadius: 6, transition: 'color 150ms ease' }}>
                   {label}
                 </Link>
               )
             ))}
-
-            <div style={{ width: 1, height: 20, background: '#E0E0E0', margin: '0 6px' }} />
-
-            <Link to="/login"
-              className="lp-btn-secondary"
-              style={{
-                padding: '8px 16px',
-                fontSize: 14, fontWeight: 600,
-                color: '#202124', textDecoration: 'none',
-                border: '1px solid #E0E0E0', borderRadius: 8,
-                background: '#FFFFFF',
-                transition: 'all 150ms ease',
-              }}
-            >
+            <div style={{ width: 1, height: 18, background: '#E0E0E0', margin: '0 4px' }} />
+            <Link to="/login" style={{ padding: '7px 14px', fontSize: 13, fontWeight: 600, color: '#202124', textDecoration: 'none', border: '1px solid #E0E0E0', borderRadius: 8, background: '#FFFFFF', transition: 'all 150ms ease' }}>
               Se connecter
             </Link>
-            <Link to="/signup"
-              className="lp-btn-primary"
-              style={{
-                padding: '8px 18px',
-                fontSize: 14, fontWeight: 600,
-                color: '#FFFFFF', textDecoration: 'none',
-                background: '#1A73E8', borderRadius: 8, border: 'none',
-                transition: 'all 150ms ease',
-              }}
-            >
-              Commencer - c'est gratuit
+            <Link to="/signup" style={{ padding: '7px 14px', fontSize: 13, fontWeight: 600, color: '#FFFFFF', textDecoration: 'none', background: '#1A73E8', borderRadius: 8, border: 'none', transition: 'all 150ms ease', whiteSpace: 'nowrap' }}>
+              Commencer
             </Link>
           </nav>
+
+          {/* Boutons compacts sur mobile */}
+          <div className="lp-mobile-nav" style={{ display: 'none', alignItems: 'center', gap: 6 }}>
+            <Link to="/login" style={{ padding: '7px 12px', fontSize: 13, fontWeight: 600, color: '#202124', textDecoration: 'none', border: '1px solid #E0E0E0', borderRadius: 8, background: '#FFFFFF' }}>
+              Connexion
+            </Link>
+            <Link to="/signup" style={{ padding: '7px 12px', fontSize: 13, fontWeight: 600, color: '#FFFFFF', textDecoration: 'none', background: '#1A73E8', borderRadius: 8 }}>
+              S'inscrire
+            </Link>
+          </div>
         </header>
 
         {/* ── HÉRO ── */}
-        <section style={{
-          maxWidth: 1120, margin: '0 auto', padding: '80px 40px 64px',
-          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 56, alignItems: 'center',
+        <section className="lp-hero-grid" style={{
+          maxWidth: 1120, margin: '0 auto', padding: 'clamp(40px, 6vw, 80px) clamp(20px, 4vw, 40px) clamp(40px, 5vw, 64px)',
+          display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 'clamp(24px, 4vw, 56px)', alignItems: 'center',
         }}>
           {/* Texte */}
           <div ref={heroRef} className="lp-hero-reveal" style={{ '--lp-delay': '0ms' }}>
@@ -439,7 +433,7 @@ export default function LandingPage() {
           </div>
 
           {/* Code démo */}
-          <div className="lp-code-anim" style={{
+          <div className="lp-code-anim lp-hero-code" style={{
             background: '#1e2433', borderRadius: 12,
             overflow: 'hidden',
             boxShadow: '0 20px 60px rgba(26,115,232,.20), 0 4px 16px rgba(32,33,36,.12)',

@@ -6,6 +6,8 @@ import PortalLayout from './components/PortalLayout.jsx';
 const LandingPage       = React.lazy(() => import('./pages/LandingPage.jsx'));
 const LoginPage         = React.lazy(() => import('./pages/LoginPage.jsx'));
 const SignupPage        = React.lazy(() => import('./pages/SignupPage.jsx'));
+const TermsPage         = React.lazy(() => import('./pages/TermsPage.jsx'));
+const PrivacyPage       = React.lazy(() => import('./pages/PrivacyPage.jsx'));
 
 // Pages protégées
 const DashboardPage     = React.lazy(() => import('./pages/DashboardPage.jsx'));
@@ -60,6 +62,12 @@ export default function App() {
       } />
       <Route path="/signup" element={
         <PublicPage><SignupPage /></PublicPage>
+      } />
+      <Route path="/terms" element={
+        <PublicPage><TermsPage /></PublicPage>
+      } />
+      <Route path="/privacy" element={
+        <PublicPage><PrivacyPage /></PublicPage>
       } />
 
       {/* ── Pages protégées - avec sidebar Palabre ── */}

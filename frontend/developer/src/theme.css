@@ -735,7 +735,7 @@ tr:hover td { background-color: rgba(26,115,232,.03); }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 40px;
+  padding: 16px 24px;
   flex-shrink: 0;
 }
 .auth-layout-body {
@@ -743,15 +743,50 @@ tr:hover td { background-color: rgba(26,115,232,.03); }
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px 48px 48px;
+  gap: 48px;
+  padding: 24px 24px 48px;
+  box-sizing: border-box;
 }
 .auth-layout-card {
   background-color: var(--color-white);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   padding: 36px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+/* L'illustration est cachée sur mobile, visible à partir de 768px */
+.auth-layout-illustration {
+  flex: 1;
+  max-width: 380px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+@media (min-width: 768px) {
+  .auth-layout-illustration {
+    display: flex;
+  }
+  .auth-layout-topbar {
+    padding: 18px 40px;
+  }
+}
+@media (max-width: 767px) {
+  .auth-layout-body {
+    padding: 16px 16px 32px;
+    align-items: flex-start;
+    padding-top: 24px;
+  }
+  .auth-layout-card {
+    padding: 24px 20px;
+    max-width: 100%;
+    border-radius: 12px;
+  }
+  .auth-layout-topbar {
+    padding: 14px 16px;
+  }
 }
 
 /* ── Stat cards ── */
@@ -867,16 +902,51 @@ tr:hover td { background-color: rgba(26,115,232,.03); }
   .mobile-topbar     { display: flex; }
   .app-shell         { padding-top: var(--topbar-height); }
   .main-content      { padding: 20px; }
-  .auth-layout-body  { padding: 16px; }
-  .auth-layout-card  { padding: 26px 20px; }
-  .auth-layout-topbar { padding: 14px 20px; }
+  .auth-layout-topbar { padding: 12px 16px; }
   .portal-sidebar    { display: none !important; }
-  .portal-main       { padding: 20px !important; }
+  .portal-main       { padding: 20px !important; min-width: 0 !important; }
   .portal-shell      { padding-top: var(--topbar-height); }
+
+  /* Sur mobile : illustration cachée, carte prend toute la largeur */
+  .auth-layout-body {
+    padding: 16px 16px 32px;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .auth-layout-card {
+    padding: 24px 18px;
+    max-width: 100%;
+    width: 100%;
+  }
+  .auth-layout-illustration {
+    display: none !important;
+  }
 }
 
 @media (max-width: 600px) {
   .main-content { padding: 16px; }
+  .auth-layout-topbar { padding: 10px 14px; }
+  .auth-layout-card { padding: 20px 16px; }
+}
+
+/* Landing page - navigation mobile */
+@media (max-width: 860px) {
+  .lp-desktop-nav { display: none !important; }
+  .lp-mobile-nav  { display: flex !important; }
+}
+@media (min-width: 861px) {
+  .lp-desktop-nav { display: flex !important; }
+  .lp-mobile-nav  { display: none !important; }
+}
+
+/* Landing page - grille héro : 1 colonne sur mobile */
+@media (max-width: 768px) {
+  .lp-hero-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .lp-hero-code {
+    display: none !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
