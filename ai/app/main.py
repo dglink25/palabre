@@ -22,8 +22,13 @@ def _sync_loop():
     while True:
         try:
             rag.sync_kb()
-        except Exception:  # noqa: BLE001
-            log.exception("sync_kb")
+        except Exception as e:  # noqa: BLE001
+            # Silencieux si les tables n'existent pas encore (migrations non lancées)
+            msg = str(e)
+            if "does not exist" in msg or "UndefinedTable" in msg:
+                log.debug("sync_kb: tables absentes (migrations non lancées), nouvelle tentative dans %ds", settings.kb_sync_seconds)
+            else:
+                log.exception("sync_kb")
         time.sleep(settings.kb_sync_seconds)
 
 
@@ -45,6 +50,21 @@ def auth(x_api_key: str = Header(default="")):
 
 
 app = FastAPI(title="Palabre AI", lifespan=lifespan, dependencies=[Depends(auth)])
+
+
+# /health est public - pas d'auth (requis pour le healthcheck Docker)
+# On le redéfinit APRÈS l'app pour contourner la dépendance globale via une exception
+# La solution propre : overrider la dépendance pour cette route
+app.dependency_overrides  # accessible mais complexe ; on utilise un middleware à la place
+
+
+@app.middleware("http")
+async def _skip_auth_for_health(request, call_next):
+    """Bypass l'auth globale pour GET /health uniquement."""
+    if request.url.path == "/health" and request.method == "GET":
+        from fastapi.responses import JSONResponse
+        return JSONResponse({"status": "ok", "voice": voice.enabled()})
+    return await call_next(request)
 
 
 # ---------- Modèles ----------
