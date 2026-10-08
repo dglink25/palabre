@@ -3,33 +3,47 @@
 # palabre.sh - Gestionnaire de démarrage du système central Palabre
 #
 # Usage :
-#   ./palabre.sh start  core        # Système central complet (sans frontend)
-#   ./palabre.sh start  all         # Tout (y compris frontend web)
-#   ./palabre.sh start  frontend    # Frontend web uniquement
-#   ./palabre.sh start  telephony   # Asterisk + Mediasoup
-#   ./palabre.sh stop   core        # Arrêter le système central
-#   ./palabre.sh stop   all         # Tout arrêter
-#   ./palabre.sh restart core       # Redémarrer
-#   ./palabre.sh logs   backend     # Suivre les logs d'un service
-#   ./palabre.sh logs   ai          # Suivre les logs du service AI
-#   ./palabre.sh status             # État de tous les conteneurs
-#   ./palabre.sh migrate            # Exécuter les migrations SQL
-#   ./palabre.sh ps                 # Alias de status
-#   ./palabre.sh setup-env          # Propager les variables partagées
-#   ./palabre.sh setup-env ai       # Générer uniquement ai/.env
+#   ./palabre.sh start  core               # Système central (sans frontends)
+#   ./palabre.sh start  all                # Tout (y compris les deux frontends web)
+#   ./palabre.sh start  frontend           # Les deux frontends web
+#   ./palabre.sh start  frontend-web       # App principale uniquement (port 3000)
+#   ./palabre.sh start  frontend-developer # Portail développeurs (port 3001)
+#   ./palabre.sh start  telephony          # Asterisk + Mediasoup
+#   ./palabre.sh stop   core               # Arrêter le système central
+#   ./palabre.sh stop   all                # Tout arrêter
+#   ./palabre.sh restart core              # Redémarrer
+#   ./palabre.sh logs   backend            # Suivre les logs d'un service
+#   ./palabre.sh logs   ai                 # Logs du service AI
+#   ./palabre.sh status                    # État de tous les conteneurs
+#   ./palabre.sh migrate                   # Exécuter les migrations SQL
+#   ./palabre.sh ps                        # Alias de status
+#   ./palabre.sh setup-env                 # Propager les variables partagées
+#   ./palabre.sh setup-env ai              # Générer uniquement ai/.env
+#   ./palabre.sh mobile android            # Flutter sur émulateur Android
+#   ./palabre.sh mobile ios                # Flutter sur simulateur iOS
+#   ./palabre.sh mobile build-apk          # Compiler l'APK Android (release)
 #
 # Profils disponibles :
-#   core        → postgres (pgvector), redis, backend, presence,
-#                 message-router, file-server, call-signal, coturn, ai
-#   frontend    → frontend-web
-#   telephony   → mediasoup, asterisk
-#   realtime    → presence, message-router, file-server, call-signal, coturn
-#   all         → tout ce qui précède
+#   core              → postgres (pgvector), redis, backend, ai, presence,
+#                       message-router, file-server, call-signal, coturn
+#   frontend          → frontend-web (3000) + frontend-developer (3001)
+#   frontend-web      → application principale (port 3000)
+#   frontend-developer → portail développeurs (port 3001)
+#   telephony         → mediasoup, asterisk
+#   realtime          → presence, message-router, file-server, call-signal, coturn
+#   all               → tout ce qui précède
 #
 # Services individuels :
-#   postgres | redis | backend | frontend-web
+#   postgres | redis | backend | ai
+#   frontend-web | frontend-developer
 #   presence | message-router | file-server | call-signal
-#   coturn | mediasoup | asterisk | ai | wireguard
+#   coturn | mediasoup | asterisk | wireguard
+#
+# Mobile Flutter (hors Docker) :
+#   ./palabre.sh mobile android     → émulateur Android
+#   ./palabre.sh mobile ios         → simulateur iOS
+#   ./palabre.sh mobile build-apk   → APK release
+#   Voir frontend/mobile/README.md pour les instructions complètes.
 # =============================================================================
 
 set -euo pipefail

@@ -80,10 +80,29 @@ services:
     depends_on:
       - backend
 
+  frontend-developer:
+    build:
+      context: ../frontend/developer
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:4001/api/v1}
+        VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY:-}
+        VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN:-}
+        VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID:-}
+        VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID:-}
+        VITE_PALABRE_BASE_URL: ${VITE_PALABRE_BASE_URL:-http://localhost:3000}
+        VITE_DEVELOPER_PORTAL_URL: ${VITE_DEVELOPER_PORTAL_URL:-http://localhost:3001}
+    container_name: palabre-frontend-developer
+    profiles: ["frontend", "frontend-developer", "all"]
+    ports:
+      - "3001:3001"
+    depends_on:
+      - backend
+
   # frontend-mobile n'est pas un service Docker au sens propre (application
-  # React Native compilée en APK, voir palabre/frontend/mobile) : elle n'a
-  # donc pas d'entrée ici, mais son dossier existe au même niveau que les
-  # autres modules pour respecter l'arborescence demandée.
+  # Flutter compilée en APK/IPA). Elle se build localement avec :
+  #   cd frontend/mobile && flutter pub get
+  #   flutter run --dart-define=API_BASE_URL=http://localhost:4001/api/v1 ...
+  # Voir frontend/mobile/README.md pour les instructions complètes.
 
   mediasoup:
     build:
