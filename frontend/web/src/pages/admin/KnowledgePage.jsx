@@ -327,7 +327,7 @@ function KbTab() {
                     {entry.ivr_option ? (
                       <span style={S.badge('#1A73E8')}>Option {entry.ivr_option}</span>
                     ) : (
-                      <span style={{ color: '#9AA0A6', fontSize: 12 }}>—</span>
+                      <span style={{ color: '#9AA0A6', fontSize: 12 }}></span>
                     )}
                   </td>
                   <td style={S.td}>

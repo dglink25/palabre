@@ -145,6 +145,22 @@ services:
       start_period: 90s
     restart: unless-stopped
 
+  voice-server:
+    build:
+      context: ../ai/voice_server
+    container_name: palabre-voice-server
+    profiles: ["voice", "all"]
+    environment:
+      VOICE_SERVICE_KEY: ${VOICE_SERVICE_KEY:-}
+      REF_VOICE: /voices/ref.wav
+      WHISPER_MODEL: small
+    ports:
+      - "7860:7860"
+    volumes:
+      - ../ai/voice_server/voices:/voices:ro
+      - palabre_voice_cache:/root/.cache
+    restart: unless-stopped
+
   wireguard:
     build:
       context: ../wireguard
@@ -288,3 +304,4 @@ volumes:
   palabre_coturn_data:
   palabre_ai_data:
   palabre_recordings:
+  palabre_voice_cache:

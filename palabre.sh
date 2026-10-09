@@ -143,6 +143,13 @@ cmd_start() {
     echo ""
   fi
 
+  if [ "$target" = "voice" ]; then
+    echo ""
+    echo "  Services démarrés :"
+    echo "    voice-server    → :7860  (STT Whisper + TTS Chatterbox)"
+    echo ""
+  fi
+
   $COMPOSE --profile "$target" up -d --build
   echo ""
   ok "Profil ${BOLD}${target}${RESET} démarré."

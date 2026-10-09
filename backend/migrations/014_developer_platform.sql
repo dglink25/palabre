@@ -14,8 +14,8 @@ CREATE INDEX idx_developer_accounts_user ON developer_accounts(user_id);
 
 COMMENT ON TABLE  developer_accounts              IS 'Compte développeur, lié 1:1 à un utilisateur Palabre. Créé au premier accès.';
 COMMENT ON COLUMN developer_accounts.id           IS 'Identifiant unique du compte développeur (UUID v4).';
-COMMENT ON COLUMN developer_accounts.user_id      IS 'Référence vers l'utilisateur Palabre propriétaire du compte.';
-COMMENT ON COLUMN developer_accounts.status       IS 'État du compte : active (opérationnel) ou suspended (bloqué par l'équipe Palabre).';
+COMMENT ON COLUMN developer_accounts.user_id      IS 'Référence vers l''utilisateur Palabre propriétaire du compte.';
+COMMENT ON COLUMN developer_accounts.status       IS 'État du compte : active (opérationnel) ou suspended (bloqué par l''équipe Palabre).';
 COMMENT ON COLUMN developer_accounts.created_at   IS 'Date de création du compte développeur.';
 COMMENT ON COLUMN developer_accounts.updated_at   IS 'Date de dernière mise à jour (statut, etc.).';
 

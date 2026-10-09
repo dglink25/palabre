@@ -119,13 +119,13 @@ La commande `./palabre.sh setup-env` les propage automatiquement vers :
 - `services/call-signal/.env`
 - `ai/.env`
 
-Ne pas modifier directement les `.env` des micro-services — ils seraient ecrases au prochain `setup-env`.
+Ne pas modifier directement les `.env` des micro-services  ils seraient ecrases au prochain `setup-env`.
 
 ---
 
 ## Configuration obligatoire
 
-### 1. Service IA — cle LLM
+### 1. Service IA  cle LLM
 
 Le service AI utilise un LLM via une API compatible OpenAI. [Groq](https://console.groq.com) est recommande (gratuit, rapide).
 
@@ -138,16 +138,16 @@ LLM_MODEL=llama-3.3-70b-versatile
 
 Puis propager : `./palabre.sh setup-env ai`
 
-### 2. Service IA — cle partagee avec le backend
+### 2. Service IA  cle partagee avec le backend
 
 ```env
-# backend/.env — generer avec : openssl rand -hex 32
+# backend/.env  generer avec : openssl rand -hex 32
 AI_API_KEY=change_me_ai_api_key
 ```
 
 Cette cle est automatiquement copiee dans `ai/.env` sous le nom `API_KEY` lors du `setup-env`. Ne la saisir qu'une seule fois dans `backend/.env`.
 
-### 3. Firebase — authentification fédérée + notifications push
+### 3. Firebase  authentification fédérée + notifications push
 
 1. Créez un projet sur https://console.firebase.google.com
 2. Authentication > Sign-in method > activez : Google, GitHub, Facebook, Apple
@@ -187,7 +187,7 @@ openssl rand -hex 32   # AI_API_KEY
 
 `INTERNAL_SERVICES_SECRET`, `ERLANG_COOKIE`, `PHOENIX_SECRET_KEY_BASE` et `TURN_SECRET` doivent etre identiques dans `backend/.env` et `docker/.env`.
 
-### 5. SMTP — envoi d'emails (rapports de session inclus)
+### 5. SMTP  envoi d'emails (rapports de session inclus)
 
 Les rapports PDF sont envoyes par email a la fin de chaque appel et videoconference.
 
@@ -199,23 +199,23 @@ MAIL_PASSWORD=xxxx xxxx xxxx xxxx   # Mot de passe d'application Gmail
 MAIL_FROM=Palabre <votre@gmail.com>
 ```
 
-### 6. Convessa — OTP WhatsApp
+### 6. Convessa  OTP WhatsApp
 
 ```env
 CONVESSA_API_KEY=pk_convessa_xxxxxx
 CONVESSA_API_URL=https://convessa.epac-uac-optica-chapter.bj
 ```
 
-### 7. Vidéoconférence — Jitsi
+### 7. Vidéoconférence  Jitsi
 
-**Option A — serveur Jitsi auto-heberge (recommande)**
+**Option A  serveur Jitsi auto-heberge (recommande)**
 ```env
 JITSI_DOMAIN=meet.votre-domaine.com
 JITSI_JWT_SECRET=<openssl rand -hex 32>
 VIDEO_SESSION_JWT_TTL_SECONDS=86400
 ```
 
-**Option B — JaaS 8x8 (cloud)**
+**Option B  JaaS 8x8 (cloud)**
 ```env
 JAAS_APP_ID=vpaas-magic-cookie-xxxxxx
 JAAS_KEY_ID=vpaas-magic-cookie-xxxxxx/xxxxxx
@@ -258,7 +258,7 @@ POWERDNS_API_KEY=<votre-cle>
 PALABRE_BASE_DOMAIN=palabre.com
 ```
 
-### Service voix IA (TTS/STT) — GPU recommande
+### Service voix IA (TTS/STT)  GPU recommande
 Le `voice_server` dans `ai/voice_server/` active la synthese vocale des reponses de l'agent.
 ```env
 # ai/.env (ou via setup-env)
@@ -382,7 +382,7 @@ Les variables suivantes sont definies **une seule fois** dans `backend/.env` et 
 | `VITE_FIREBASE_MESSAGING_SENDER_ID` | idem |
 | `VITE_FIREBASE_VAPID_KEY` | Firebase > Cloud Messaging > Certificats Push Web |
 
-**ai/.env — genere par setup-env, ne pas modifier directement**
+**ai/.env  genere par setup-env, ne pas modifier directement**
 
 Le fichier `ai/.env` est genere automatiquement depuis `backend/.env`.
 Seule la variable `VOICE_SERVICE_URL` doit etre ajoutee manuellement si vous activez le TTS/STT.
