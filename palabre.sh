@@ -150,6 +150,23 @@ cmd_start() {
     echo ""
   fi
 
+  # Pour les frontends : s'assurer que le dist est compilé
+  if [ "$target" = "frontend" ] || [ "$target" = "frontend-web" ] || [ "$target" = "all" ]; then
+    if [ ! -d "${SCRIPT_DIR}/frontend/web/dist" ] || [ -z "$(ls -A "${SCRIPT_DIR}/frontend/web/dist" 2>/dev/null)" ]; then
+      warn "dist absent pour frontend/web - lancement de npm run build..."
+      (cd "${SCRIPT_DIR}/frontend/web" && npm install && npm run build) \
+        || err "Echec du build frontend/web. Vérifiez que Node.js est installé."
+    fi
+  fi
+
+  if [ "$target" = "frontend" ] || [ "$target" = "frontend-developer" ] || [ "$target" = "all" ]; then
+    if [ ! -d "${SCRIPT_DIR}/frontend/developer/dist" ] || [ -z "$(ls -A "${SCRIPT_DIR}/frontend/developer/dist" 2>/dev/null)" ]; then
+      warn "dist absent pour frontend/developer - lancement de npm run build..."
+      (cd "${SCRIPT_DIR}/frontend/developer" && npm install && npm run build) \
+        || err "Echec du build frontend/developer. Vérifiez que Node.js est installé."
+    fi
+  fi
+
   $COMPOSE --profile "$target" up -d --build
   echo ""
   ok "Profil ${BOLD}${target}${RESET} démarré."

@@ -66,13 +66,6 @@ services:
   frontend-web:
     build:
       context: ../frontend/web
-      args:
-        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:4001/api/v1}
-        VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY:-}
-        VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN:-}
-        VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID:-}
-        VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID:-}
-        VITE_MESSAGE_ROUTER_URL: ${VITE_MESSAGE_ROUTER_URL:-ws://localhost:4020}
     container_name: palabre-frontend-web
     profiles: ["frontend", "frontend-web", "all"]
     ports:
@@ -83,14 +76,6 @@ services:
   frontend-developer:
     build:
       context: ../frontend/developer
-      args:
-        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:4001/api/v1}
-        VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY:-}
-        VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN:-}
-        VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID:-}
-        VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID:-}
-        VITE_PALABRE_BASE_URL: ${VITE_PALABRE_BASE_URL:-http://localhost:3000}
-        VITE_DEVELOPER_PORTAL_URL: ${VITE_DEVELOPER_PORTAL_URL:-http://localhost:3001}
     container_name: palabre-frontend-developer
     profiles: ["frontend", "frontend-developer", "all"]
     ports:
