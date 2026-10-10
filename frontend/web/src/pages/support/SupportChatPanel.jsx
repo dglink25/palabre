@@ -101,7 +101,7 @@ function OptionButton({ opt, onClick }) {
 }
 
 // ── Panel principal ───────────────────────────────────────────────────────────
-export default function SupportChatPanel({ session, messages, setMessages, user }) {
+export default function SupportChatPanel({ session, messages, setMessages, user, onTransferToAgent }) {
   const [input, setInput]             = useState('');
   const [sending, setSending]         = useState(false);
   const [aiLoading, setAiLoading]     = useState(false);
@@ -175,7 +175,7 @@ export default function SupportChatPanel({ session, messages, setMessages, user 
       if (result.action === 'transfer_to_agent') {
         setMessages(prev => [...prev, localMsg(result.message, 'agent')]);
         setIvrState('transfer');
-        // Envoyer un message système au super-admin via WebSocket
+        // Notifier via WebSocket que l'utilisateur veut un conseiller humain
         if (session) {
           supportWs.sendMessage({
             sessionId:  session.id,
@@ -184,6 +184,10 @@ export default function SupportChatPanel({ session, messages, setMessages, user 
             clientTs:   Date.now(),
           });
         }
+        // Basculer vers l'onglet Appel après un court délai
+        setTimeout(() => {
+          onTransferToAgent?.();
+        }, 1500);
         return;
       }
 
@@ -270,10 +274,13 @@ export default function SupportChatPanel({ session, messages, setMessages, user 
       // Si l'agent suggère un transfert
       if (result.suggest_transfer) {
         setMessages(prev => [...prev, localMsg(
-          `${result.transfer_message}\n\nVoulez-vous parler a un conseiller ? Tapez 8.`,
+          `${result.transfer_message}\n\nSouhaitez-vous parler a un conseiller ? Tapez 8 pour appeler.`,
           'agent'
         )]);
-        setIvrOptions([{ key: '8', label: 'Parler a un conseiller' }, { key: '0', label: 'Non merci' }]);
+        setIvrOptions([
+          { key: '8', label: 'Appeler un conseiller' },
+          { key: '0', label: 'Non merci, continuer par message' },
+        ]);
       }
 
       // Aussi envoyer au super-admin via WebSocket pour garder la trace

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider, useNotification } from './context/NotificationContext';
+import { SuperAdminProvider } from './context/SuperAdminContext';
 import { __setNotifyFn } from './components/ui';
 import Layout from './components/Layout';
 import PublicLayout from './components/PublicLayout';
@@ -64,6 +65,7 @@ export default function App() {
     <BrowserRouter>
       <NotificationProvider>
         <AuthProvider>
+          <SuperAdminProvider>
           <NotifyBridge />
           <StepUpConfirmModal />
           <Routes>
@@ -139,6 +141,7 @@ export default function App() {
           <CookieBanner />
           <ScrollButton />
           <SupportWidget />
+          </SuperAdminProvider>
         </AuthProvider>
       </NotificationProvider>
     </BrowserRouter>

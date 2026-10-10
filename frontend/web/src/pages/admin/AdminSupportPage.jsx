@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supportApi, supportWs } from '../../lib/supportApi';
 import { useNotification } from '../../context/NotificationContext';
 import { useConfirm } from '../../components/ui';
+import { useSuperAdmin } from '../../context/SuperAdminContext';
 
 // ── Icônes ────────────────────────────────────────────────────────────────────
 const Ico = ({ d, size = 16 }) => (
@@ -66,6 +67,7 @@ function decode(ciphertext) {
 export default function AdminSupportPage() {
   const { notify } = useNotification();
   const { confirm, ConfirmModal } = useConfirm();
+  const { wsConnected } = useSuperAdmin() || {};
   const [sessions, setSessions]     = useState([]);
   const [queueStatus, setQueueStatus] = useState(null);
   const [holdCalls, setHoldCalls]   = useState([]);
@@ -95,7 +97,7 @@ export default function AdminSupportPage() {
 
   useEffect(() => {
     load();
-    supportWs.connect();
+    // Le WebSocket est géré globalement par SuperAdminContext - pas de connect/disconnect ici
 
     const offNew    = supportWs.on('support:call:incoming', () => load());
     const offMsg    = supportWs.on('support:message:new',   (msg) => {
@@ -103,7 +105,6 @@ export default function AdminSupportPage() {
         if (selected && msg.session_id === selected.id) return [...prev, msg];
         return prev;
       });
-      // Rafraîchir la liste si la session n'est pas sélectionnée
       load();
     });
     const offQ      = supportWs.on('support:queue:update', () => load());
@@ -121,7 +122,7 @@ export default function AdminSupportPage() {
 
     return () => {
       offNew(); offMsg(); offQ(); offEnd(); offAns(); offHold(); offResume();
-      supportWs.disconnect();
+      // Ne pas déconnecter le WS — géré par SuperAdminContext
     };
   }, [load]);
 

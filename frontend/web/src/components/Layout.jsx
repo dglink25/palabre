@@ -3,6 +3,8 @@ import { NavLink, Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import NetworkModeIndicator from './NetworkModeIndicator';
 import { networkDetector } from '../lib/networkDetector';
+import AdminIncomingCallBanner from './AdminIncomingCallBanner';
+import { useSuperAdmin } from '../context/SuperAdminContext';
 
 function RealtimeClock({ timezone }) {
   const [display, setDisplay] = useState('');
@@ -125,6 +127,7 @@ function SideSection({ label }) {
 // ── Layout principal ──────────────────────────────────────────────────────────
 export default function Layout() {
   const { user, logout } = useAuth();
+  const { wsConnected } = useSuperAdmin() || {};
   const [open, setOpen] = useState(false);
   const location = useLocation();
 
@@ -168,7 +171,7 @@ export default function Layout() {
   const superItems = [
     { to: '/admin',              key: 'dashboard', label: 'Tableau de bord', end: true },
     { to: '/admin/onboarding',   key: 'requests',  label: 'Dossiers' },
-    { to: '/admin/support',      key: 'support',   label: 'Service client' },
+    { to: '/admin/support',      key: 'support',   label: wsConnected ? 'Service client  ●' : 'Service client  ○' },
     { to: '/admin/knowledge',    key: 'guide',     label: 'Base de connaissance' },
   ];
   const orgItems = [
@@ -224,6 +227,8 @@ export default function Layout() {
 
   return (
     <div className="shell">
+      {/* Bannière appel entrant — visible sur toutes les pages admin */}
+      {user?.isSuperAdmin && <AdminIncomingCallBanner />}
 
       {/* ── Sidebar ── */}
       <aside
